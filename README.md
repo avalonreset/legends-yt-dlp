@@ -1,26 +1,48 @@
----
-type: readme
-status: active
-created: 2026-05-27
-updated: 2026-05-27
-tags: [readme, project]
----
-
 # Legends YT-DLP Slayer
 
-Development vault for a Windows-first, rights-aware video archive orchestrator built around yt-dlp and Mullvad VPN.
+Windows-first control plane for lawful, resumable video archiving with `yt-dlp` and a Mullvad VPN preflight gate.
 
-The vault is the operating surface for the project. Start with:
+Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful but easy to operate carelessly at scale. The project wraps the official `yt-dlp` binary with explicit batch plans, rights-basis checks, local state, conservative defaults, and a fail-closed Mullvad gate so downloads do not start unless the machine is in the expected VPN posture.
 
-- [[Project Overview]]
-- [[Hot Cache]]
-- [[Roadmap]]
-- [[Use Policy]]
-- [[Windows Operator Setup]]
-- [[Preflight Checklist]]
-- [[CLI Operator Commands]]
+## What It Does
 
-## CLI Quick Start
+- Detects the official Mullvad CLI installed with the Windows app.
+- Stores the Mullvad account number locally in an ignored `.env` file.
+- Downloads the official Windows `yt-dlp.exe` release from `yt-dlp/yt-dlp`.
+- Verifies the downloaded binary against upstream `SHA2-256SUMS`.
+- Detects `ffmpeg`.
+- Creates rights-aware batch manifests.
+- Generates stable `yt-dlp` config files with download archives and conservative retry/sleep settings.
+- Blocks real runs until preflight passes.
+- Requires an explicit `--yes` flag for real downloads.
+
+## Why It Exists
+
+Large archive jobs fail in predictable ways: accidental non-VPN traffic, duplicate downloads, broken resumes, messy output paths, unclear rights, and no evidence trail. This project turns those weak points into boring preflight checks and repeatable operator commands.
+
+The goal is not to evade platform controls. The goal is to make legitimate archival work safer, slower, resumable, and auditable.
+
+## Current Status
+
+Early private alpha.
+
+Working now:
+
+- `doctor`
+- Mullvad status/login/connect/lockdown wrappers
+- official `yt-dlp.exe` install and version check
+- batch `plan`
+- batch `preflight`
+- guarded `run`
+
+Blocked until the local Mullvad account is funded and connected:
+
+- passing default batch preflight
+- real download smoke tests
+
+## Quick Start
+
+From the project root:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor
@@ -28,20 +50,79 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp version
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad status --verbose
 ```
 
-Default batch preflight requires Mullvad to be connected. That is intentional.
+After the Mullvad account is active:
 
-## Operating Boundary
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad login
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lockdown on
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad connect
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --require-connected
+```
 
-This project is for lawful archiving of videos the operator owns, has permission to download, or can otherwise legally preserve. Mullvad is treated as a privacy and leak-prevention layer, not as an evasion layer. The system should fail closed when VPN state is unsafe, back off when platforms throttle, and stop when a source blocks or challenges access.
+Create a batch:
 
-## Vault Layout
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --name "channel-name"
+```
 
-- `.raw/` stores immutable source notes, briefings, and evidence.
-- `wiki/` stores synthesized project knowledge.
-- `_templates/` stores reusable note templates.
-- `tools/` stores vault maintenance helpers.
-- `CODEX.md` defines the vault rules for Codex sessions.
+Preflight and run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --dry-run
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes
+```
+
+## Safety Boundary
+
+Allowed:
+
+- archiving videos you own
+- archiving videos you have permission to download
+- archiving public-domain or appropriately licensed content
+- using Mullvad as a privacy and leak-prevention layer
+- stopping on throttling, captcha, login, or block signals
+
+Not allowed:
+
+- bypassing DRM, paywalls, captchas, login challenges, or access controls
+- rotating VPN relays to continue through platform blocks
+- automating downloads without a documented rights basis
+- hiding abusive or copyright-infringing use
+
+See [docs/SAFETY.md](docs/SAFETY.md).
+
+## Architecture
+
+```text
+Operator command
+  -> CLI control plane
+  -> Policy checks
+  -> Mullvad guard
+  -> yt-dlp runner
+  -> Batch state and reports
+```
+
+The project uses `yt-dlp` as an external child-process dependency rather than reimplementing download logic.
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Documentation
+
+- [CLI Commands](docs/CLI.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Safety and Use Policy](docs/SAFETY.md)
+- [Changelog](CHANGELOG.md)
 
 ## Local Secrets
 
-`.env` is ignored by git. Use `.env.example` for the shape only.
+`.env` is ignored by git. Use `.env.example` for the expected shape.
+
+Never commit Mullvad account numbers, cookies, account tokens, or batch outputs.
+
+## License
+
+License is not finalized. This repository is private while the product and distribution model are being worked out.
+
+Important distribution note: the project does not commit the `yt-dlp.exe` binary. If a future release bundles upstream binaries, review upstream licensing and notices before distribution.
+
