@@ -6,10 +6,12 @@
 .DS_Store
 *.tmp
 *.log
+.env
+.env.*
+!.env.example
 downloads/
 cache/
 secrets/
 cookies/
 *.cookies.txt
 *.netrc
-
