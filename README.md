@@ -31,6 +31,7 @@ Working now:
 - `doctor`
 - Mullvad status/login/connect/lockdown wrappers
 - Mullvad inspect and settings wrappers
+- Mullvad safe recovery for tunnel/network failures
 - official `yt-dlp.exe` install and version check
 - batch `plan`
 - multi-URL and URL-file batch planning
@@ -61,6 +62,7 @@ After the Mullvad account is active:
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad login
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lockdown on
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad connect
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad recover
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --require-connected
 ```
 

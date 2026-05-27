@@ -4,10 +4,19 @@ import argparse
 import sys
 from pathlib import Path
 
-from .batch import catalog_rows, create_batch_from_urls, preflight_batch, preflight_ok, read_url_file, run_batch
+from .batch import (
+    catalog_rows,
+    classify_run_failure,
+    create_batch_from_urls,
+    only_mullvad_connection_failed,
+    preflight_batch,
+    preflight_ok,
+    read_url_file,
+    run_batch,
+)
 from .doctor import overall_ok, run_doctor
 from .envfile import read_env_file, redact
-from .mullvad import connect, login, redact_account_in_text, run_mullvad, set_lockdown, status
+from .mullvad import connect, login, recover_connection, redact_account_in_text, run_mullvad, set_lockdown, status
 from .paths import PROJECT_ROOT
 from .tools import find_ytdlp, install_ytdlp, run_tool
 
@@ -72,6 +81,14 @@ def cmd_mullvad_disconnect(_: argparse.Namespace) -> int:
 
 def cmd_mullvad_reconnect(_: argparse.Namespace) -> int:
     return print_mullvad_result(["reconnect"], timeout=120)
+
+
+def cmd_mullvad_recover(args: argparse.Namespace) -> int:
+    result = recover_connection(attempts=args.attempts, wait_seconds=args.wait_seconds)
+    account = env_account()
+    for message in result.messages:
+        print(redact_account_in_text(message, account))
+    return 0 if result.ok else 1
 
 
 def cmd_mullvad_lockdown(args: argparse.Namespace) -> int:
@@ -225,17 +242,45 @@ def cmd_run(args: argparse.Namespace) -> int:
     manifest = Path(args.manifest)
     checks = preflight_batch(manifest, require_connected=not args.no_require_connected)
     if not preflight_ok(checks, require_connected=not args.no_require_connected):
-        for check in checks:
-            print_check(check.name, check.ok, check.detail)
-        print("Preflight failed. Batch did not start.", file=sys.stderr)
-        return 1
+        if args.recover_vpn and not args.no_require_connected and only_mullvad_connection_failed(checks):
+            recovery = recover_connection(attempts=args.vpn_recovery_attempts, wait_seconds=args.vpn_recovery_wait)
+            for message in recovery.messages:
+                print(redact_account_in_text(message, env_account()))
+            checks = preflight_batch(manifest, require_connected=True)
+            if preflight_ok(checks, require_connected=True):
+                print("Preflight passed after Mullvad recovery.")
+            else:
+                for check in checks:
+                    print_check(check.name, check.ok, check.detail)
+                print("Preflight failed after Mullvad recovery. Batch did not start.", file=sys.stderr)
+                return 1
+        else:
+            for check in checks:
+                print_check(check.name, check.ok, check.detail)
+            print("Preflight failed. Batch did not start.", file=sys.stderr)
+            return 1
     if not args.dry_run and not args.yes:
         print("Refusing real download without --yes. Use --dry-run first.", file=sys.stderr)
         return 2
-    result = run_batch(manifest, dry_run=args.dry_run)
-    output = "\n".join(part for part in [result.stdout, result.stderr] if part)
-    if output:
-        print(output)
+    for attempt in range(0, args.vpn_recovery_attempts + 1):
+        result = run_batch(manifest, dry_run=args.dry_run)
+        output = "\n".join(part for part in [result.stdout, result.stderr] if part)
+        if output:
+            print(output)
+        if result.returncode == 0:
+            return 0
+        category = classify_run_failure(result)
+        if not args.recover_vpn or category != "transient-network" or attempt >= args.vpn_recovery_attempts:
+            if category == "source-block":
+                print("Source-side block/throttle/login signal detected. Pausing without VPN relay/IP switching.", file=sys.stderr)
+            return result.returncode
+        print(f"Transient network failure detected. Recovering Mullvad before retry {attempt + 1}.", file=sys.stderr)
+        recovery = recover_connection(attempts=1, wait_seconds=args.vpn_recovery_wait)
+        for message in recovery.messages:
+            print(redact_account_in_text(message, env_account()))
+        if not recovery.ok:
+            print("Mullvad recovery failed. Batch paused.", file=sys.stderr)
+            return result.returncode
     return result.returncode
 
 
@@ -265,6 +310,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     mv_reconnect = mullvad_sub.add_parser("reconnect", help="Reconnect Mullvad")
     mv_reconnect.set_defaults(func=cmd_mullvad_reconnect)
+
+    mv_recover = mullvad_sub.add_parser("recover", help="Recover Mullvad connection for tunnel/network failures")
+    mv_recover.add_argument("--attempts", type=int, default=2)
+    mv_recover.add_argument("--wait-seconds", type=float, default=5.0)
+    mv_recover.set_defaults(func=cmd_mullvad_recover)
 
     mv_lockdown = mullvad_sub.add_parser("lockdown", help="Set Mullvad Lockdown mode")
     mv_lockdown.add_argument("state", choices=["get", "on", "off"])
@@ -411,6 +461,10 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--dry-run", action="store_true", help="Simulate yt-dlp without downloading")
     run.add_argument("--yes", action="store_true", help="Allow real downloads after preflight")
     run.add_argument("--no-require-connected", action="store_true", help="Do not fail solely because Mullvad is disconnected")
+    run.add_argument("--recover-vpn", dest="recover_vpn", action="store_true", default=True, help="Recover Mullvad on tunnel/network failures")
+    run.add_argument("--no-recover-vpn", dest="recover_vpn", action="store_false", help="Disable Mullvad recovery")
+    run.add_argument("--vpn-recovery-attempts", type=int, default=2)
+    run.add_argument("--vpn-recovery-wait", type=float, default=5.0)
     run.set_defaults(func=cmd_run)
 
     return parser

@@ -74,6 +74,8 @@ Only after the user explicitly approves a real download:
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --yes
 ```
 
+`run` defaults to safe VPN recovery. It may reconnect Mullvad and retry for tunnel/network failures. Use `--no-recover-vpn` only for diagnostics.
+
 ## Concurrency Policy
 
 Default to one active YouTube batch at a time. Do not parallelize YouTube downloads by default. Large archives should be systematic through cataloging, download archives, resume support, and pacing, not aggressive concurrency.
@@ -91,4 +93,3 @@ Report:
 - whether it was dry-run or real
 - stop condition, if any
 - next safe action
-

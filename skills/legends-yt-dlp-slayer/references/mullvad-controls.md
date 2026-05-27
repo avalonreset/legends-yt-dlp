@@ -31,6 +31,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
 - `mullvad inspect`
 - `mullvad connect`
 - `mullvad reconnect`
+- `mullvad recover`
 - `mullvad disconnect`
 - `mullvad lockdown get|on|off`
 - `mullvad auto-connect get|set on|off`
@@ -46,4 +47,3 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
 ## Relay Boundary
 
 Relay commands are for manual operator selection and connection hygiene. They are not a block-bypass loop.
-

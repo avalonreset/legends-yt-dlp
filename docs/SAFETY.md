@@ -31,7 +31,12 @@ The runner should pause or refuse to continue when it sees:
 - repeated rate-limit signal
 - DRM, paywall, or access-control signal
 
+## Automatic Recovery
+
+The app may automatically reconnect Mullvad and retry for tunnel, daemon, DNS, or transient network failures. It may resume the batch because `yt-dlp` download archives skip completed items.
+
+The app must not rotate relays or IPs to keep downloading through source-side throttling, login challenges, captchas, account controls, or explicit blocks.
+
 ## Operator Rule
 
 When the source says stop, the tool stops. Human review comes before any resume.
-

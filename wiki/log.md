@@ -8,6 +8,13 @@ tags: [log, meta]
 
 # Log
 
+## 2026-05-27 - Safe VPN Recovery Added
+
+- Added `mullvad recover` for connected-state recovery.
+- Added default `run` recovery for Mullvad disconnected preflight failures and transient network-looking yt-dlp failures.
+- Added failure classification so source-side throttles, captchas, login challenges, blocks, and rate limits pause instead of triggering relay/IP switching.
+- Added tests for source-block versus transient-network classification.
+
 ## 2026-05-27 - Codex Skill Suite Created
 
 - Added `skills/legends-yt-dlp-slayer/SKILL.md` as the Codex operating procedure for the project.

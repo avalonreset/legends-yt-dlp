@@ -10,3 +10,4 @@
 - Added GitHub-facing documentation.
 - Added the Codex skill suite under `skills/legends-yt-dlp-slayer`.
 - Added multi-URL / URL-file batch planning and batch catalog listing.
+- Added safe VPN recovery for disconnected Mullvad/tunnel/network failures.

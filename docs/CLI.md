@@ -22,6 +22,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad status --ver
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad login
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lockdown on
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad connect
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad recover
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
 ```
 
@@ -102,8 +103,11 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\.
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --dry-run
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes --vpn-recovery-attempts 3
 ```
 
 Real downloads require passing preflight and an explicit `--yes`.
+
+`run` defaults to safe VPN recovery for Mullvad/tunnel/network failures. Use `--no-recover-vpn` for diagnostics.
 
 Do not use relay/location commands as an automatic response to source-side throttling or block signals.

@@ -1,7 +1,8 @@
 import unittest
 from pathlib import Path
 
-from slayer_cli.batch import read_url_file, validate_url, write_ytdlp_config
+from slayer_cli.batch import classify_run_failure, read_url_file, validate_url, write_ytdlp_config
+from slayer_cli.process import CommandResult
 
 
 class BatchTests(unittest.TestCase):
@@ -33,3 +34,11 @@ class BatchTests(unittest.TestCase):
             path = Path(tmp) / "urls.txt"
             path.write_text("\n# comment\nhttps://example.com/a\n\nhttps://example.com/b\n", encoding="utf-8")
             self.assertEqual(read_url_file(path), ["https://example.com/a", "https://example.com/b"])
+
+    def test_classify_source_block(self) -> None:
+        result = CommandResult(("yt-dlp",), 1, "", "HTTP Error 429: Too Many Requests")
+        self.assertEqual(classify_run_failure(result), "source-block")
+
+    def test_classify_transient_network(self) -> None:
+        result = CommandResult(("yt-dlp",), 1, "", "Connection reset by peer")
+        self.assertEqual(classify_run_failure(result), "transient-network")

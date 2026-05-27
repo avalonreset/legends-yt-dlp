@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -14,6 +15,13 @@ class MullvadStatus:
     connected: bool
     raw: str
     error: str | None = None
+
+
+@dataclass(frozen=True)
+class RecoveryResult:
+    ok: bool
+    attempts: int
+    messages: tuple[str, ...]
 
 
 def mullvad_path() -> Path | None:
@@ -45,8 +53,33 @@ def connect() -> CommandResult:
     return run_mullvad("connect", timeout=120)
 
 
+def reconnect() -> CommandResult:
+    return run_mullvad("reconnect", timeout=120)
+
+
 def set_lockdown(on: bool) -> CommandResult:
     return run_mullvad("lockdown-mode", "set", "on" if on else "off", timeout=60)
+
+
+def recover_connection(*, attempts: int = 2, wait_seconds: float = 5.0) -> RecoveryResult:
+    messages: list[str] = []
+    current = status(verbose=True)
+    if current.connected:
+        return RecoveryResult(True, 0, ("Mullvad already connected.",))
+
+    for attempt in range(1, attempts + 1):
+        action = reconnect() if current.available else connect()
+        output = "\n".join(part for part in [action.stdout, action.stderr] if part).strip()
+        if output:
+            messages.append(output)
+        time.sleep(wait_seconds)
+        current = status(verbose=True)
+        if current.connected:
+            messages.append(f"Mullvad connected after recovery attempt {attempt}.")
+            return RecoveryResult(True, attempt, tuple(messages))
+        messages.append(f"Mullvad still not connected after recovery attempt {attempt}.")
+
+    return RecoveryResult(False, attempts, tuple(messages))
 
 
 def redact_account_in_text(text: str, account_number: str | None) -> str:

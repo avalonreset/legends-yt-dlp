@@ -34,6 +34,7 @@ Allowed automatic recovery:
 - rerun preflight after reconnect
 - rely on yt-dlp retries for transient item/network failures
 - resume using `archive.txt`
+- retry the batch after transient network failure because yt-dlp's download archive skips completed items
 
 Not allowed:
 
@@ -48,3 +49,25 @@ If the user asks for bypass behavior, be direct:
 
 "I can build reconnect and resume logic for tunnel failures, but I cannot automate VPN IP rotation to bypass source-side throttling or blocks. The safe behavior is to pause and report that condition."
 
+## Implemented Classifier
+
+Treat these as stop/source-block signals:
+
+- captcha
+- sign in or login challenge
+- HTTP 429 or too many requests
+- rate limit
+- temporarily blocked
+- forbidden or access denied
+- private video
+- DRM
+
+Treat these as recoverable network signals:
+
+- network unreachable
+- no route to host
+- connection reset/aborted/refused
+- timeout
+- DNS or temporary name-resolution failure
+- TLS/SSL transport failure
+- remote end closed connection

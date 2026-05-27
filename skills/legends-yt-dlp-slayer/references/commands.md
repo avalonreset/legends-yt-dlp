@@ -18,6 +18,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad login
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lockdown on
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad connect
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad reconnect
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad recover
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect
 ```
 
@@ -58,5 +59,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<u
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "<manifest.json>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --dry-run
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --yes
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --yes --vpn-recovery-attempts 3
 ```
 
+`run` defaults to safe VPN recovery. It can reconnect Mullvad and retry after transient tunnel/network failures. It must not continue through source-side block signals.

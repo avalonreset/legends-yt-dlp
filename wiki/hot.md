@@ -27,6 +27,7 @@ tags: [hot-cache, meta]
 - Added `mullvad inspect` plus first-class wrappers for account, relay, DNS, tunnel, LAN, auto-connect, split tunnel, anti-censorship, API access, and raw passthrough.
 - Added `skills/legends-yt-dlp-slayer/SKILL.md` with references for commands, batch cataloging, safety/error policy, and Mullvad controls.
 - Batch planning now supports multiple URLs and `--from-file`; `catalog` lists local batch manifests.
+- Added safe VPN recovery: disconnected/tunnel/network failures can trigger Mullvad reconnect and retry, but source-side blocks still pause without relay/IP switching.
 
 ## Recent Changes
 

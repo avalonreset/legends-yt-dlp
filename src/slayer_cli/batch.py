@@ -15,6 +15,38 @@ from .tools import find_ytdlp
 
 BATCHES_DIR = PROJECT_ROOT / "batches"
 
+SOURCE_BLOCK_PATTERNS = (
+    "captcha",
+    "sign in",
+    "signin",
+    "login",
+    "http error 429",
+    "too many requests",
+    "rate limit",
+    "temporarily blocked",
+    "forbidden",
+    "access denied",
+    "not available in your country",
+    "private video",
+    "drm",
+)
+
+TRANSIENT_NETWORK_PATTERNS = (
+    "network is unreachable",
+    "no route to host",
+    "connection reset",
+    "connection aborted",
+    "connection refused",
+    "timed out",
+    "timeout",
+    "temporary failure in name resolution",
+    "dns",
+    "tls",
+    "ssl",
+    "unable to download webpage",
+    "remote end closed connection",
+)
+
 
 @dataclass(frozen=True)
 class BatchPaths:
@@ -215,6 +247,20 @@ def preflight_batch(path: Path, *, require_connected: bool = True) -> list[Check
 
 def preflight_ok(checks: list[Check], *, require_connected: bool = True) -> bool:
     return overall_ok(checks, require_connected=require_connected)
+
+
+def only_mullvad_connection_failed(checks: list[Check]) -> bool:
+    failed = [check for check in checks if not check.ok]
+    return len(failed) == 1 and failed[0].name == "mullvad connected"
+
+
+def classify_run_failure(result: CommandResult) -> str:
+    output = f"{result.stdout}\n{result.stderr}".lower()
+    if any(pattern in output for pattern in SOURCE_BLOCK_PATTERNS):
+        return "source-block"
+    if any(pattern in output for pattern in TRANSIENT_NETWORK_PATTERNS):
+        return "transient-network"
+    return "unknown"
 
 
 def run_batch(path: Path, *, dry_run: bool = True) -> CommandResult:
