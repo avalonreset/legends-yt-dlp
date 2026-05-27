@@ -11,7 +11,7 @@ tags: [hot-cache, meta]
 
 ## Last Updated
 
-2026-05-27. Initial vault scaffold is complete, the first Windows CLI control plane has been started, and the private GitHub repository is live.
+2026-05-27. Initial vault scaffold is complete, the first Windows CLI control plane has been started, the private GitHub repository is live, and Mullvad is connected under CLI control.
 
 ## Key Recent Facts
 
@@ -23,6 +23,8 @@ tags: [hot-cache, meta]
 - Official `yt-dlp.exe` was installed locally to `.local/bin`, verified by SHA256, and reports version `2026.03.17`.
 - The CLI now supports `doctor`, Mullvad wrappers, yt-dlp install/version, batch `plan`, `preflight`, and guarded `run`.
 - GitHub repo `avalonreset-pro/legends-yt-dlp-slayer` is private on `main`, has no team grants, and has wiki/projects/forking disabled.
+- Mullvad is logged in, Lockdown mode is on, auto-connect is on, LAN sharing is blocked, split tunneling is off, quantum resistance is on, IPv6 is off, and connected preflight passes.
+- Added `mullvad inspect` plus first-class wrappers for account, relay, DNS, tunnel, LAN, auto-connect, split tunnel, anti-censorship, API access, and raw passthrough.
 
 ## Recent Changes
 
@@ -31,10 +33,10 @@ tags: [hot-cache, meta]
 - Added templates and a vault health-check script.
 - Added Python CLI scaffold under `src/slayer_cli`.
 - Added GitHub-facing README, docs, changelog, and repository metadata.
+- Added [[Mullvad Control Surface]] and evidence for the current CLI settings.
 
 ## Active Threads
 
-- User is funding/logging into Mullvad.
-- Next blocker is Mullvad connected state; default preflight exits nonzero until connected.
-- After login, run `scripts\slayer.ps1 mullvad login`, `lockdown on`, `connect`, and `doctor --require-connected`.
+- Next blocker is a lawful user-provided test URL for a dry-run or real smoke test.
+- Default preflight now passes when using an existing valid batch manifest.
 - Next GitHub step is optional: create a first alpha tag only after a connected Mullvad smoke test passes.

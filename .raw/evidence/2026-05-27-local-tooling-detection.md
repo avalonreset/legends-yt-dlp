@@ -12,7 +12,8 @@ tags: [evidence, tooling, mullvad, yt-dlp]
 
 - Mullvad CLI path: `C:\Program Files\Mullvad VPN\resources\mullvad.exe`
 - Mullvad CLI version: `mullvad-cli 2026.2`
-- Current state during setup: disconnected, not ready for batch download work.
+- Initial state during setup: disconnected.
+- Later state after funding/login: connected with Lockdown Mode enabled.
 
 ## yt-dlp
 
@@ -24,4 +25,3 @@ tags: [evidence, tooling, mullvad, yt-dlp]
 ## ffmpeg
 
 - ffmpeg detected at `C:\Windows\system32\ffmpeg.exe`.
-

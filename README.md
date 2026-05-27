@@ -30,6 +30,7 @@ Working now:
 
 - `doctor`
 - Mullvad status/login/connect/lockdown wrappers
+- Mullvad inspect and settings wrappers
 - official `yt-dlp.exe` install and version check
 - batch `plan`
 - batch `preflight`
@@ -48,6 +49,7 @@ From the project root:
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp version
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad status --verbose
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
 ```
 
 After the Mullvad account is active:
@@ -125,4 +127,3 @@ Never commit Mullvad account numbers, cookies, account tokens, or batch outputs.
 License is not finalized. This repository is private while the product and distribution model are being worked out.
 
 Important distribution note: the project does not commit the `yt-dlp.exe` binary. If a future release bundles upstream binaries, review upstream licensing and notices before distribution.
-

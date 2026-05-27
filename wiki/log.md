@@ -8,6 +8,16 @@ tags: [log, meta]
 
 # Log
 
+## 2026-05-27 - Mullvad CLI Control Surface Unlocked
+
+- Logged into Mullvad using the ignored local `.env` account value.
+- Enabled Lockdown mode and connected the VPN.
+- Turned auto-connect on.
+- Verified `doctor --require-connected` now passes.
+- Enumerated the installed `mullvad-cli 2026.2` command surface.
+- Added first-class Slayer CLI wrappers for account, status, inspect, relay, DNS, tunnel, LAN, auto-connect, split tunnel, anti-censorship, API access, and raw passthrough.
+- Added [[Mullvad Control Surface]] with the proven current state and command list.
+
 ## 2026-05-27 - GitHub Repository Created
 
 - Created private GitHub repository `avalonreset-pro/legends-yt-dlp-slayer`.

@@ -22,9 +22,40 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad status --ver
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad login
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lockdown on
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad connect
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
 ```
 
 `mullvad login` reads `MULLVAD_ACCOUNT_NUMBER` from `.env` and redacts it in output.
+
+The CLI exposes first-class wrappers for the useful Mullvad command surface:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad account get
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad account devices
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad version
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad auto-connect get
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad auto-connect set on
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lan get
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lan set block
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad relay get
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad relay update
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad relay location us
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad dns get
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad dns default --block-ads --block-trackers --block-malware
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad tunnel get
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad tunnel quantum-resistant on
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad tunnel ipv6 off
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad split-tunnel get
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad split-tunnel set off
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad anti-censorship get
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad api-access get
+```
+
+Raw passthrough remains available for installed Mullvad CLI features that do not yet have a named wrapper:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad raw --timeout 120 relay list
+```
 
 ## yt-dlp
 
@@ -72,3 +103,4 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\man
 
 Real downloads require passing preflight and an explicit `--yes`.
 
+Do not use relay/location commands as an automatic response to source-side throttling or block signals.

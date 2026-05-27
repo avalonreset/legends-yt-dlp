@@ -28,9 +28,12 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad status --ver
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad login
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lockdown on
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad connect
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
 ```
 
 The `login` command reads `MULLVAD_ACCOUNT_NUMBER` from `.env` and redacts it in output.
+
+First-class Mullvad wrappers now cover account/device reads, version, auto-connect, LAN sharing, relay constraints and updates, DNS defaults/custom servers, tunnel options, split tunneling, anti-censorship mode, and API access inspection. `mullvad raw` remains available for installed CLI features not yet wrapped.
 
 ## Batch Planning
 
@@ -49,4 +52,3 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\man
 ```
 
 Until Mullvad is connected, default preflight exits nonzero and the runner does not start.
-

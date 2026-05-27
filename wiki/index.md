@@ -60,6 +60,7 @@ tags: [index, meta]
 - [[Batch Archive SOP]]
 - [[Blocked or Throttled SOP]]
 - [[CLI Operator Commands]]
+- [[Mullvad Control Surface]]
 
 ## Compliance
 
