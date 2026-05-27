@@ -11,7 +11,7 @@ tags: [hot-cache, meta]
 
 ## Last Updated
 
-2026-05-27. Initial vault scaffold is complete and the first Windows CLI control plane has been started.
+2026-05-27. Initial vault scaffold is complete, the first Windows CLI control plane has been started, and the private GitHub repository is live.
 
 ## Key Recent Facts
 
@@ -22,6 +22,7 @@ tags: [hot-cache, meta]
 - Mullvad CLI was found at the installed app path and reports `mullvad-cli 2026.2`.
 - Official `yt-dlp.exe` was installed locally to `.local/bin`, verified by SHA256, and reports version `2026.03.17`.
 - The CLI now supports `doctor`, Mullvad wrappers, yt-dlp install/version, batch `plan`, `preflight`, and guarded `run`.
+- GitHub repo `avalonreset-pro/legends-yt-dlp-slayer` is private on `main`, has no team grants, and has wiki/projects/forking disabled.
 
 ## Recent Changes
 
@@ -29,9 +30,11 @@ tags: [hot-cache, meta]
 - Seeded source notes for Mullvad pricing, Mullvad CLI, and yt-dlp.
 - Added templates and a vault health-check script.
 - Added Python CLI scaffold under `src/slayer_cli`.
+- Added GitHub-facing README, docs, changelog, and repository metadata.
 
 ## Active Threads
 
 - User is funding/logging into Mullvad.
 - Next blocker is Mullvad connected state; default preflight exits nonzero until connected.
 - After login, run `scripts\slayer.ps1 mullvad login`, `lockdown on`, `connect`, and `doctor --require-connected`.
+- Next GitHub step is optional: create a first alpha tag only after a connected Mullvad smoke test passes.
