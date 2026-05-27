@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 
-from slayer_cli.batch import validate_url, write_ytdlp_config
+from slayer_cli.batch import read_url_file, validate_url, write_ytdlp_config
 
 
 class BatchTests(unittest.TestCase):
@@ -26,3 +26,10 @@ class BatchTests(unittest.TestCase):
             self.assertIn("--batch-file", text)
             self.assertNotIn("\\", text)
 
+    def test_read_url_file_ignores_comments_and_blanks(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "urls.txt"
+            path.write_text("\n# comment\nhttps://example.com/a\n\nhttps://example.com/b\n", encoding="utf-8")
+            self.assertEqual(read_url_file(path), ["https://example.com/a", "https://example.com/b"])

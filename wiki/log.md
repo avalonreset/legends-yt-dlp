@@ -8,6 +8,15 @@ tags: [log, meta]
 
 # Log
 
+## 2026-05-27 - Codex Skill Suite Created
+
+- Added `skills/legends-yt-dlp-slayer/SKILL.md` as the Codex operating procedure for the project.
+- Added skill references for commands, batch cataloging, safety/error policy, and Mullvad controls.
+- Added skill UI metadata in `skills/legends-yt-dlp-slayer/agents/openai.yaml`.
+- Extended batch planning to support multiple URLs and `--from-file` URL catalogs.
+- Added `catalog` command to list local batch manifests.
+- Preserved the safety boundary: reconnect/retry is allowed for tunnel or transient failures, but automatic relay/IP switching to bypass source-side blocks remains out of scope.
+
 ## 2026-05-27 - Mullvad CLI Control Surface Unlocked
 
 - Logged into Mullvad using the ignored local `.env` account value.

@@ -11,7 +11,7 @@ tags: [hot-cache, meta]
 
 ## Last Updated
 
-2026-05-27. Initial vault scaffold is complete, the first Windows CLI control plane has been started, the private GitHub repository is live, and Mullvad is connected under CLI control.
+2026-05-27. Initial vault scaffold is complete, the private GitHub repository is live, Mullvad is connected under CLI control, and the Codex skill suite has been created.
 
 ## Key Recent Facts
 
@@ -25,6 +25,8 @@ tags: [hot-cache, meta]
 - GitHub repo `avalonreset-pro/legends-yt-dlp-slayer` is private on `main`, has no team grants, and has wiki/projects/forking disabled.
 - Mullvad is logged in, Lockdown mode is on, auto-connect is on, LAN sharing is blocked, split tunneling is off, quantum resistance is on, IPv6 is off, and connected preflight passes.
 - Added `mullvad inspect` plus first-class wrappers for account, relay, DNS, tunnel, LAN, auto-connect, split tunnel, anti-censorship, API access, and raw passthrough.
+- Added `skills/legends-yt-dlp-slayer/SKILL.md` with references for commands, batch cataloging, safety/error policy, and Mullvad controls.
+- Batch planning now supports multiple URLs and `--from-file`; `catalog` lists local batch manifests.
 
 ## Recent Changes
 
@@ -34,6 +36,7 @@ tags: [hot-cache, meta]
 - Added Python CLI scaffold under `src/slayer_cli`.
 - Added GitHub-facing README, docs, changelog, and repository metadata.
 - Added [[Mullvad Control Surface]] and evidence for the current CLI settings.
+- Added the Codex skill suite and updated docs for catalog-style batch planning.
 
 ## Active Threads
 

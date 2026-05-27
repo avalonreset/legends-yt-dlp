@@ -37,6 +37,16 @@ def validate_url(value: str) -> bool:
     return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
 
 
+def read_url_file(path: Path) -> list[str]:
+    urls: list[str] = []
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        urls.append(line)
+    return urls
+
+
 def make_batch_paths(name: str) -> BatchPaths:
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     root = BATCHES_DIR / f"{stamp}-{slugify(name)}"
@@ -52,12 +62,25 @@ def make_batch_paths(name: str) -> BatchPaths:
 
 
 def create_batch(*, url: str, rights_basis: str, name: str | None = None, output_dir: str | None = None) -> BatchPaths:
-    if not validate_url(url):
-        raise ValueError("Batch URL must be an http(s) URL")
+    return create_batch_from_urls(urls=[url], rights_basis=rights_basis, name=name, output_dir=output_dir)
+
+
+def create_batch_from_urls(
+    *,
+    urls: list[str],
+    rights_basis: str,
+    name: str | None = None,
+    output_dir: str | None = None,
+) -> BatchPaths:
+    if not urls:
+        raise ValueError("At least one URL is required")
+    invalid = [url for url in urls if not validate_url(url)]
+    if invalid:
+        raise ValueError(f"Invalid URL: {invalid[0]}")
     if not rights_basis.strip():
         raise ValueError("A rights basis is required")
 
-    parsed = urlparse(url)
+    parsed = urlparse(urls[0])
     batch_name = name or parsed.netloc
     paths = make_batch_paths(batch_name)
     paths.root.mkdir(parents=True, exist_ok=False)
@@ -69,7 +92,9 @@ def create_batch(*, url: str, rights_basis: str, name: str | None = None, output
         "schema_version": 1,
         "created": datetime.now().isoformat(timespec="seconds"),
         "name": batch_name,
-        "source_url": url,
+        "source_url": urls[0],
+        "source_urls": urls,
+        "url_count": len(urls),
         "rights_basis": rights_basis,
         "status": "planned",
         "paths": {
@@ -85,7 +110,7 @@ def create_batch(*, url: str, rights_basis: str, name: str | None = None, output
             "no_automatic_relay_rotation": True,
         },
     }
-    paths.urls.write_text(url + "\n", encoding="utf-8")
+    paths.urls.write_text("\n".join(urls) + "\n", encoding="utf-8")
     write_ytdlp_config(paths.config, paths.urls, paths.archive, output_path, paths.temp)
     paths.manifest.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     return paths
@@ -133,6 +158,31 @@ def write_ytdlp_config(config: Path, urls: Path, archive: Path, output: Path, te
 
 def load_manifest(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def find_batch_manifests() -> list[Path]:
+    if not BATCHES_DIR.exists():
+        return []
+    return sorted(BATCHES_DIR.glob("*/manifest.json"), key=lambda path: path.stat().st_mtime, reverse=True)
+
+
+def catalog_rows() -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for manifest_path in find_batch_manifests():
+        try:
+            manifest = load_manifest(manifest_path)
+        except (OSError, json.JSONDecodeError):
+            continue
+        rows.append(
+            {
+                "created": str(manifest.get("created", "")),
+                "name": str(manifest.get("name", manifest_path.parent.name)),
+                "status": str(manifest.get("status", "unknown")),
+                "urls": str(manifest.get("url_count", len(manifest.get("source_urls", [])) or 1)),
+                "manifest": str(manifest_path),
+            }
+        )
+    return rows
 
 
 def preflight_batch(path: Path, *, require_connected: bool = True) -> list[Check]:

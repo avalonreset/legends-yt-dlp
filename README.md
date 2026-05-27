@@ -33,8 +33,11 @@ Working now:
 - Mullvad inspect and settings wrappers
 - official `yt-dlp.exe` install and version check
 - batch `plan`
+- multi-URL and URL-file batch planning
+- batch `catalog`
 - batch `preflight`
 - guarded `run`
+- Codex skill suite under `skills/legends-yt-dlp-slayer`
 
 Blocked until the local Mullvad account is funded and connected:
 
@@ -65,6 +68,8 @@ Create a batch:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --name "channel-name"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --name "catalog-name"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
 ```
 
 Preflight and run:
@@ -115,6 +120,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - [Architecture](docs/ARCHITECTURE.md)
 - [Safety and Use Policy](docs/SAFETY.md)
 - [Changelog](CHANGELOG.md)
+- [Codex Skill Suite](skills/legends-yt-dlp-slayer/SKILL.md)
 
 ## Local Secrets
 

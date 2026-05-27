@@ -34,6 +34,7 @@ vault/
 │   ├── questions/
 │   └── meta/
 ├── _templates/
+├── skills/
 ├── tools/
 └── CODEX.md
 ```
@@ -72,3 +73,4 @@ Out of scope:
 - Runbook work: update [[Windows Operator Setup]], [[Preflight Checklist]], and [[Batch Archive SOP]].
 - Source work: add immutable notes under `.raw/sources/`, then synthesize a page under `wiki/sources/` or `wiki/research/`.
 - Health check: run `powershell -ExecutionPolicy Bypass -File tools/vault-health-check.ps1`.
+- Skill suite: use `skills/legends-yt-dlp-slayer/SKILL.md` as the Codex operating procedure for archive batches.

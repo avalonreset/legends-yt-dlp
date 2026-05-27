@@ -31,6 +31,11 @@ Batch Orchestrator
   - writes urls.txt
   - writes yt-dlp.conf
   - uses download archive files for resumability
+
+Codex Skill Suite
+  - guides Codex through setup, planning, preflight, dry-run, and guarded real runs
+  - keeps safety/error policy in context
+  - routes to detailed references only when needed
 ```
 
 ## Current Implementation
@@ -61,3 +66,8 @@ MVP state is file-based:
 
 SQLite can come later if multi-batch dashboards or richer query support justify it.
 
+## Skill Packaging
+
+The Codex-first package lives under `skills/legends-yt-dlp-slayer/`.
+
+The skill does not replace the CLI. It tells Codex how to operate the CLI safely, when to load reference material, and when to stop instead of continuing.

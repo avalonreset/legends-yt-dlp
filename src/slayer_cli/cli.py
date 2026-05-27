@@ -4,7 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from .batch import create_batch, preflight_batch, preflight_ok, run_batch
+from .batch import catalog_rows, create_batch_from_urls, preflight_batch, preflight_ok, read_url_file, run_batch
 from .doctor import overall_ok, run_doctor
 from .envfile import read_env_file, redact
 from .mullvad import connect, login, redact_account_in_text, run_mullvad, set_lockdown, status
@@ -184,14 +184,33 @@ def cmd_ytdlp_version(_: argparse.Namespace) -> int:
 
 
 def cmd_plan(args: argparse.Namespace) -> int:
+    urls = list(args.urls)
+    if args.from_file:
+        try:
+            urls.extend(read_url_file(Path(args.from_file)))
+        except OSError as exc:
+            print(f"Could not read URL file: {exc}", file=sys.stderr)
+            return 2
     try:
-        paths = create_batch(url=args.url, rights_basis=args.rights, name=args.name, output_dir=args.output)
+        paths = create_batch_from_urls(urls=urls, rights_basis=args.rights, name=args.name, output_dir=args.output)
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 2
     print(f"Batch created: {paths.root}")
     print(f"Manifest: {paths.manifest}")
     print(f"yt-dlp config: {paths.config}")
+    print(f"URL count: {len(urls)}")
+    return 0
+
+
+def cmd_catalog(_: argparse.Namespace) -> int:
+    rows = catalog_rows()
+    if not rows:
+        print("No batch manifests found.")
+        return 0
+    for row in rows:
+        print(f"{row['created']} | {row['status']} | {row['urls']} URLs | {row['name']}")
+        print(f"  {row['manifest']}")
     return 0
 
 
@@ -372,11 +391,15 @@ def build_parser() -> argparse.ArgumentParser:
     ytdlp_version.set_defaults(func=cmd_ytdlp_version)
 
     plan = sub.add_parser("plan", help="Create a rights-aware batch manifest")
-    plan.add_argument("url", help="Source URL to archive")
+    plan.add_argument("urls", nargs="*", help="Source URL(s) to archive")
+    plan.add_argument("--from-file", help="Text file with one source URL per line")
     plan.add_argument("--rights", required=True, help="Documented rights basis for this batch")
     plan.add_argument("--name", help="Batch name")
     plan.add_argument("--output", help="Output directory override")
     plan.set_defaults(func=cmd_plan)
+
+    catalog = sub.add_parser("catalog", help="List known local batch manifests")
+    catalog.set_defaults(func=cmd_catalog)
 
     preflight = sub.add_parser("preflight", help="Check a batch before running")
     preflight.add_argument("manifest", help="Path to batch manifest.json")

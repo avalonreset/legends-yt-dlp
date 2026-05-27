@@ -70,6 +70,9 @@ The install command downloads the official Windows standalone executable and ver
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --name "channel-name"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://example.com/a" "https://example.com/b" --rights "owned or authorized" --name "multi-url"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --name "url-file"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
 ```
 
 The plan command creates:
