@@ -47,6 +47,29 @@ TRANSIENT_NETWORK_PATTERNS = (
     "remote end closed connection",
 )
 
+REQUIRED_AUTH_SAFETY_OPTIONS = (
+    "--ignore-config",
+    "--no-cookies",
+    "--no-cookies-from-browser",
+)
+
+FORBIDDEN_AUTH_OPTIONS = {
+    "--cookies",
+    "--cookies-from-browser",
+    "-u",
+    "--username",
+    "-p",
+    "--password",
+    "-n",
+    "--netrc",
+    "--netrc-location",
+    "--netrc-cmd",
+    "--video-password",
+    "--ap-username",
+    "--ap-password",
+    "--client-certificate-password",
+}
+
 
 @dataclass(frozen=True)
 class BatchPaths:
@@ -138,6 +161,11 @@ def create_batch_from_urls(
         },
         "policy": {
             "requires_mullvad_connected": True,
+            "requires_mullvad_lockdown": True,
+            "requires_anonymous_ytdlp": True,
+            "ignore_user_ytdlp_config": True,
+            "no_browser_cookies": True,
+            "no_account_auth": True,
             "stop_on_throttle_or_block": True,
             "no_automatic_relay_rotation": True,
         },
@@ -153,6 +181,9 @@ def write_ytdlp_config(config: Path, urls: Path, archive: Path, output: Path, te
         return path.resolve().as_posix()
 
     lines = [
+        "--ignore-config",
+        "--no-cookies",
+        "--no-cookies-from-browser",
         "--batch-file",
         ytdlp_path(urls),
         "--download-archive",
@@ -188,6 +219,34 @@ def write_ytdlp_config(config: Path, urls: Path, archive: Path, output: Path, te
     config.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def read_config_options(config: Path) -> list[str]:
+    options: list[str] = []
+    for raw_line in config.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        token = line.split(maxsplit=1)[0].split("=", 1)[0].lower()
+        options.append(token)
+    return options
+
+
+def auth_policy_check(config: Path) -> Check:
+    try:
+        options = read_config_options(config)
+    except OSError as exc:
+        return Check("yt-dlp auth policy", False, f"config unreadable: {exc}")
+
+    violations = sorted(option for option in set(options) if option in FORBIDDEN_AUTH_OPTIONS)
+    if violations:
+        return Check("yt-dlp auth policy", False, f"forbidden auth/cookie options: {', '.join(violations)}")
+
+    missing = [option for option in REQUIRED_AUTH_SAFETY_OPTIONS if option not in options]
+    if missing:
+        return Check("yt-dlp auth policy", False, f"missing safety options: {', '.join(missing)}")
+
+    return Check("yt-dlp auth policy", True, "anonymous mode: no cookies, no browser cookies, user configs ignored")
+
+
 def load_manifest(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -217,13 +276,26 @@ def catalog_rows() -> list[dict[str, str]]:
     return rows
 
 
-def preflight_batch(path: Path, *, require_connected: bool = True) -> list[Check]:
+def preflight_batch(path: Path, *, require_connected: bool = True, production: bool = True) -> list[Check]:
     manifest = load_manifest(path)
+    policy = manifest.get("policy", {})
     checks = [
         Check("manifest", True, str(path)),
         Check("source url", validate_url(manifest.get("source_url", "")), manifest.get("source_url", "<missing>")),
         Check("rights basis", bool(manifest.get("rights_basis", "").strip()), "present" if manifest.get("rights_basis") else "missing"),
     ]
+    if production:
+        for label, key in [
+            ("policy requires Mullvad", "requires_mullvad_connected"),
+            ("policy requires Lockdown", "requires_mullvad_lockdown"),
+            ("policy anonymous yt-dlp", "requires_anonymous_ytdlp"),
+            ("policy ignores user yt-dlp config", "ignore_user_ytdlp_config"),
+            ("policy no browser cookies", "no_browser_cookies"),
+            ("policy no account auth", "no_account_auth"),
+        ]:
+            checks.append(Check(label, policy.get(key) is True, "enabled" if policy.get(key) is True else "missing or false"))
+
+    config_path: Path | None = None
     for label, key in [
         ("urls file", "urls"),
         ("yt-dlp config", "yt_dlp_config"),
@@ -236,10 +308,15 @@ def preflight_batch(path: Path, *, require_connected: bool = True) -> list[Check
             checks.append(Check(label, False, "missing"))
             continue
         target = Path(value)
+        if key == "yt_dlp_config":
+            config_path = target
         exists = target.exists() if key not in {"download_archive"} else target.parent.exists()
         checks.append(Check(label, exists, str(target)))
 
-    checks.extend(run_doctor())
+    if production and config_path is not None:
+        checks.append(auth_policy_check(config_path))
+
+    checks.extend(run_doctor(production=production))
     if not require_connected:
         return checks
     return checks
@@ -251,7 +328,8 @@ def preflight_ok(checks: list[Check], *, require_connected: bool = True) -> bool
 
 def only_mullvad_connection_failed(checks: list[Check]) -> bool:
     failed = [check for check in checks if not check.ok]
-    return len(failed) == 1 and failed[0].name == "mullvad connected"
+    recoverable = {"mullvad connected", "mullvad lockdown"}
+    return bool(failed) and all(check.name in recoverable for check in failed)
 
 
 def classify_run_failure(result: CommandResult) -> str:
@@ -269,7 +347,7 @@ def run_batch(path: Path, *, dry_run: bool = True) -> CommandResult:
     tool = find_ytdlp()
     if not tool.path:
         return CommandResult(("yt-dlp",), 127, "", "yt-dlp not found")
-    args = [tool.path, "--config-location", config]
+    args = [tool.path, "--ignore-config", "--config-location", config]
     if dry_run:
         args.extend(["--simulate", "--dump-json"])
     return run_command(args, timeout=24 * 60 * 60)

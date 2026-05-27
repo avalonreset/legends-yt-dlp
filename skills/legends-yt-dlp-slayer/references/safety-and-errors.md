@@ -8,9 +8,11 @@ The skill helps Codex operate a powerful downloader safely. It must not convert 
 
 Before any real run:
 
-- `doctor --require-connected` passes.
+- `doctor --production` passes.
 - Batch has a rights basis.
 - Batch preflight passes.
+- Generated `yt-dlp` config uses anonymous mode: `--ignore-config`, `--no-cookies`, and `--no-cookies-from-browser`.
+- No browser cookies, cookie files, username/password auth, `.netrc`, or account credentials are used for production batches.
 - User explicitly approves a real run.
 
 ## Stop Conditions

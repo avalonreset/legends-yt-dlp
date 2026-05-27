@@ -66,6 +66,7 @@ tags: [index, meta]
 
 - [[Use Policy]]
 - [[Rights and Consent Checklist]]
+- [[Account Cookie Policy]]
 - [[YouTube Boundary Notes]]
 
 ## Research and Sources

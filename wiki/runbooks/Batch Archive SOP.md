@@ -16,7 +16,7 @@ Run a lawful archive batch with clear evidence and resumable state.
 
 1. Create a batch plan.
 2. Record the rights basis.
-3. Run preflight.
+3. Run production preflight.
 4. Review planned output path and disk requirements.
 5. Start the batch.
 6. Monitor item counts and stop-condition messages.
@@ -29,4 +29,4 @@ Run a lawful archive batch with clear evidence and resumable state.
 - Download archive exists.
 - Counts match expected item count or explain differences.
 - Failed and skipped items are listed.
-
+- No browser cookies, cookie files, account auth, or inherited user `yt-dlp` config were used.

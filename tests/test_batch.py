@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 
-from slayer_cli.batch import classify_run_failure, read_url_file, validate_url, write_ytdlp_config
+from slayer_cli.batch import auth_policy_check, classify_run_failure, read_url_file, validate_url, write_ytdlp_config
 from slayer_cli.process import CommandResult
 
 
@@ -25,7 +25,35 @@ class BatchTests(unittest.TestCase):
             )
             text = config.read_text(encoding="utf-8")
             self.assertIn("--batch-file", text)
+            self.assertIn("--ignore-config", text)
+            self.assertIn("--no-cookies", text)
+            self.assertIn("--no-cookies-from-browser", text)
             self.assertNotIn("\\", text)
+
+    def test_auth_policy_rejects_browser_cookies(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            config = Path(tmp) / "yt-dlp.conf"
+            config.write_text("--ignore-config\n--no-cookies\n--cookies-from-browser\nchrome\n", encoding="utf-8")
+            check = auth_policy_check(config)
+            self.assertFalse(check.ok)
+            self.assertIn("--cookies-from-browser", check.detail)
+
+    def test_auth_policy_accepts_generated_anonymous_config(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = root / "yt-dlp.conf"
+            write_ytdlp_config(
+                config,
+                root / "urls.txt",
+                root / "archive.txt",
+                root / "downloads",
+                root / "tmp",
+            )
+            self.assertTrue(auth_policy_check(config).ok)
 
     def test_read_url_file_ignores_comments_and_blanks(self) -> None:
         import tempfile

@@ -11,9 +11,12 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 <command>
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --require-connected
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --production
 ```
 
 Checks Mullvad, `yt-dlp`, `ffmpeg`, local account configuration, and connected state.
+
+`doctor --production` additionally requires Mullvad Lockdown on, split tunneling off, LAN sharing blocked, and auto-connect on.
 
 ## Mullvad
 
@@ -92,10 +95,13 @@ Generated batch folders are ignored by git.
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\...\manifest.json"
 ```
 
-Default preflight requires Mullvad to be connected. For local harness testing only:
+Default preflight requires production posture and anonymous `yt-dlp` auth policy: Mullvad connected, Lockdown on, split tunneling off, LAN sharing blocked, auto-connect on, no browser cookies, no cookie files, no account auth, and ignored user-level `yt-dlp` config.
+
+For local harness testing only:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\...\manifest.json" --no-require-connected
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\...\manifest.json" --no-production
 ```
 
 ## Run
@@ -106,7 +112,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\man
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes --vpn-recovery-attempts 3
 ```
 
-Real downloads require passing preflight and an explicit `--yes`.
+Real downloads require passing production preflight and an explicit `--yes`. The runner refuses real downloads with `--no-production` or `--no-require-connected`.
 
 `run` defaults to safe VPN recovery for Mullvad/tunnel/network failures. Use `--no-recover-vpn` for diagnostics.
 

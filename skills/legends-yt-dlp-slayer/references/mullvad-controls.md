@@ -23,6 +23,8 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
 - IPv6 off
 - direct API access
 
+Real downloads must fail preflight if Lockdown is off. Lockdown prevents accidental native-network fallback when the tunnel disconnects.
+
 ## First-Class Controls
 
 - `mullvad account get`

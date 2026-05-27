@@ -17,10 +17,14 @@ Before any batch runs:
 - ffmpeg is available if needed.
 - Mullvad CLI is available.
 - Mullvad reports connected.
-- Lockdown mode requirement is satisfied.
-- Optional Mullvad connection-check endpoint passes.
+- Lockdown mode is on.
+- Split tunneling is off.
+- LAN sharing is blocked.
+- Auto-connect is on.
+- Generated `yt-dlp` config ignores user config.
+- Generated `yt-dlp` config disables cookie files and browser cookies.
+- Generated `yt-dlp` config contains no account auth options.
 - Batch manifest has been written.
 - Stop conditions are understood.
 
 If any item fails, the runner must not start.
-

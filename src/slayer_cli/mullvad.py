@@ -24,6 +24,27 @@ class RecoveryResult:
     messages: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class MullvadSetting:
+    available: bool
+    raw: str
+    expected: str
+
+    @property
+    def value(self) -> str:
+        for line in self.raw.splitlines():
+            if ":" not in line:
+                continue
+            value = line.rsplit(":", 1)[1].strip().lower()
+            if value:
+                return value
+        return self.raw.strip().lower()
+
+    @property
+    def ok(self) -> bool:
+        return self.available and self.value == self.expected.lower()
+
+
 def mullvad_path() -> Path | None:
     return find_mullvad().path
 
@@ -61,11 +82,38 @@ def set_lockdown(on: bool) -> CommandResult:
     return run_mullvad("lockdown-mode", "set", "on" if on else "off", timeout=60)
 
 
+def setting(*args: str, expected: str) -> MullvadSetting:
+    result = run_mullvad(*args)
+    raw = "\n".join(part for part in [result.stdout, result.stderr] if part).strip()
+    return MullvadSetting(result.ok, raw or "unavailable", expected)
+
+
+def lockdown_setting() -> MullvadSetting:
+    return setting("lockdown-mode", "get", expected="on")
+
+
+def split_tunnel_setting() -> MullvadSetting:
+    return setting("split-tunnel", "get", expected="off")
+
+
+def lan_setting() -> MullvadSetting:
+    return setting("lan", "get", expected="block")
+
+
+def auto_connect_setting() -> MullvadSetting:
+    return setting("auto-connect", "get", expected="on")
+
+
 def recover_connection(*, attempts: int = 2, wait_seconds: float = 5.0) -> RecoveryResult:
     messages: list[str] = []
+    lockdown = set_lockdown(True)
+    lockdown_output = "\n".join(part for part in [lockdown.stdout, lockdown.stderr] if part).strip()
+    if lockdown_output:
+        messages.append(lockdown_output)
     current = status(verbose=True)
     if current.connected:
-        return RecoveryResult(True, 0, ("Mullvad already connected.",))
+        messages.append("Mullvad already connected.")
+        return RecoveryResult(True, 0, tuple(messages))
 
     for attempt in range(1, attempts + 1):
         action = reconnect() if current.available else connect()

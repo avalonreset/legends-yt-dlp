@@ -12,8 +12,8 @@ Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful but easy to operat
 - Verifies the downloaded binary against upstream `SHA2-256SUMS`.
 - Detects `ffmpeg`.
 - Creates rights-aware batch manifests.
-- Generates stable `yt-dlp` config files with download archives and conservative retry/sleep settings.
-- Blocks real runs until preflight passes.
+- Generates stable anonymous-mode `yt-dlp` config files with download archives and conservative retry/sleep settings.
+- Blocks real runs until production preflight passes.
 - Requires an explicit `--yes` flag for real downloads.
 
 ## Why It Exists
@@ -32,6 +32,8 @@ Working now:
 - Mullvad status/login/connect/lockdown wrappers
 - Mullvad inspect and settings wrappers
 - Mullvad safe recovery for tunnel/network failures
+- production posture checks for Mullvad Lockdown, split tunneling, LAN sharing, and auto-connect
+- anonymous yt-dlp auth/cookie policy checks
 - official `yt-dlp.exe` install and version check
 - batch `plan`
 - multi-URL and URL-file batch planning
@@ -40,9 +42,8 @@ Working now:
 - guarded `run`
 - Codex skill suite under `skills/legends-yt-dlp-slayer`
 
-Blocked until the local Mullvad account is funded and connected:
+Still needs before a release tag:
 
-- passing default batch preflight
 - real download smoke tests
 
 ## Quick Start
@@ -64,6 +65,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lockdown on
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad connect
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad recover
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --require-connected
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --production
 ```
 
 Create a batch:
@@ -129,6 +131,8 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 `.env` is ignored by git. Use `.env.example` for the expected shape.
 
 Never commit Mullvad account numbers, cookies, account tokens, or batch outputs.
+
+Production batches are anonymous by default: no browser cookies, no cookie files, no username/password auth, no `.netrc`, and no inherited user-level `yt-dlp` config.
 
 ## License
 

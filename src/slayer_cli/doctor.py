@@ -3,7 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .envfile import read_env_file, redact
-from .mullvad import status as mullvad_status
+from .mullvad import (
+    auto_connect_setting,
+    lan_setting,
+    lockdown_setting,
+    split_tunnel_setting,
+    status as mullvad_status,
+)
 from .paths import PROJECT_ROOT
 from .tools import ToolInfo, find_ffmpeg, find_mullvad, find_ytdlp
 
@@ -22,7 +28,14 @@ def tool_check(tool: ToolInfo) -> Check:
     return Check(tool.name, True, f"{tool.path}{version}")
 
 
-def run_doctor() -> list[Check]:
+def mullvad_setting_check(name: str, raw: str, ok: bool, expected: str) -> Check:
+    detail = raw.replace("\n", " | ")
+    if not detail:
+        detail = f"expected {expected}"
+    return Check(name, ok, detail)
+
+
+def run_doctor(*, production: bool = False) -> list[Check]:
     env = read_env_file(PROJECT_ROOT / ".env")
     account = env.get("MULLVAD_ACCOUNT_NUMBER")
     checks: list[Check] = [
@@ -38,6 +51,15 @@ def run_doctor() -> list[Check]:
     else:
         checks.append(Check("mullvad connected", False, mullvad.error or "status unavailable"))
 
+    if production:
+        for name, state in [
+            ("mullvad lockdown", lockdown_setting()),
+            ("mullvad split tunnel off", split_tunnel_setting()),
+            ("mullvad LAN sharing blocked", lan_setting()),
+            ("mullvad auto-connect", auto_connect_setting()),
+        ]:
+            checks.append(mullvad_setting_check(name, state.raw, state.ok, state.expected))
+
     return checks
 
 
@@ -48,4 +70,3 @@ def overall_ok(checks: list[Check], *, require_connected: bool = False) -> bool:
         if not check.ok:
             return False
     return True
-

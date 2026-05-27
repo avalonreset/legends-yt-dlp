@@ -31,6 +31,25 @@ The runner should pause or refuse to continue when it sees:
 - repeated rate-limit signal
 - DRM, paywall, or access-control signal
 
+## Production VPN Posture
+
+Production runs require Mullvad to be connected with Lockdown mode enabled. Lockdown is mandatory because a reconnect, manual disconnect, daemon issue, or tunnel failure must not fall back to the native network path.
+
+Production checks also require split tunneling off, LAN sharing blocked, and auto-connect on. These settings do not guarantee anonymity or immunity from platform controls; they reduce accidental leak and misconfiguration risk.
+
+## Account And Cookie Policy
+
+Production batches must use anonymous `yt-dlp` operation by default:
+
+- no browser cookies
+- no cookie files
+- no `--cookies-from-browser`
+- no username/password login
+- no `.netrc` auth
+- no inherited user-level `yt-dlp` config
+
+`yt-dlp` does not need the user to be logged into YouTube for public videos, and this project should not attach a normal YouTube account to large archive runs. If a video truly requires account access, treat it as a separate high-risk authorization workflow and prefer official export or creator-owned download paths.
+
 ## Automatic Recovery
 
 The app may automatically reconnect Mullvad and retry for tunnel, daemon, DNS, or transient network failures. It may resume the batch because `yt-dlp` download archives skip completed items.

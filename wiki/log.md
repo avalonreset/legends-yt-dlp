@@ -8,6 +8,15 @@ tags: [log, meta]
 
 # Log
 
+## 2026-05-27 - Production Lockdown and Cookie Policy Hardened
+
+- Added production posture checks for Mullvad Lockdown, split tunneling, LAN sharing, and auto-connect.
+- Made real downloads refuse non-production mode.
+- Made `mullvad recover` enable Lockdown before reconnect attempts.
+- Updated generated yt-dlp configs to use `--ignore-config`, `--no-cookies`, and `--no-cookies-from-browser`.
+- Added preflight rejection for browser cookies, cookie files, account credentials, `.netrc`, and related auth options.
+- Created [[Account Cookie Policy]] and updated runbooks, docs, and skill references.
+
 ## 2026-05-27 - Safe VPN Recovery Added
 
 - Added `mullvad recover` for connected-state recovery.

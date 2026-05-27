@@ -14,10 +14,11 @@ YouTube-specific automation needs a conservative boundary because account health
 
 - Prefer official export paths for content you own when they meet the need.
 - Use yt-dlp only where you have a lawful basis.
+- Keep production runs anonymous by default: no browser cookies, no cookie files, no username/password auth, and no `.netrc`.
+- Do not attach a normal YouTube account to large archive activity.
 - Do not automate around captchas, sign-in challenges, or source-side blocks.
 - Treat repeated throttling as a signal to stop, not a reason to rotate relays.
 
 ## Product Implication
 
 The app should make unsafe states visible and boring: clear block reason, stopped queue, next human action.
-

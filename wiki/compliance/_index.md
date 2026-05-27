@@ -10,5 +10,5 @@ tags: [compliance, index]
 
 - [[Use Policy]]
 - [[Rights and Consent Checklist]]
+- [[Account Cookie Policy]]
 - [[YouTube Boundary Notes]]
-

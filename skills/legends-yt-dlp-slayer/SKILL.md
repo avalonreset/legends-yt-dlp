@@ -15,6 +15,7 @@ Operate the local Slayer CLI as the deterministic runtime. The skill is the oper
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --require-connected
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --production
 ```
 
 If the command fails, fix setup before planning or running downloads.
@@ -24,6 +25,8 @@ If the command fails, fix setup before planning or running downloads.
 Allowed: lawful archiving with a documented rights basis, Mullvad privacy checks, conservative pacing, resumable batches, and operator-reviewed retries.
 
 Disallowed: bypassing DRM, paywalls, login challenges, captchas, access controls, account controls, throttling, bans, or IP blocks. Do not automatically rotate Mullvad relays/IPs to keep downloading through source-side blocks.
+
+Production mode is mandatory for real downloads. It requires Mullvad connected, Lockdown mode on, split tunneling off, LAN sharing blocked, auto-connect on, and anonymous `yt-dlp` operation with no browser cookies, cookie files, username/password auth, `.netrc`, or inherited user config.
 
 If the user asks for automatic IP switching on download errors, implement only this safe policy:
 

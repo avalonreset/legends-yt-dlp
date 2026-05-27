@@ -7,7 +7,10 @@ Run all commands from the project root.
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --require-connected
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --production
 ```
+
+Use `doctor --production` before real work. It requires connected Mullvad, Lockdown on, split tunneling off, LAN sharing blocked, and auto-connect on.
 
 ## Mullvad
 

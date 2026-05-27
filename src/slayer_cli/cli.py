@@ -45,10 +45,10 @@ def print_mullvad_result(args: list[str], *, timeout: int = 60) -> int:
 
 
 def cmd_doctor(args: argparse.Namespace) -> int:
-    checks = run_doctor()
+    checks = run_doctor(production=args.production)
     for check in checks:
         print_check(check.name, check.ok, check.detail)
-    return 0 if overall_ok(checks, require_connected=args.require_connected) else 1
+    return 0 if overall_ok(checks, require_connected=args.require_connected or args.production) else 1
 
 
 def cmd_mullvad_status(args: argparse.Namespace) -> int:
@@ -232,21 +232,26 @@ def cmd_catalog(_: argparse.Namespace) -> int:
 
 
 def cmd_preflight(args: argparse.Namespace) -> int:
-    checks = preflight_batch(Path(args.manifest), require_connected=not args.no_require_connected)
+    production = not args.no_production and not args.no_require_connected
+    checks = preflight_batch(Path(args.manifest), require_connected=not args.no_require_connected, production=production)
     for check in checks:
         print_check(check.name, check.ok, check.detail)
     return 0 if preflight_ok(checks, require_connected=not args.no_require_connected) else 1
 
 
 def cmd_run(args: argparse.Namespace) -> int:
+    if not args.dry_run and (args.no_production or args.no_require_connected):
+        print("Refusing real download without production VPN posture. Remove --no-production/--no-require-connected.", file=sys.stderr)
+        return 2
     manifest = Path(args.manifest)
-    checks = preflight_batch(manifest, require_connected=not args.no_require_connected)
+    production = not args.no_production and not args.no_require_connected
+    checks = preflight_batch(manifest, require_connected=not args.no_require_connected, production=production)
     if not preflight_ok(checks, require_connected=not args.no_require_connected):
         if args.recover_vpn and not args.no_require_connected and only_mullvad_connection_failed(checks):
             recovery = recover_connection(attempts=args.vpn_recovery_attempts, wait_seconds=args.vpn_recovery_wait)
             for message in recovery.messages:
                 print(redact_account_in_text(message, env_account()))
-            checks = preflight_batch(manifest, require_connected=True)
+            checks = preflight_batch(manifest, require_connected=True, production=True)
             if preflight_ok(checks, require_connected=True):
                 print("Preflight passed after Mullvad recovery.")
             else:
@@ -290,6 +295,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     doctor = sub.add_parser("doctor", help="Check local prerequisites")
     doctor.add_argument("--require-connected", action="store_true", help="Fail if Mullvad is not connected")
+    doctor.add_argument("--production", action="store_true", help="Require connected Mullvad, Lockdown, split tunnel off, LAN blocked, and auto-connect on")
     doctor.set_defaults(func=cmd_doctor)
 
     mullvad = sub.add_parser("mullvad", help="Operate Mullvad through the official CLI")
@@ -454,6 +460,7 @@ def build_parser() -> argparse.ArgumentParser:
     preflight = sub.add_parser("preflight", help="Check a batch before running")
     preflight.add_argument("manifest", help="Path to batch manifest.json")
     preflight.add_argument("--no-require-connected", action="store_true", help="Do not fail solely because Mullvad is disconnected")
+    preflight.add_argument("--no-production", action="store_true", help="Local harness only: skip production posture and anonymous-auth policy checks")
     preflight.set_defaults(func=cmd_preflight)
 
     run = sub.add_parser("run", help="Run or dry-run a batch")
@@ -461,6 +468,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--dry-run", action="store_true", help="Simulate yt-dlp without downloading")
     run.add_argument("--yes", action="store_true", help="Allow real downloads after preflight")
     run.add_argument("--no-require-connected", action="store_true", help="Do not fail solely because Mullvad is disconnected")
+    run.add_argument("--no-production", action="store_true", help="Diagnostics only. Real downloads refuse this flag.")
     run.add_argument("--recover-vpn", dest="recover_vpn", action="store_true", default=True, help="Recover Mullvad on tunnel/network failures")
     run.add_argument("--no-recover-vpn", dest="recover_vpn", action="store_false", help="Disable Mullvad recovery")
     run.add_argument("--vpn-recovery-attempts", type=int, default=2)
