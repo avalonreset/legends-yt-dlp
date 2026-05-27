@@ -18,6 +18,17 @@ The vault is the operating surface for the project. Start with:
 - [[Use Policy]]
 - [[Windows Operator Setup]]
 - [[Preflight Checklist]]
+- [[CLI Operator Commands]]
+
+## CLI Quick Start
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp version
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad status --verbose
+```
+
+Default batch preflight requires Mullvad to be connected. That is intentional.
 
 ## Operating Boundary
 
@@ -31,3 +42,6 @@ This project is for lawful archiving of videos the operator owns, has permission
 - `tools/` stores vault maintenance helpers.
 - `CODEX.md` defines the vault rules for Codex sessions.
 
+## Local Secrets
+
+`.env` is ignored by git. Use `.env.example` for the shape only.

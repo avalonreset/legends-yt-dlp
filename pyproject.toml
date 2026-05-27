@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "legends-yt-dlp-slayer"
+version = "0.1.0"
+description = "Windows-first, rights-aware yt-dlp orchestration CLI with Mullvad VPN preflight controls."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Legends" }
+]
+license = { text = "Proprietary until release policy is finalized" }
+dependencies = []
+
+[project.scripts]
+slayer = "slayer_cli.cli:main"
+printing-press = "slayer_cli.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+

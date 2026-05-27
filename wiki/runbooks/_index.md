@@ -12,4 +12,4 @@ tags: [runbooks, index]
 - [[Preflight Checklist]]
 - [[Batch Archive SOP]]
 - [[Blocked or Throttled SOP]]
-
+- [[CLI Operator Commands]]

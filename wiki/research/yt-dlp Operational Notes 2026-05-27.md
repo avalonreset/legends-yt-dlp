@@ -22,4 +22,10 @@ Source: [[yt-dlp GitHub README]]
 - Treat yt-dlp as an engine dependency.
 - Use generated configs and process execution rather than constructing huge one-line commands.
 - Keep app-level state separate from yt-dlp's download archive.
+- For the Windows MVP, prefer the official standalone `yt-dlp.exe` release and verify it against upstream checksums.
 
+## Current Local Install
+
+- Version: `2026.03.17`
+- Path: `.local/bin/yt-dlp.exe`
+- SHA256: `3db811b366b2da47337d2fcfdfe5bbd9a258dad3f350c54974f005df115a1545`

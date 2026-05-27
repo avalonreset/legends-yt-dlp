@@ -16,6 +16,7 @@ tags: [index, meta]
 - [[Use Policy]]
 - [[Architecture Overview]]
 - [[Windows Operator Setup]]
+- [[CLI Operator Commands]]
 
 ## Domains
 
@@ -58,6 +59,7 @@ tags: [index, meta]
 - [[Preflight Checklist]]
 - [[Batch Archive SOP]]
 - [[Blocked or Throttled SOP]]
+- [[CLI Operator Commands]]
 
 ## Compliance
 
@@ -70,6 +72,7 @@ tags: [index, meta]
 - [[Mullvad Pricing Snapshot 2026-05-27]]
 - [[Mullvad CLI Notes 2026-05-27]]
 - [[yt-dlp Operational Notes 2026-05-27]]
+- [[yt-dlp Deep Research 2026-05-27]]
 - [[Mullvad Pricing]]
 - [[Mullvad CLI Guide]]
 - [[yt-dlp GitHub README]]
@@ -78,4 +81,3 @@ tags: [index, meta]
 
 - [[Glossary]]
 - [[Health Check]]
-

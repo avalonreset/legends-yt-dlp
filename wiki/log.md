@@ -8,6 +8,14 @@ tags: [log, meta]
 
 # Log
 
+## 2026-05-27 - CLI Scaffold and yt-dlp Install
+
+- Added Python CLI package with `slayer` / `printing-press` entry points.
+- Added `scripts/slayer.ps1` launcher for local PowerShell operation.
+- Added commands for `doctor`, Mullvad status/login/connect/lockdown/raw, yt-dlp install/version, batch `plan`, `preflight`, and guarded `run`.
+- Installed official Windows `yt-dlp.exe` to `.local/bin`, verified SHA256 against upstream `SHA2-256SUMS`, and confirmed version `2026.03.17`.
+- Confirmed Mullvad CLI path and version, but batch preflight remains blocked until Mullvad is logged in, funded, and connected.
+
 ## 2026-05-27 - Initial Scaffold
 
 - Created the Legends YT-DLP Slayer Codex Obsidian development vault.
@@ -15,4 +23,3 @@ tags: [log, meta]
 - Captured the original product idea in `.raw/idea/2026-05-27-user-brief.md`.
 - Seeded source snapshots for Mullvad pricing, Mullvad CLI, and yt-dlp.
 - Established product boundary: VPN privacy and fail-closed checks are in scope; relay rotation to bypass platform controls is out of scope.
-

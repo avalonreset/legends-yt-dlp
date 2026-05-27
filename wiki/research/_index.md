@@ -11,4 +11,4 @@ tags: [research, index]
 - [[Mullvad Pricing Snapshot 2026-05-27]]
 - [[Mullvad CLI Notes 2026-05-27]]
 - [[yt-dlp Operational Notes 2026-05-27]]
-
+- [[yt-dlp Deep Research 2026-05-27]]
