@@ -1,0 +1,12 @@
+---
+type: index
+status: active
+created: 2026-05-27
+updated: 2026-05-27
+tags: [releases, index]
+---
+
+# Releases
+
+- [[Release Plan v0.1.0]]
+
