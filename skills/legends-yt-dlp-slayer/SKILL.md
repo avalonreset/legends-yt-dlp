@@ -41,11 +41,14 @@ For the detailed policy, read `references/safety-and-errors.md`.
 ### Setup / Inspect
 
 ```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 setup production
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp version
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
 ```
+
+Use `onboard` first in a new checkout or after unpacking an alpha zip. It prints readiness, missing setup steps, the user interview checklist, and the next safe commands without mutating local state.
 
 Read `references/commands.md` for the full command surface.
 

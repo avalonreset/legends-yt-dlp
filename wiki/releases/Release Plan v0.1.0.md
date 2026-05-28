@@ -24,6 +24,7 @@ Ship a private/community alpha that proves the safe orchestration loop.
 - Compact JSON run reports and CLI summaries.
 - MIT license, NOTICE, security policy, citation file, contribution docs, issue templates, and PR template.
 - Alpha zip package plus SHA256.
+- First-run onboarding command and walkthrough/examples.
 
 ## Not in Scope
 
@@ -40,6 +41,7 @@ Ship a private/community alpha that proves the safe orchestration loop.
 - Real-run verification refreshes ledger state and reports ledger status counts.
 - Rights evidence file copying is documented and verified.
 - Clean-clone install path passes.
+- `onboard` prints readiness and next safe commands without mutating local state.
 - Resume/interruption behavior is verified.
 - Package zip excludes `.env`, `.local`, batches, reports, media, cookies, caches, secrets, and git metadata.
 - License/NOTICE files attribute yt-dlp and Mullvad relationship without bundling their binaries.

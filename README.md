@@ -72,6 +72,7 @@ Still needs before a release tag:
 From the project root:
 
 ```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 setup production
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp version
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad status --verbose
@@ -165,6 +166,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ## Documentation
 
 - [CLI Commands](docs/CLI.md)
+- [First-Run Walkthrough](docs/WALKTHROUGH.md)
 - [Standard Operating Procedure](docs/SOP.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Safety and Use Policy](docs/SAFETY.md)

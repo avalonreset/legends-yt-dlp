@@ -34,6 +34,7 @@ from .mullvad import (
     set_lockdown,
     status,
 )
+from .onboarding import onboarding_json, onboarding_text
 from .paths import PROJECT_ROOT
 from .smoke import SMOKE_VIDEOS, create_smoke_batch
 from .tools import find_ytdlp, install_ytdlp, run_tool
@@ -74,6 +75,18 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     for check in checks:
         print_check(check.name, check.ok, check.detail)
     return 0 if overall_ok(checks, require_connected=args.require_connected or args.production) else 1
+
+
+def cmd_onboard(args: argparse.Namespace) -> int:
+    require_connected = not args.basic
+    checks = run_doctor(production=not args.basic)
+    if args.json:
+        print(onboarding_json(checks, require_connected=require_connected))
+    else:
+        print(onboarding_text(checks, require_connected=require_connected))
+    if args.strict and not overall_ok(checks, require_connected=require_connected):
+        return 1
+    return 0
 
 
 def print_mullvad_step(label: str, mv_args: list[str], *, timeout: int = 120) -> int:
@@ -600,6 +613,12 @@ def build_parser() -> argparse.ArgumentParser:
     doctor.add_argument("--require-connected", action="store_true", help="Fail if Mullvad is not connected")
     doctor.add_argument("--production", action="store_true", help="Require connected Mullvad, Lockdown, split tunnel off, LAN blocked, and auto-connect on")
     doctor.set_defaults(func=cmd_doctor)
+
+    onboard = sub.add_parser("onboard", help="Show first-run setup status and next safe commands")
+    onboard.add_argument("--basic", action="store_true", help="Skip production posture checks and only inspect basic dependencies")
+    onboard.add_argument("--strict", action="store_true", help="Return non-zero until the shown readiness checks pass")
+    onboard.add_argument("--json", action="store_true", help="Print machine-readable onboarding status")
+    onboard.set_defaults(func=cmd_onboard)
 
     setup = sub.add_parser("setup", help="Configure local production posture")
     setup_sub = setup.add_subparsers(dest="setup_command", required=True)

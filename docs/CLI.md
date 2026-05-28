@@ -18,6 +18,18 @@ Checks Mullvad, `yt-dlp`, `ffmpeg`, local account configuration, and connected s
 
 `doctor --production` additionally requires a JavaScript runtime for YouTube extraction, Mullvad Lockdown on, split tunneling off, LAN sharing blocked, and auto-connect on.
 
+## Onboarding
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard --json
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard --strict
+```
+
+`onboard` prints first-run readiness, missing setup steps, the operator interview checklist, and the next safe workflow. It does not mutate local state or start downloads.
+
+Use `--strict` when an automation should fail until production readiness passes. Use `--basic` to skip production posture checks and inspect only basic dependencies.
+
 ## Setup
 
 ```powershell

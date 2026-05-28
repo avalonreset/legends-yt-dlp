@@ -11,7 +11,7 @@ tags: [hot-cache, meta]
 
 ## Last Updated
 
-2026-05-28. Item-ledger/inventory planning, clean-clone install, resume behavior, legal/community files, packaging, and GitHub metadata are now hardened for alpha review.
+2026-05-28. Item-ledger/inventory planning, clean-clone install, resume behavior, legal/community files, packaging, GitHub metadata, and first-run onboarding are now hardened for alpha review.
 
 ## Key Recent Facts
 
@@ -31,12 +31,14 @@ tags: [hot-cache, meta]
 - Resume/interruption harness passed: first run stopped after one fake item, ledger showed one downloaded and one planned, rerun skipped archived first item, completed second item, verify passed with two downloaded ledger items.
 - Legal/community layer added: MIT `LICENSE`, `NOTICE`, `SECURITY.md`, `CITATION.cff`, `CONTRIBUTING.md`, code of conduct, issue templates, PR template, and release config.
 - Packaging added: `scripts/package-alpha.ps1` builds `dist/legends-yt-dlp-slayer-0.1.0-alpha.zip` plus SHA256 and excludes secrets/runtime outputs.
+- First-run onboarding added: `slayer onboard` prints readiness, missing setup steps, the user interview checklist, reference docs, and the next safe commands without mutating state.
+- Walkthrough/examples added: `docs/WALKTHROUGH.md`, `examples/batch-intake.md`, `examples/rights-evidence-template.md`, and `examples/urls.txt`.
 - Live GitHub metadata updated: stronger description, discussions enabled, topics expanded for `yt-dlp`, Mullvad VPN, digital preservation, privacy tools, and operator tooling.
 - Unit gate: 39 tests pass; compileall passes; package inspection passes; vault health/secret scan are part of the final gate.
 
 ## Recent Changes
 
-- Added `src/slayer_cli/ledger.py`, `src/slayer_cli/inventory.py`, alpha packaging, and GitHub legal/community files.
+- Added `src/slayer_cli/ledger.py`, `src/slayer_cli/inventory.py`, `src/slayer_cli/onboarding.py`, alpha packaging, examples, and GitHub legal/community files.
 - Updated README, CLI docs, SOP, architecture, safety policy, legal/packaging docs, skill reference, roadmap, release plan, changelog, and tests.
 
 ## Active Threads

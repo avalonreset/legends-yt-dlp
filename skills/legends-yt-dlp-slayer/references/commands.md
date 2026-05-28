@@ -5,11 +5,16 @@ Run all commands from the project root.
 ## Doctor
 
 ```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard --json
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard --strict
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --require-connected
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --production
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 setup production
 ```
+
+Use `onboard` first in a fresh checkout. It prints readiness, missing setup steps, user interview prompts, and the next safe commands without mutating local state.
 
 Use `doctor --production` before real work. It requires connected Mullvad, Lockdown on, split tunneling off, LAN sharing blocked, and auto-connect on.
 
@@ -62,12 +67,15 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL>" --rights "<basis>" --name "<name>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL1>" "<URL2>" --rights "<basis>" --name "<name>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --rights "<basis>" --name "<name>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "<channel-or-playlist-url>" --rights "<basis>" --rights-file ".\rights-evidence.md" --name "<name>" --max-items 25
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "<manifest.json>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --count 5
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "<manifest.json>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --dry-run
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --yes
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --yes --vpn-recovery-attempts 3
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "<manifest.json>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "<manifest.json>" --refresh
 ```
 
 `run` defaults to safe VPN recovery. It can reconnect Mullvad and retry after transient tunnel/network failures. It must not continue through source-side block signals.

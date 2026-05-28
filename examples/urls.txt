@@ -1,0 +1,4 @@
+# One authorized URL per line.
+# Replace these examples with user-approved URLs before planning a real batch.
+#
+# https://www.youtube.com/watch?v=...

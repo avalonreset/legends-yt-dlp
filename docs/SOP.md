@@ -4,6 +4,12 @@ This is the normal operator path for Legends YT-DLP Slayer. It is intentionally 
 
 ## 1. Consult The User
 
+Start with the guided local readiness check:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard
+```
+
 Before creating or running a batch, confirm:
 
 - the user owns the videos, has permission, or has a license/public-domain basis

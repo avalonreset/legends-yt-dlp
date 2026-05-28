@@ -8,6 +8,13 @@ tags: [log, meta]
 
 # Log
 
+## 2026-05-28 - First-Run Walkthrough Added
+
+- Added `slayer onboard` as a non-mutating first-run guide that prints readiness, missing setup steps, interview prompts, reference docs, and the next safe commands.
+- Added JSON/strict onboarding modes for automation and machine-readable setup status.
+- Added `docs/WALKTHROUGH.md`, batch intake template, rights evidence template, and example URL file.
+- Updated README, CLI docs, SOP, architecture notes, skill command reference, changelog, roadmap, and hot cache around the onboarding workflow.
+
 ## 2026-05-28 - Alpha Packaging and GitHub Presence Hardened
 
 - Added MIT license, `NOTICE`, `SECURITY.md`, `CITATION.cff`, `CONTRIBUTING.md`, code of conduct, issue templates, PR template, and release config.

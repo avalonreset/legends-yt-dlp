@@ -8,6 +8,7 @@ Legends YT-DLP Slayer is a wrapper and operator control plane. It does not reimp
 CLI Control Plane
   - parses commands
   - prints pass/fail checks
+  - guides first-run onboarding
   - refuses unsafe real runs
 
 Policy Checks
@@ -60,6 +61,10 @@ python -m slayer_cli
 ```
 
 This keeps early development lightweight. Packaging can come later after the command surface stabilizes.
+
+`slayer onboard` is the non-mutating first-run guide. It runs readiness checks,
+prints missing setup actions, surfaces the user interview checklist, and points
+operators to the normal inventory/ledger/preflight/run/verify workflow.
 
 ## Dependency Strategy
 

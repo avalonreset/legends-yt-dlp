@@ -23,6 +23,12 @@ The package includes source, docs, scripts, tests, skill files, and legal/commun
 - `cookies/`
 - `.git/`
 
+After unpacking, the first command for a user should be:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard
+```
+
 ## Release Checklist
 
 Before attaching the zip to a release:
