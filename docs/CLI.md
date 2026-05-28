@@ -88,6 +88,7 @@ The install command downloads the official Windows standalone executable and ver
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --name "channel-name"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://example.com/a" "https://example.com/b" --rights "owned or authorized" --name "multi-url"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --name "url-file"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --rights-file ".\rights-evidence.md" --name "url-file"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.youtube.com/watch?v=..." --rights "owned or authorized" --name "smoke" --max-downloads 1 --max-height 360 --max-filesize 50M
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
 ```
@@ -100,8 +101,39 @@ The plan command creates:
 - download archive path
 - output and temp folders
 - optional limits for smoke jobs and bounded runs
+- optional copied rights evidence under the batch `rights` folder
 
 Generated batch folders are ignored by git.
+
+## Inventory
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --rights-file ".\rights-evidence.md" --name "channel-name"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "https://www.youtube.com/playlist?list=..." --rights "owned or authorized" --name "playlist-name" --max-items 50
+```
+
+`inventory` expands a channel, playlist, or source URL into a batch without downloading media. It runs production doctor first unless `--no-production` is used for diagnostics. It creates `manifest.json`, `urls.txt`, `yt-dlp.conf`, and `items.jsonl`.
+
+Use `--rights-file` to copy permission notes, license evidence, client approval, or other rights proof into the batch `rights` folder. Stop if the user cannot provide a clear rights basis or evidence when the job requires one.
+
+Useful inventory limits:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "<channel-or-playlist>" --rights "owned or authorized" --name "review" --max-items 25 --live-status not_live
+```
+
+Review `items.jsonl` before any real run. If inventory produces source-side throttling, captcha, login, account-control, or block signals, stop and report instead of changing relays to continue.
+
+## Ledger
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json" --refresh
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json" --status downloaded --limit 50
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json" --json
+```
+
+`ledger` summarizes and samples the batch item ledger. `--refresh` reconciles ledger status from the download archive, info JSON sidecars, and media files. Use it after dry-runs, real runs, and verification so the operator can review planned, inventoried, archived, downloaded, metadata-only, warning, or blocked items.
 
 ## Smoke Pack
 

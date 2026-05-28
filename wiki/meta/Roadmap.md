@@ -51,10 +51,12 @@ tags: [roadmap, meta]
 
 ## Phase 5 - Productization Priorities
 
-- Add a structured per-item ledger with URL, ID, title, status, attempts, warnings, output path, bytes, and duration.
+- Confirm and harden the structured per-item ledger with URL, ID, title, status, attempts, warnings, output path, bytes, and duration.
 - Add a concise run summary that reports downloaded, skipped, failed, warning, and verification counts.
-- Add inventory-only planning for channels and playlists before any download.
-- Add optional rights evidence files for permission/license proof.
+- Confirm and harden inventory-only planning for channels and playlists before any download.
+- Keep optional rights evidence files for permission/license proof attached to each batch.
+- Keep the product SOP centered on consult user, inventory, ledger review, preflight, dry-run, approved real run, verify, and final ledger review.
+- Preserve stop-on-source-block behavior: no relay rotation to continue through throttles, captchas, login/account controls, or blocks.
 - Decide v0.1.0-alpha packaging: zip release, PowerShell installer, or Python package.
 - Finalize license and upstream notice posture before community distribution.
 - Improve public docs with a complete smoke-pack transcript and expected outputs.

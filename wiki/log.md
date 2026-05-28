@@ -8,6 +8,22 @@ tags: [log, meta]
 
 # Log
 
+## 2026-05-28 - Item Ledger and Inventory Implemented
+
+- Added first-class item ledger support: every new batch writes `items.jsonl`, preflight checks it, run reports include ledger counts, and `verify` refreshes ledger state from archive entries, info JSON sidecars, and media files.
+- Added `inventory` to expand a channel, playlist, or source URL into a reviewable batch without downloading media; source-side warnings pause without creating a batch.
+- Added `ledger` to summarize, filter, refresh, and JSON-export item ledger state.
+- Added optional `--rights-file` copying into batch `rights/` folders.
+- Live production evidence: `doctor --production` passed with Mullvad connected and Lockdown on; NASA Goddard inventory smoke created 1 inventoried ledger item; curated NASA real smoke downloaded 1 MP4, wrote 1 archive entry and 1 info JSON, passed `verify`/ffprobe, and refreshed ledger to `downloaded: 1`.
+- Verification: 39 unit tests passed, compileall passed, vault health passed, and the Mullvad account secret scan found no committed leakage outside ignored files.
+
+## 2026-05-28 - Item Ledger and Inventory SOP Productized
+
+- Updated README, CLI docs, SOP, and Codex skill reference around the standard item-ledger workflow.
+- Documented channel/playlist `inventory`, `items.jsonl`, `ledger --refresh`, and `--rights-file` as the reviewable planning path before real downloads.
+- Reaffirmed the safety boundary: no relay rotation, account switching, captcha/login automation, or continuation through source-side throttles, account controls, or blocks.
+- Updated roadmap/release surfaces to make inventory planning, rights evidence, verification, and ledger review part of the v0.1.0 operating story.
+
 ## 2026-05-28 - Product Assessment Filed
 
 - Added [[Product Assessment 2026-05-28]] with current strengths, weak areas, and next product priorities.

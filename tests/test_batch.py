@@ -12,6 +12,7 @@ from slayer_cli.batch import (
     write_run_report,
     write_ytdlp_config,
 )
+from slayer_cli.ledger import load_item_ledger
 from slayer_cli.process import CommandResult
 
 
@@ -33,6 +34,37 @@ class BatchTests(unittest.TestCase):
                 rights_basis="fixture",
                 max_downloads=0,
             )
+
+    def test_batch_plan_writes_item_ledger_and_rights_evidence(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            rights = root / "rights-note.md"
+            rights.write_text("authorized fixture\n", encoding="utf-8")
+            paths = create_batch_from_urls(
+                urls=[
+                    "https://www.youtube.com/watch?v=alpha123",
+                    "https://youtu.be/bravo456",
+                ],
+                rights_basis="fixture",
+                name="ledger-rights-fixture",
+                output_dir=str(root / "out"),
+                rights_file=str(rights),
+            )
+            try:
+                manifest = paths.manifest.read_text(encoding="utf-8")
+                self.assertTrue(paths.ledger.exists())
+                self.assertIn('"item_ledger"', manifest)
+                self.assertIn('"rights_evidence"', manifest)
+                items = load_item_ledger(paths.ledger)
+                self.assertEqual([item["id"] for item in items], ["alpha123", "bravo456"])
+                self.assertTrue((paths.root / "rights" / rights.name).exists())
+                self.assertTrue((root / "out").is_dir())
+            finally:
+                import shutil
+
+                shutil.rmtree(paths.root, ignore_errors=True)
 
     def test_ytdlp_config_uses_forward_slash_paths(self) -> None:
         import tempfile
@@ -132,7 +164,18 @@ class BatchTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             manifest = root / "manifest.json"
-            manifest.write_text('{"name":"fixture","status":"planned"}\n', encoding="utf-8")
+            output = root / "downloads"
+            output.mkdir()
+            archive = root / "archive.txt"
+            ledger = root / "items.jsonl"
+            ledger.write_text(
+                '{"id":"alpha123","position":1,"status":"planned","url":"https://www.youtube.com/watch?v=alpha123","warnings":[]}\n',
+                encoding="utf-8",
+            )
+            manifest.write_text(
+                f'{{"name":"fixture","status":"planned","source_urls":["https://www.youtube.com/watch?v=alpha123"],"paths":{{"output":"{output.as_posix()}","download_archive":"{archive.as_posix()}","item_ledger":"{ledger.as_posix()}"}}}}\n',
+                encoding="utf-8",
+            )
             result = CommandResult(("yt-dlp",), 0, "large stdout", "")
             report = write_run_report(
                 manifest,
@@ -145,6 +188,7 @@ class BatchTests(unittest.TestCase):
             self.assertTrue(report.exists())
             self.assertIn('"status": "dry_run_passed"', manifest.read_text(encoding="utf-8"))
             self.assertNotIn("large stdout", report.read_text(encoding="utf-8"))
+            self.assertIn('"ledger"', report.read_text(encoding="utf-8"))
             import shutil
 
             shutil.rmtree(report.parent)

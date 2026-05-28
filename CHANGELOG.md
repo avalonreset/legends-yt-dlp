@@ -19,3 +19,7 @@
 - Added `setup production`, curated `smoke plan`, and batch `verify` commands.
 - Added media verification through ffprobe and Unicode-safe console output.
 - Made dry-runs suppress raw yt-dlp JSON unless `--show-output` is passed.
+- Added channel/playlist `inventory` planning that creates reviewable item ledgers before downloads.
+- Added `items.jsonl` per-item ledgers, `ledger` inspection/refresh commands, and ledger summaries in run reports and verification.
+- Added optional `--rights-file` evidence copying into batch folders.
+- Made inventory pause on source-side warning signals instead of turning questionable sources into batches.

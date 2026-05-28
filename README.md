@@ -13,6 +13,8 @@ Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful but easy to operat
 - Detects `ffmpeg`.
 - Detects a JavaScript runtime for modern YouTube extraction.
 - Creates rights-aware batch manifests.
+- Inventories channel and playlist URLs into a reviewable item ledger before downloads.
+- Copies optional rights evidence files into the batch folder.
 - Provides a one-command production setup path for Mullvad safety posture.
 - Provides a curated NASA Goddard smoke pack for install validation.
 - Supports bounded smoke jobs with max downloads, height, and filesize limits.
@@ -46,8 +48,10 @@ Working now:
 - official `yt-dlp.exe` install and version check
 - curated 5-video smoke-pack planning
 - batch `plan`
+- channel/playlist `inventory`
 - multi-URL and URL-file batch planning
 - batch `catalog`
+- item `ledger`
 - batch `preflight`
 - guarded `run`
 - batch `verify`
@@ -95,8 +99,18 @@ Create a batch:
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --name "channel-name"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --name "catalog-name"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --rights-file ".\rights-evidence.md" --name "catalog-name"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
 ```
+
+For channel or playlist work, inventory first:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --rights-file ".\rights-evidence.md" --name "channel-name"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json"
+```
+
+Inventory creates the batch manifest, `urls.txt`, `yt-dlp.conf`, and `items.jsonl` without downloading media. Review the ledger with the user before a real run.
 
 Preflight and run:
 
@@ -105,6 +119,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\.
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --dry-run
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json" --refresh
 ```
 
 ## Safety Boundary
@@ -119,8 +134,8 @@ Allowed:
 
 Not allowed:
 
-- bypassing DRM, paywalls, captchas, login challenges, or access controls
-- rotating VPN relays to continue through platform blocks
+- bypassing DRM, paywalls, captchas, login challenges, account controls, or access controls
+- rotating VPN relays to continue through throttles, captchas, login prompts, account controls, or platform blocks
 - automating downloads without a documented rights basis
 - hiding abusive or copyright-infringing use
 

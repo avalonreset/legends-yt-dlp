@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
 from .doctor import Check, overall_ok, run_doctor
+from .ledger import planned_items_from_urls, refresh_item_ledger, write_item_ledger
 from .paths import PROJECT_ROOT
 from .process import CommandResult, run_command
 from .tools import find_js_runtime, find_ytdlp
@@ -77,6 +79,7 @@ class BatchPaths:
     root: Path
     manifest: Path
     urls: Path
+    ledger: Path
     config: Path
     archive: Path
     output: Path
@@ -110,6 +113,7 @@ def make_batch_paths(name: str) -> BatchPaths:
         root=root,
         manifest=root / "manifest.json",
         urls=root / "urls.txt",
+        ledger=root / "items.jsonl",
         config=root / "yt-dlp.conf",
         archive=root / "archive.txt",
         output=root / "downloads",
@@ -130,6 +134,8 @@ def create_batch_from_urls(
     max_height: int | None = None,
     max_downloads: int | None = None,
     max_filesize: str | None = None,
+    items: list[dict] | None = None,
+    rights_file: str | None = None,
 ) -> BatchPaths:
     if not urls:
         raise ValueError("At least one URL is required")
@@ -142,6 +148,11 @@ def create_batch_from_urls(
         raise ValueError("--max-height must be greater than 0")
     if max_downloads is not None and max_downloads <= 0:
         raise ValueError("--max-downloads must be greater than 0")
+    rights_evidence_path: Path | None = None
+    if rights_file:
+        source = Path(rights_file)
+        if not source.exists() or not source.is_file():
+            raise ValueError(f"Rights evidence file not found: {rights_file}")
 
     parsed = urlparse(urls[0])
     batch_name = name or parsed.netloc
@@ -149,8 +160,17 @@ def create_batch_from_urls(
     paths.root.mkdir(parents=True, exist_ok=False)
     paths.output.mkdir(parents=True, exist_ok=True)
     paths.temp.mkdir(parents=True, exist_ok=True)
+    if rights_file:
+        source = Path(rights_file).resolve()
+        rights_dir = paths.root / "rights"
+        rights_dir.mkdir(parents=True, exist_ok=True)
+        rights_evidence_path = rights_dir / source.name
+        shutil.copy2(source, rights_evidence_path)
 
     output_path = Path(output_dir).resolve() if output_dir else paths.output
+    if output_path.exists() and not output_path.is_dir():
+        raise ValueError(f"Output path is not a directory: {output_path}")
+    output_path.mkdir(parents=True, exist_ok=True)
     manifest = {
         "schema_version": 1,
         "created": datetime.now().isoformat(timespec="seconds"),
@@ -162,11 +182,13 @@ def create_batch_from_urls(
         "status": "planned",
         "paths": {
             "urls": str(paths.urls),
+            "item_ledger": str(paths.ledger),
             "yt_dlp_config": str(paths.config),
             "download_archive": str(paths.archive),
             "output": str(output_path),
             "temp": str(paths.temp),
         },
+        "rights_evidence": str(rights_evidence_path) if rights_evidence_path else None,
         "limits": {
             "max_height": max_height,
             "max_downloads": max_downloads,
@@ -184,6 +206,7 @@ def create_batch_from_urls(
         },
     }
     paths.urls.write_text("\n".join(urls) + "\n", encoding="utf-8")
+    write_item_ledger(paths.ledger, items or planned_items_from_urls(urls))
     write_ytdlp_config(
         paths.config,
         paths.urls,
@@ -356,6 +379,7 @@ def preflight_batch(path: Path, *, require_connected: bool = True, production: b
     config_path: Path | None = None
     for label, key in [
         ("urls file", "urls"),
+        ("item ledger", "item_ledger"),
         ("yt-dlp config", "yt_dlp_config"),
         ("download archive parent", "download_archive"),
         ("output path", "output"),
@@ -432,6 +456,24 @@ def run_status(*, dry_run: bool, returncode: int, category: str) -> str:
     return "failed"
 
 
+def next_action_for_status(status: str, category: str) -> str:
+    if status == "dry_run_passed":
+        return "Review the plan, then run with --yes when ready."
+    if status == "completed":
+        return "Run verify on the manifest."
+    if status == "completed_with_source_warnings":
+        return "Review diagnostics before scaling this source."
+    if status == "completed_with_network_warnings":
+        return "Review network diagnostics and rerun verify."
+    if status == "limit_reached":
+        return "Configured limit reached; inspect ledger before continuing."
+    if status == "paused_source_block":
+        return "Pause. Do not rotate relays to continue through source-side blocks."
+    if status == "paused_network_failure":
+        return "Recover Mullvad/network posture, then rerun preflight."
+    return f"Investigate {category} failure before retrying."
+
+
 def write_run_report(
     manifest_path: Path,
     *,
@@ -458,11 +500,14 @@ def write_run_report(
         "returncode": result.returncode,
         "classification": category,
         "status": status,
+        "next_action": next_action_for_status(status, category),
         "stdout_bytes": len(result.stdout.encode("utf-8", errors="replace")),
         "stderr_bytes": len(result.stderr.encode("utf-8", errors="replace")),
         "stderr_tail": stderr_lines[-20:],
         "diagnostic_tail": diagnostic_lines[-20:],
     }
+    ledger_summary = refresh_item_ledger(manifest)
+    report["ledger"] = ledger_summary
     report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     manifest["status"] = status
     manifest["last_run"] = {
@@ -471,6 +516,7 @@ def write_run_report(
         "returncode": result.returncode,
         "classification": category,
         "report": str(report_path),
+        "ledger": ledger_summary,
     }
     save_manifest(manifest_path, manifest)
     return report_path

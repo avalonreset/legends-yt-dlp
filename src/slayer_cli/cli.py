@@ -12,6 +12,7 @@ from .batch import (
     classify_run_failure,
     classify_success,
     create_batch_from_urls,
+    load_manifest,
     only_mullvad_connection_failed,
     preflight_batch,
     preflight_ok,
@@ -21,6 +22,8 @@ from .batch import (
 )
 from .doctor import overall_ok, run_doctor
 from .envfile import read_env_file, redact
+from .inventory import create_batch_from_inventory
+from .ledger import load_item_ledger, refresh_item_ledger, summarize_ledger
 from .mullvad import (
     disconnect_refusal_reason,
     lockdown_setting,
@@ -342,14 +345,57 @@ def cmd_plan(args: argparse.Namespace) -> int:
             max_height=args.max_height,
             max_downloads=args.max_downloads,
             max_filesize=args.max_filesize,
+            rights_file=args.rights_file,
         )
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 2
     print(f"Batch created: {paths.root}")
     print(f"Manifest: {paths.manifest}")
+    print(f"Item ledger: {paths.ledger}")
     print(f"yt-dlp config: {paths.config}")
     print(f"URL count: {len(urls)}")
+    return 0
+
+
+def cmd_inventory(args: argparse.Namespace) -> int:
+    if not args.no_production:
+        checks = run_doctor(production=True)
+        if not overall_ok(checks, require_connected=True):
+            for check in checks:
+                print_check(check.name, check.ok, check.detail)
+            print("Production doctor failed. Inventory did not start.", file=sys.stderr)
+            return 1
+    live_statuses = {value.lower() for value in args.live_status} if args.live_status else None
+    try:
+        paths, result = create_batch_from_inventory(
+            source_url=args.source_url,
+            rights_basis=args.rights,
+            name=args.name,
+            output_dir=args.output,
+            max_height=args.max_height,
+            max_downloads=args.max_downloads,
+            max_filesize=args.max_filesize,
+            max_items=args.max_items,
+            live_statuses=live_statuses,
+            rights_file=args.rights_file,
+        )
+    except (OSError, ValueError, RuntimeError, json.JSONDecodeError) as exc:
+        print(f"Inventory failed: {exc}", file=sys.stderr)
+        return 1
+    ledger_items = load_item_ledger(paths.ledger)
+    summary = summarize_ledger(ledger_items)
+    print(f"Inventory source: {result.source_url}")
+    print(f"Inventory entries: {len(result.entries)}")
+    print(f"Ledger items: {summary['items']}")
+    print(f"Batch created: {paths.root}")
+    print(f"Manifest: {paths.manifest}")
+    print(f"Item ledger: {paths.ledger}")
+    print(f"yt-dlp config: {paths.config}")
+    if result.warnings:
+        print("Warnings:")
+        for warning in result.warnings[-10:]:
+            print(f"- {warning}")
     return 0
 
 
@@ -367,6 +413,7 @@ def cmd_smoke_plan(args: argparse.Namespace) -> int:
         return 2
     print(f"Smoke batch created: {paths.root}")
     print(f"Manifest: {paths.manifest}")
+    print(f"Item ledger: {paths.ledger}")
     print(f"yt-dlp config: {paths.config}")
     print(f"URL count: {args.count}")
     for video in SMOKE_VIDEOS[: args.count]:
@@ -408,9 +455,72 @@ def cmd_verify(args: argparse.Namespace) -> int:
     print(f"Info JSON files: {summary.info_json_files}")
     print(f"Reports: {summary.report_files}")
     print(f"Media bytes: {summary.total_media_bytes}")
+    print(f"Ledger items: {summary.ledger_items}")
+    print(f"Ledger statuses: {json.dumps(summary.ledger_statuses, sort_keys=True)}")
+    print(f"Ledger warnings: {summary.ledger_warnings}")
     for check in checks:
         print_check(check.name, check.ok, check.detail)
     return 0 if all(check.ok for check in checks) else 1
+
+
+def report_summary_lines(report_path: Path) -> list[str]:
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    ledger = report.get("ledger", {})
+    lines = [
+        f"Run report: {report_path}",
+        f"Status: {report.get('status', 'unknown')}",
+        f"Classification: {report.get('classification', 'unknown')}",
+        f"Next action: {report.get('next_action', 'review report')}",
+        f"Ledger: {ledger.get('items', 0)} item(s), statuses {json.dumps(ledger.get('statuses', {}), sort_keys=True)}",
+    ]
+    if report.get("diagnostic_tail"):
+        lines.append(f"Diagnostics: {len(report['diagnostic_tail'])} line(s) in report")
+    return lines
+
+
+def print_run_summary(report_path: Path) -> None:
+    try:
+        lines = report_summary_lines(report_path)
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"Run report: {report_path}")
+        print(f"Could not summarize report: {exc}", file=sys.stderr)
+        return
+    for line in lines:
+        print(line)
+
+
+def cmd_ledger(args: argparse.Namespace) -> int:
+    try:
+        manifest = load_manifest(Path(args.manifest))
+        if args.refresh:
+            refresh_item_ledger(manifest)
+        ledger_path = Path(manifest["paths"]["item_ledger"])
+        items = load_item_ledger(ledger_path)
+    except (OSError, KeyError, json.JSONDecodeError) as exc:
+        print(f"Could not read item ledger: {exc}", file=sys.stderr)
+        return 1
+    statuses = {status.lower() for status in args.status} if args.status else None
+    selected = [item for item in items if not statuses or str(item.get("status", "")).lower() in statuses]
+    summary = summarize_ledger(items)
+    if args.json:
+        payload = {"manifest": str(Path(args.manifest)), "summary": summary, "items": selected[: args.limit]}
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        return 0
+    print(f"Item ledger: {ledger_path}")
+    print(f"Items: {summary['items']}")
+    print(f"Statuses: {json.dumps(summary['statuses'], sort_keys=True)}")
+    print(f"Downloaded: {summary['downloaded']}")
+    print(f"Archived: {summary['archived']}")
+    print(f"Warnings: {summary['warnings']}")
+    print(f"Bytes: {summary['bytes']}")
+    for item in selected[: args.limit]:
+        position = item.get("position", "?")
+        status = item.get("status", "unknown")
+        title = item.get("title") or item.get("url") or item.get("id") or "<untitled>"
+        print(f"{position}. {status} | {title}")
+    if len(selected) > args.limit:
+        print(f"... {len(selected) - args.limit} more item(s)")
+    return 0
 
 
 def cmd_run(args: argparse.Namespace) -> int:
@@ -458,19 +568,19 @@ def cmd_run(args: argparse.Namespace) -> int:
                 print("Source-side warning detected in a successful run. Review the run report before scaling this source.", file=sys.stderr)
             elif category == "network-warning":
                 print("Network warning detected in a successful run. Review the run report before scaling this source.", file=sys.stderr)
-            print(f"Run report: {report}")
+            print_run_summary(report)
             return 0
         category = classify_run_failure(result)
         if category == "limit-reached":
             report = write_run_report(manifest, dry_run=args.dry_run, result=result, category=category, started=started, ended=ended)
             print("Configured download limit reached.")
-            print(f"Run report: {report}")
+            print_run_summary(report)
             return 0
         if not args.recover_vpn or category != "transient-network" or attempt >= args.vpn_recovery_attempts:
             if category == "source-block":
                 print("Source-side block/throttle/login signal detected. Pausing without VPN relay/IP switching.", file=sys.stderr)
             report = write_run_report(manifest, dry_run=args.dry_run, result=result, category=category, started=started, ended=ended)
-            print(f"Run report: {report}")
+            print_run_summary(report)
             return result.returncode
         print(f"Transient network failure detected. Recovering Mullvad before retry {attempt + 1}.", file=sys.stderr)
         recovery = recover_connection(attempts=1, wait_seconds=args.vpn_recovery_wait)
@@ -670,7 +780,22 @@ def build_parser() -> argparse.ArgumentParser:
     plan.add_argument("--max-height", type=int, help="Limit selected video height, for example 360 for smoke tests")
     plan.add_argument("--max-downloads", type=int, help="Stop after this many downloads")
     plan.add_argument("--max-filesize", help="Skip files larger than this yt-dlp size expression, for example 50M")
+    plan.add_argument("--rights-file", help="Optional local evidence file copied into the batch rights folder")
     plan.set_defaults(func=cmd_plan)
+
+    inventory = sub.add_parser("inventory", help="Inventory a channel, playlist, or URL into a batch item ledger")
+    inventory.add_argument("source_url", help="Channel, playlist, or source URL to inventory")
+    inventory.add_argument("--rights", required=True, help="Documented rights basis for this batch")
+    inventory.add_argument("--rights-file", help="Optional local evidence file copied into the batch rights folder")
+    inventory.add_argument("--name", help="Batch name")
+    inventory.add_argument("--output", help="Output directory override")
+    inventory.add_argument("--max-items", type=int, help="Limit inventory collection, useful for smoke tests")
+    inventory.add_argument("--live-status", action="append", default=[], help="Keep only entries with this yt-dlp live_status; repeatable")
+    inventory.add_argument("--max-height", type=int, help="Limit selected video height when the batch later runs")
+    inventory.add_argument("--max-downloads", type=int, help="Stop the later run after this many downloads")
+    inventory.add_argument("--max-filesize", help="Skip files larger than this yt-dlp size expression, for example 50M")
+    inventory.add_argument("--no-production", action="store_true", help="Diagnostics only: skip production Mullvad posture before inventory")
+    inventory.set_defaults(func=cmd_inventory)
 
     smoke = sub.add_parser("smoke", help="Create and run curated validation batches")
     smoke_sub = smoke.add_subparsers(dest="smoke_command", required=True)
@@ -684,6 +809,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     catalog = sub.add_parser("catalog", help="List known local batch manifests")
     catalog.set_defaults(func=cmd_catalog)
+
+    ledger = sub.add_parser("ledger", help="Inspect or refresh a batch item ledger")
+    ledger.add_argument("manifest", help="Path to batch manifest.json")
+    ledger.add_argument("--refresh", action="store_true", help="Refresh ledger status from archive, info JSON, and media files")
+    ledger.add_argument("--status", action="append", default=[], help="Show only items with this status; repeatable")
+    ledger.add_argument("--limit", type=int, default=20, help="Maximum item rows to print")
+    ledger.add_argument("--json", action="store_true", help="Print machine-readable JSON")
+    ledger.set_defaults(func=cmd_ledger)
 
     preflight = sub.add_parser("preflight", help="Check a batch before running")
     preflight.add_argument("manifest", help="Path to batch manifest.json")

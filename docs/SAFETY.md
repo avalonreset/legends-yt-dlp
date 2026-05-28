@@ -31,6 +31,12 @@ The runner should pause or refuse to continue when it sees:
 - repeated rate-limit signal
 - DRM, paywall, or access-control signal
 
+Inventory uses the same boundary. If channel or playlist inventory returns source-side warning signals, the tool should pause before creating a batch.
+
+## Planning Evidence
+
+Large jobs should start with a documented rights basis, optional copied rights evidence, and a reviewable item ledger. The ledger is an audit aid, not permission by itself: operators must still verify that each planned or inventoried item fits the stated rights basis before a real run.
+
 ## Production VPN Posture
 
 Production runs require Mullvad to be connected with Lockdown mode enabled. Lockdown is mandatory because a reconnect, manual disconnect, daemon issue, or tunnel failure must not fall back to the native network path.

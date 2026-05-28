@@ -57,6 +57,23 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect-t
 
 Do not use raw `disconnect` during operator work unless the user explicitly accepts the risk. The guarded test constrains to a US relay by default, checks Lockdown behavior, and reconnects before returning.
 
+### Productized Archive SOP
+
+Use this sequence for real channel, playlist, or larger URL-set work:
+
+1. Consult the user for scope, authorized source URLs, rights basis, rights evidence file, output location, and limits.
+2. Inventory channel or playlist URLs before downloading.
+3. Create or review the item ledger.
+4. Run production preflight.
+5. Dry-run.
+6. Ask for explicit approval before a real run.
+7. Run with `--yes`.
+8. Verify artifacts.
+9. Refresh and review the item ledger.
+10. Stop on source-side throttles, captchas, login challenges, account controls, or blocks.
+
+The safety boundary is firm: do not use relay rotation, account switching, login automation, captcha solving, or other continuation tactics to push through source controls.
+
 ### Plan A Batch
 
 For one or more explicit URLs:
@@ -70,6 +87,23 @@ For many URLs, create a text file with one URL per line and run:
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --rights "<owned or authorized reason>" --name "<batch-name>"
 ```
+
+Attach rights evidence when available:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --rights "<owned or authorized reason>" --rights-file "<rights-evidence.md>" --name "<batch-name>"
+```
+
+### Inventory A Channel Or Playlist
+
+For channel or playlist work, inventory first:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "<channel-or-playlist-url>" --rights "<owned or authorized reason>" --rights-file "<rights-evidence.md>" --name "<batch-name>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "<manifest.json>"
+```
+
+Inventory creates `items.jsonl` for operator review without downloading media. Use `--max-items`, `--max-height`, `--max-downloads`, or `--max-filesize` when the user wants a bounded first pass.
 
 For smoke tests or bounded jobs, add limits:
 
@@ -89,6 +123,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "<manifest
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --dry-run
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --yes
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "<manifest.json>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "<manifest.json>" --refresh
 ```
 
 ### Preflight / Dry Run / Real Run
@@ -123,6 +158,8 @@ Report:
 - whether Mullvad was connected
 - batch manifest path
 - URL count
+- rights evidence path, if attached
+- item ledger path and status summary
 - whether it was dry-run or real
 - stop condition, if any
 - verify result, if a real run occurred

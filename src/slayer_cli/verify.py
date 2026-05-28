@@ -5,6 +5,7 @@ from pathlib import Path
 
 from .batch import REPORTS_DIR, load_manifest
 from .doctor import Check
+from .ledger import load_item_ledger, refresh_item_ledger, summarize_ledger
 from .process import run_command
 from .tools import find_ffprobe
 
@@ -25,6 +26,9 @@ class VerifySummary:
     info_json_files: int
     report_files: int
     total_media_bytes: int
+    ledger_items: int
+    ledger_statuses: dict[str, int]
+    ledger_warnings: int
 
 
 def media_files_under(output: Path) -> list[Path]:
@@ -66,6 +70,10 @@ def summarize_batch(manifest_path: Path) -> VerifySummary:
     archive = Path(manifest["paths"]["download_archive"])
     media = media_files_under(output)
     reports = report_files_for(manifest_path)
+    ledger_path = manifest.get("paths", {}).get("item_ledger")
+    ledger_summary = {"items": 0, "statuses": {}, "warnings": 0}
+    if ledger_path:
+        ledger_summary = summarize_ledger(load_item_ledger(Path(ledger_path)))
     return VerifySummary(
         manifest=manifest_path,
         batch_name=str(manifest.get("name", manifest_path.parent.name)),
@@ -77,6 +85,9 @@ def summarize_batch(manifest_path: Path) -> VerifySummary:
         info_json_files=len(info_json_files_under(output)),
         report_files=len(reports),
         total_media_bytes=sum(path.stat().st_size for path in media),
+        ledger_items=int(ledger_summary.get("items", 0)),
+        ledger_statuses=dict(ledger_summary.get("statuses", {})),
+        ledger_warnings=int(ledger_summary.get("warnings", 0)),
     )
 
 
@@ -107,6 +118,10 @@ def verify_batch(manifest_path: Path, *, allow_empty: bool = False, probe: bool 
     output = Path(manifest["paths"]["output"])
     archive = Path(manifest["paths"]["download_archive"])
     media = media_files_under(output)
+    ledger_path = manifest.get("paths", {}).get("item_ledger")
+    if ledger_path:
+        refresh_item_ledger(manifest)
+        summary = summarize_batch(manifest_path)
     checks = [
         Check("manifest", manifest_path.exists(), str(manifest_path)),
         Check("output path", output.exists(), str(output)),
@@ -116,6 +131,9 @@ def verify_batch(manifest_path: Path, *, allow_empty: bool = False, probe: bool 
         Check("media files", summary.media_files >= summary.expected_downloads or allow_empty, f"{summary.media_files}/{summary.expected_downloads}"),
         Check("info json files", summary.info_json_files >= summary.expected_downloads or allow_empty, f"{summary.info_json_files}/{summary.expected_downloads}"),
     ]
+    if ledger_path:
+        checks.append(Check("item ledger", Path(ledger_path).exists(), str(ledger_path)))
+        checks.append(Check("ledger items", summary.ledger_items >= summary.expected_downloads or allow_empty, f"{summary.ledger_items}/{summary.expected_downloads}"))
     if probe:
         checks.extend(probe_media(path) for path in media)
     return summary, checks
