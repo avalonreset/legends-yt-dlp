@@ -2,7 +2,7 @@
 type: meta
 status: active
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-05-28
 tags: [log, meta]
 ---
 
@@ -56,6 +56,14 @@ tags: [log, meta]
 - Fixed Windows console Unicode output for media filenames.
 - Made dry-runs suppress raw yt-dlp JSON unless `--show-output` is passed.
 - Hardened successful-run diagnostics so source-side warnings such as HTTP 429 are surfaced in reports even when yt-dlp exits 0.
+
+## 2026-05-28 - Post-Capture Intelligence Research Added
+
+- Researched timestamp precision, forced alignment, diarization, and clip extraction for a lawful local video intelligence module.
+- Ranked NVIDIA NeMo + Parakeet as the default ASR path because current primary sources document local Parakeet word/segment timestamps and commercial/non-commercial use for v2/v3 model cards.
+- Ranked NeMo Forced Aligner as the precision/refinement path for compatible CTC or hybrid CTC models, with CTM/ASS output suited to a Slayer word ledger.
+- Ranked pyannote.audio as optional diarization and WhisperX/stable-ts/MFA/ctc-segmentation as fallback or advanced paths.
+- Added [[Local Transcription and Clip Extraction Stack 2026-05-28]] and updated research index, hot cache, and roadmap.
 
 ## 2026-05-28 - Guarded Disconnect Testing Added
 

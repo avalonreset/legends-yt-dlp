@@ -2,7 +2,7 @@
 type: index
 status: active
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-05-28
 tags: [research, index]
 ---
 
@@ -12,3 +12,4 @@ tags: [research, index]
 - [[Mullvad CLI Notes 2026-05-27]]
 - [[yt-dlp Operational Notes 2026-05-27]]
 - [[yt-dlp Deep Research 2026-05-27]]
+- [[Local Transcription and Clip Extraction Stack 2026-05-28]]

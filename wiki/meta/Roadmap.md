@@ -61,3 +61,16 @@ tags: [roadmap, meta]
 - Current v0.1.0-alpha packaging choice: source zip plus SHA256 generated under `dist/`.
 - License/upstream notice posture is now MIT plus `NOTICE`; continue to avoid bundling yt-dlp or Mullvad binaries.
 - Improve public docs with a complete smoke-pack transcript and expected outputs before a wider community announcement.
+
+## Phase 6 - Post-Capture Intelligence
+
+- Add an optional `slayer intelligence` module for already-downloaded lawful media.
+- Extract local audio with FFmpeg into normalized WAV artifacts.
+- Use NVIDIA NeMo + Parakeet as the first ASR engine for word-level timestamped transcripts.
+- Store transcript output as a structured word ledger plus raw engine output.
+- Implement exact word/phrase search over normalized word tokens, returning video id, media path, start/end, confidence, and surrounding context.
+- Generate reviewable FFmpeg clip plans before rendering any montage.
+- Add optional pyannote.audio diarization to assign speaker segments to word spans.
+- Add optional NeMo Forced Aligner refinement for compatible CTC/hybrid CTC models.
+- Build Obsidian transcript vault pages per video and per search/montage.
+- Keep this module separate from download execution and preserve source-side stop conditions.

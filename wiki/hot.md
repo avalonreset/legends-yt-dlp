@@ -11,7 +11,7 @@ tags: [hot-cache, meta]
 
 ## Last Updated
 
-2026-05-28. Item-ledger/inventory planning, clean-clone install, resume behavior, legal/community files, packaging, GitHub metadata, and first-run onboarding are now hardened for alpha review.
+2026-05-28. Item-ledger/inventory planning, clean-clone install, resume behavior, legal/community files, packaging, GitHub metadata, first-run onboarding, and the post-capture intelligence research track are now hardened enough for alpha planning.
 
 ## Key Recent Facts
 
@@ -34,6 +34,8 @@ tags: [hot-cache, meta]
 - First-run onboarding added: `slayer onboard` prints readiness, missing setup steps, the user interview checklist, reference docs, and the next safe commands without mutating state.
 - Walkthrough/examples added: `docs/WALKTHROUGH.md`, `examples/batch-intake.md`, `examples/rights-evidence-template.md`, and `examples/urls.txt`.
 - Live GitHub metadata updated: stronger description, discussions enabled, topics expanded for `yt-dlp`, Mullvad VPN, digital preservation, privacy tools, and operator tooling.
+- New post-capture intelligence research recommends a Parakeet-first local transcription module: NeMo/Parakeet for ASR word timestamps, optional NeMo Forced Aligner for CTM/ASS refinement, optional pyannote for speaker segments, and FFmpeg clip plans/rendering.
+- The intelligence module should store a structured word ledger, not plain transcript text, so exact word/phrase search can return FFmpeg-ready clip spans.
 - Unit gate: 39 tests pass; compileall passes; package inspection passes; vault health/secret scan are part of the final gate.
 
 ## Recent Changes
@@ -44,5 +46,6 @@ tags: [hot-cache, meta]
 ## Active Threads
 
 - Next release gate is deciding whether to tag/publish `v0.1.0-alpha` with the generated zip after user review.
+- New product track for the next development slice: `slayer intelligence` as a post-download module for audio extraction, local Parakeet transcription, word-ledger search, clip-plan generation, optional diarization/alignment, and Obsidian vault export.
 - Existing older manifests may fail production preflight until regenerated because they lack the newer anonymous-auth and limit policy flags.
 - Next GitHub step is optional: create a first alpha tag after reviewing the pushed hardening commit.
