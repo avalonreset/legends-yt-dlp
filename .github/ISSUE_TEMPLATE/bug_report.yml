@@ -1,0 +1,62 @@
+name: Bug report
+description: Report a reproducible problem in the Slayer CLI.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include Mullvad account numbers, cookies, `.env` contents, private media, or client documents.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: List the exact commands and sanitized paths.
+      placeholder: |
+        1. powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: posture
+    attributes:
+      label: Mullvad posture
+      options:
+        - Production doctor passed
+        - Doctor failed
+        - Not applicable
+    validations:
+      required: true
+  - type: textarea
+    id: sanitized-output
+    attributes:
+      label: Sanitized command output
+      render: text
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety confirmation
+      options:
+        - label: I removed secrets, account numbers, cookies, private media, and client documents.
+          required: true
+        - label: This report is not asking for DRM, paywall, captcha, login, account-control, throttle, or source-block bypass behavior.
+          required: true

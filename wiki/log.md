@@ -8,6 +8,15 @@ tags: [log, meta]
 
 # Log
 
+## 2026-05-28 - Alpha Packaging and GitHub Presence Hardened
+
+- Added MIT license, `NOTICE`, `SECURITY.md`, `CITATION.cff`, `CONTRIBUTING.md`, code of conduct, issue templates, PR template, and release config.
+- Added `scripts/package-alpha.ps1`, `docs/PACKAGING.md`, and `docs/LEGAL.md`; package output includes source/docs/scripts/tests/skill/legal files while excluding `.env`, `.local`, batches, reports, media, cookies, caches, secrets, and git metadata.
+- Verified upstream license posture with GitHub API: `yt-dlp/yt-dlp` reports Unlicense and `mullvad/mullvadvpn-app` reports GPL-3.0; current package does not bundle either binary.
+- Clean-clone test passed from a temp clone: `yt-dlp install`, checksum verification, `doctor --production`, smoke planning, preflight, and dry-run all succeeded, then the temp clone was deleted.
+- Resume/interruption harness passed: a fake yt-dlp interrupted after one item, ledger refreshed to one downloaded/one planned, rerun skipped the archived item and completed the second, and `verify --no-probe` passed with two downloaded ledger items.
+- Updated live GitHub metadata: stronger description, discussions enabled, and topics expanded for yt-dlp, Mullvad VPN, digital preservation, privacy tools, Codex skill, and operator tooling.
+
 ## 2026-05-28 - Item Ledger and Inventory Implemented
 
 - Added first-class item ledger support: every new batch writes `items.jsonl`, preflight checks it, run reports include ledger counts, and `verify` refreshes ledger state from archive entries, info JSON sidecars, and media files.

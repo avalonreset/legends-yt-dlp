@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "Legends YT-DLP Slayer"
+version: "0.1.0"
+date-released: "2026-05-28"
+authors:
+  - name: "Avalon Reset Pro"
+repository-code: "https://github.com/avalonreset-pro/legends-yt-dlp-slayer"
+license: "MIT"
+abstract: "Windows-first control plane for lawful, resumable yt-dlp archiving with Mullvad VPN preflight checks, item ledgers, and rights-aware runbooks."

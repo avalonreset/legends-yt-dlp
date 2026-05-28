@@ -23,3 +23,5 @@
 - Added `items.jsonl` per-item ledgers, `ledger` inspection/refresh commands, and ledger summaries in run reports and verification.
 - Added optional `--rights-file` evidence copying into batch folders.
 - Made inventory pause on source-side warning signals instead of turning questionable sources into batches.
+- Added MIT license, NOTICE, SECURITY.md, CITATION.cff, contribution/community templates, issue templates, and pull request template.
+- Added alpha packaging script and packaging/legal docs.

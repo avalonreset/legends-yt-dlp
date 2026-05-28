@@ -1,0 +1,33 @@
+name: Feature request
+description: Propose a safe feature or workflow improvement.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What operator problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should the CLI or skill suite do?
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Safety impact
+      description: Explain how this preserves the stop-on-source-block boundary.
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundary
+    attributes:
+      label: Boundary confirmation
+      options:
+        - label: This does not bypass DRM, paywalls, captchas, login challenges, account controls, throttling, or platform blocks.
+          required: true

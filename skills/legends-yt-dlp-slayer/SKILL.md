@@ -49,6 +49,14 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
 
 Read `references/commands.md` for the full command surface.
 
+For alpha packaging:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.0-alpha"
+```
+
+Inspect `docs/PACKAGING.md`, `docs/LEGAL.md`, `NOTICE`, and `LICENSE` before publishing a release package.
+
 For VPN fail-closed testing, use only the guarded command:
 
 ```powershell

@@ -82,6 +82,14 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp version
 
 The install command downloads the official Windows standalone executable and verifies it against upstream checksums.
 
+## Packaging
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.0-alpha"
+```
+
+Creates a local alpha zip and `.sha256` file under `dist/`. The package contains source, docs, scripts, tests, skill files, and legal/community files. It excludes local secrets, managed binaries, batches, reports, downloads, cookies, caches, and git metadata.
+
 ## Batch Planning
 
 ```powershell

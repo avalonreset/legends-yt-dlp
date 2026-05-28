@@ -11,7 +11,7 @@ tags: [hot-cache, meta]
 
 ## Last Updated
 
-2026-05-28. Item-ledger and inventory planning are now implemented, documented, and live-smoke verified under production Mullvad posture.
+2026-05-28. Item-ledger/inventory planning, clean-clone install, resume behavior, legal/community files, packaging, and GitHub metadata are now hardened for alpha review.
 
 ## Key Recent Facts
 
@@ -27,15 +27,20 @@ tags: [hot-cache, meta]
 - Standard SOP: consult user, inventory source URLs, review ledger, production preflight, dry-run, explicit approval, real run, verify, refresh/review ledger.
 - Live inventory smoke passed on `https://www.youtube.com/@NASAGoddard/videos` with `--max-items 1`, creating one inventoried ledger item.
 - Live real smoke passed on curated NASA video `LeUcjqqhNxM`: dry-run passed, real run downloaded 1 MP4, wrote 1 archive entry and 1 info JSON, `verify` passed ffprobe, and ledger refreshed to `downloaded: 1`.
-- Unit gate: 39 tests pass; compileall passes; vault health passes; secret scan found no Mullvad account leakage outside ignored files.
+- Clean-clone test passed from a temp clone: local `yt-dlp.exe` install/checksum, production doctor, smoke plan, preflight, and dry-run.
+- Resume/interruption harness passed: first run stopped after one fake item, ledger showed one downloaded and one planned, rerun skipped archived first item, completed second item, verify passed with two downloaded ledger items.
+- Legal/community layer added: MIT `LICENSE`, `NOTICE`, `SECURITY.md`, `CITATION.cff`, `CONTRIBUTING.md`, code of conduct, issue templates, PR template, and release config.
+- Packaging added: `scripts/package-alpha.ps1` builds `dist/legends-yt-dlp-slayer-0.1.0-alpha.zip` plus SHA256 and excludes secrets/runtime outputs.
+- Live GitHub metadata updated: stronger description, discussions enabled, topics expanded for `yt-dlp`, Mullvad VPN, digital preservation, privacy tools, and operator tooling.
+- Unit gate: 39 tests pass; compileall passes; package inspection passes; vault health/secret scan are part of the final gate.
 
 ## Recent Changes
 
-- Added `src/slayer_cli/ledger.py` and `src/slayer_cli/inventory.py`.
-- Updated README, CLI docs, SOP, safety policy, skill reference, roadmap, release plan, changelog, and tests around the inventory/ledger workflow.
+- Added `src/slayer_cli/ledger.py`, `src/slayer_cli/inventory.py`, alpha packaging, and GitHub legal/community files.
+- Updated README, CLI docs, SOP, architecture, safety policy, legal/packaging docs, skill reference, roadmap, release plan, changelog, and tests.
 
 ## Active Threads
 
-- Next release gate is alpha packaging and license/upstream notice review.
+- Next release gate is deciding whether to tag/publish `v0.1.0-alpha` with the generated zip after user review.
 - Existing older manifests may fail production preflight until regenerated because they lack the newer anonymous-auth and limit policy flags.
 - Next GitHub step is optional: create a first alpha tag after reviewing the pushed hardening commit.

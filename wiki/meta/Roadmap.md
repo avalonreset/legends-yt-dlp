@@ -45,9 +45,9 @@ tags: [roadmap, meta]
 ## Phase 4 - Community Alpha
 
 - Write install docs.
-- Package for Windows.
+- Package for Windows with `scripts/package-alpha.ps1`.
 - Run lawful sample smoke tests.
-- Publish alpha release notes.
+- Publish alpha release notes after user review.
 
 ## Phase 5 - Productization Priorities
 
@@ -57,6 +57,6 @@ tags: [roadmap, meta]
 - Keep optional rights evidence files for permission/license proof attached to each batch.
 - Keep the product SOP centered on consult user, inventory, ledger review, preflight, dry-run, approved real run, verify, and final ledger review.
 - Preserve stop-on-source-block behavior: no relay rotation to continue through throttles, captchas, login/account controls, or blocks.
-- Decide v0.1.0-alpha packaging: zip release, PowerShell installer, or Python package.
-- Finalize license and upstream notice posture before community distribution.
-- Improve public docs with a complete smoke-pack transcript and expected outputs.
+- Current v0.1.0-alpha packaging choice: source zip plus SHA256 generated under `dist/`.
+- License/upstream notice posture is now MIT plus `NOTICE`; continue to avoid bundling yt-dlp or Mullvad binaries.
+- Improve public docs with a complete smoke-pack transcript and expected outputs before a wider community announcement.

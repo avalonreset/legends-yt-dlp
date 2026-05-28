@@ -2,6 +2,7 @@
 .obsidian/workspace-mobile.json
 .smart-connections/
 .obsidian-git-data
+.github-audit/
 .trash/
 .DS_Store
 *.tmp
@@ -16,6 +17,7 @@ batches/
 reports/
 downloads/
 cache/
+dist/
 secrets/
 cookies/
 *.cookies.txt

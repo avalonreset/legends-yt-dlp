@@ -1,5 +1,11 @@
 # Legends YT-DLP Slayer
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)
+![Windows first](https://img.shields.io/badge/Windows-first-0078D4.svg)
+![yt-dlp](https://img.shields.io/badge/powered%20by-yt--dlp-lightgrey.svg)
+![Mullvad guarded](https://img.shields.io/badge/Mullvad-guarded-orange.svg)
+
 Windows-first control plane for lawful, resumable video archiving with `yt-dlp` and a Mullvad VPN preflight gate.
 
 Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful but easy to operate carelessly at scale. The project wraps the official `yt-dlp` binary with explicit batch plans, rights-basis checks, local state, conservative defaults, and a fail-closed Mullvad gate so downloads do not start unless the machine is in the expected VPN posture.
@@ -59,7 +65,7 @@ Working now:
 
 Still needs before a release tag:
 
-- alpha packaging/release notes
+- review the generated alpha zip and decide whether to publish a first release tag
 
 ## Quick Start
 
@@ -162,6 +168,8 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - [Standard Operating Procedure](docs/SOP.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Safety and Use Policy](docs/SAFETY.md)
+- [Legal and Attribution Notes](docs/LEGAL.md)
+- [Alpha Packaging](docs/PACKAGING.md)
 - [Changelog](CHANGELOG.md)
 - [Codex Skill Suite](skills/legends-yt-dlp-slayer/SKILL.md)
 
@@ -173,8 +181,18 @@ Never commit Mullvad account numbers, cookies, account tokens, or batch outputs.
 
 Production batches are anonymous by default: no browser cookies, no cookie files, no username/password auth, no `.netrc`, and no inherited user-level `yt-dlp` config.
 
+## Packaging
+
+Build a local alpha zip:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.0-alpha"
+```
+
+The package excludes `.env`, `.local`, `batches`, `reports`, downloads, caches, cookies, secrets, and git metadata.
+
 ## License
 
-License is not finalized. This repository is private while the product and distribution model are being worked out.
+Legends YT-DLP Slayer is released under the [MIT License](LICENSE).
 
-Important distribution note: the project does not commit the `yt-dlp.exe` binary. If a future release bundles upstream binaries, review upstream licensing and notices before distribution.
+Important distribution note: the project does not commit or package the `yt-dlp.exe` binary. It downloads the official upstream executable locally and verifies its checksum. See [NOTICE](NOTICE) and [docs/LEGAL.md](docs/LEGAL.md).

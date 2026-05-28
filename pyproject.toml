@@ -11,7 +11,7 @@ requires-python = ">=3.10"
 authors = [
   { name = "Legends" }
 ]
-license = { text = "Proprietary until release policy is finalized" }
+license = { text = "MIT" }
 dependencies = []
 
 [project.scripts]
@@ -24,4 +24,3 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
-
