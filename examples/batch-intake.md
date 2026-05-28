@@ -10,6 +10,7 @@ Use this before inventorying or downloading a real source.
 - Source type: channel / playlist / URL list / individual video
 - Source URL(s):
 - Output location:
+- Folder policy: auto / batch / by-uploader / flat
 
 ## Rights Basis
 

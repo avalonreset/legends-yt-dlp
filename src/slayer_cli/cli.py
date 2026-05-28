@@ -373,6 +373,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
             max_downloads=args.max_downloads,
             max_filesize=args.max_filesize,
             rights_file=args.rights_file,
+            folder_policy=args.folder_policy,
         )
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
@@ -406,6 +407,7 @@ def cmd_inventory(args: argparse.Namespace) -> int:
             max_items=args.max_items,
             live_statuses=live_statuses,
             rights_file=args.rights_file,
+            folder_policy=args.folder_policy,
         )
     except (OSError, ValueError, RuntimeError, json.JSONDecodeError) as exc:
         print(f"Inventory failed: {exc}", file=sys.stderr)
@@ -1067,6 +1069,12 @@ def build_parser() -> argparse.ArgumentParser:
     plan.add_argument("--max-downloads", type=int, help="Stop after this many downloads")
     plan.add_argument("--max-filesize", help="Skip files larger than this yt-dlp size expression, for example 50M")
     plan.add_argument("--rights-file", help="Optional local evidence file copied into the batch rights folder")
+    plan.add_argument(
+        "--folder-policy",
+        choices=["auto", "batch", "by-uploader", "flat"],
+        default="auto",
+        help="Output organization: auto uses one batch folder for multi-link plans and uploader folders for inventory",
+    )
     plan.set_defaults(func=cmd_plan)
 
     inventory = sub.add_parser("inventory", help="Inventory a channel, playlist, or URL into a batch item ledger")
@@ -1080,6 +1088,12 @@ def build_parser() -> argparse.ArgumentParser:
     inventory.add_argument("--max-height", type=int, help="Limit selected video height when the batch later runs")
     inventory.add_argument("--max-downloads", type=int, help="Stop the later run after this many downloads")
     inventory.add_argument("--max-filesize", help="Skip files larger than this yt-dlp size expression, for example 50M")
+    inventory.add_argument(
+        "--folder-policy",
+        choices=["auto", "batch", "by-uploader", "flat"],
+        default="auto",
+        help="Output organization: auto keeps inventoried channel/playlist work by uploader",
+    )
     inventory.add_argument("--no-production", action="store_true", help="Diagnostics only: skip production Mullvad posture before inventory")
     inventory.set_defaults(func=cmd_inventory)
 

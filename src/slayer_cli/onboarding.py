@@ -83,7 +83,8 @@ def operator_interview_lines() -> list[str]:
         "3. Do you have a rights evidence file to attach with --rights-file?",
         "4. Should this start bounded with --max-items, --max-height, --max-filesize, or --max-downloads?",
         "5. Where should outputs go, if not the batch downloads folder?",
-        "6. Do you want inventory-only review before any media download?",
+        "6. Should outputs use one batch folder, uploader folders, or a flat folder?",
+        "7. Do you want inventory-only review before any media download?",
     ]
 
 

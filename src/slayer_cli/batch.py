@@ -56,6 +56,10 @@ REQUIRED_AUTH_SAFETY_OPTIONS = (
     "--no-cookies-from-browser",
 )
 
+FOLDER_POLICIES = {"auto", "batch", "by-uploader", "flat"}
+UPLOADER_OUTPUT_TEMPLATE = "%(uploader|Unknown)s/%(upload_date>%Y-%m-%d|NA)s - %(title).180B [%(id)s].%(ext)s"
+FLAT_OUTPUT_TEMPLATE = "%(upload_date>%Y-%m-%d|NA)s - %(uploader|Unknown)s - %(title).180B [%(id)s].%(ext)s"
+
 FORBIDDEN_AUTH_OPTIONS = {
     "--cookies",
     "--cookies-from-browser",
@@ -89,6 +93,23 @@ class BatchPaths:
 def slugify(value: str) -> str:
     slug = re.sub(r"[^a-zA-Z0-9]+", "-", value.lower()).strip("-")
     return slug[:60] or "batch"
+
+
+def resolve_folder_policy(folder_policy: str, *, urls: list[str], items: list[dict] | None = None) -> str:
+    normalized = folder_policy.strip().lower()
+    if normalized not in FOLDER_POLICIES:
+        raise ValueError(f"--folder-policy must be one of: {', '.join(sorted(FOLDER_POLICIES))}")
+    if normalized != "auto":
+        return normalized
+    if items is not None:
+        return "by-uploader"
+    return "batch" if len(urls) > 1 else "by-uploader"
+
+
+def output_template_for_policy(folder_policy: str) -> str:
+    if folder_policy == "by-uploader":
+        return UPLOADER_OUTPUT_TEMPLATE
+    return FLAT_OUTPUT_TEMPLATE
 
 
 def validate_url(value: str) -> bool:
@@ -136,6 +157,7 @@ def create_batch_from_urls(
     max_filesize: str | None = None,
     items: list[dict] | None = None,
     rights_file: str | None = None,
+    folder_policy: str = "auto",
 ) -> BatchPaths:
     if not urls:
         raise ValueError("At least one URL is required")
@@ -156,6 +178,7 @@ def create_batch_from_urls(
 
     parsed = urlparse(urls[0])
     batch_name = name or parsed.netloc
+    effective_folder_policy = resolve_folder_policy(folder_policy, urls=urls, items=items)
     paths = make_batch_paths(batch_name)
     paths.root.mkdir(parents=True, exist_ok=False)
     paths.output.mkdir(parents=True, exist_ok=True)
@@ -167,7 +190,8 @@ def create_batch_from_urls(
         rights_evidence_path = rights_dir / source.name
         shutil.copy2(source, rights_evidence_path)
 
-    output_path = Path(output_dir).resolve() if output_dir else paths.output
+    output_base = Path(output_dir).resolve() if output_dir else paths.output
+    output_path = output_base / slugify(batch_name) if output_dir and effective_folder_policy == "batch" else output_base
     if output_path.exists() and not output_path.is_dir():
         raise ValueError(f"Output path is not a directory: {output_path}")
     output_path.mkdir(parents=True, exist_ok=True)
@@ -194,6 +218,11 @@ def create_batch_from_urls(
             "max_downloads": max_downloads,
             "max_filesize": max_filesize,
         },
+        "folder_policy": {
+            "requested": folder_policy,
+            "effective": effective_folder_policy,
+            "output_template": output_template_for_policy(effective_folder_policy),
+        },
         "policy": {
             "requires_mullvad_connected": True,
             "requires_mullvad_lockdown": True,
@@ -216,6 +245,7 @@ def create_batch_from_urls(
         max_height=max_height,
         max_downloads=max_downloads,
         max_filesize=max_filesize,
+        output_template=output_template_for_policy(effective_folder_policy),
     )
     paths.manifest.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     return paths
@@ -231,6 +261,7 @@ def write_ytdlp_config(
     max_height: int | None = None,
     max_downloads: int | None = None,
     max_filesize: str | None = None,
+    output_template: str = UPLOADER_OUTPUT_TEMPLATE,
 ) -> None:
     def ytdlp_path(path: Path) -> str:
         return path.resolve().as_posix()
@@ -251,7 +282,7 @@ def write_ytdlp_config(
         "--paths",
         quote_config_value(f"temp:{ytdlp_path(temp)}"),
         "--output",
-        quote_config_value("%(uploader|Unknown)s/%(upload_date>%Y-%m-%d|NA)s - %(title).180B [%(id)s].%(ext)s"),
+        quote_config_value(output_template),
         "--windows-filenames",
         "--continue",
         "--no-overwrites",

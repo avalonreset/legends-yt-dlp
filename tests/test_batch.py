@@ -1,4 +1,5 @@
 import unittest
+import json
 from pathlib import Path
 
 from slayer_cli.batch import (
@@ -61,6 +62,61 @@ class BatchTests(unittest.TestCase):
                 self.assertEqual([item["id"] for item in items], ["alpha123", "bravo456"])
                 self.assertTrue((paths.root / "rights" / rights.name).exists())
                 self.assertTrue((root / "out").is_dir())
+                self.assertTrue((root / "out" / "ledger-rights-fixture").is_dir())
+            finally:
+                import shutil
+
+                shutil.rmtree(paths.root, ignore_errors=True)
+
+    def test_multi_url_plan_auto_uses_single_batch_folder(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            paths = create_batch_from_urls(
+                urls=[
+                    "https://x.com/i/status/111",
+                    "https://x.com/i/status/222",
+                ],
+                rights_basis="fixture",
+                name="mixed-links",
+                output_dir=str(root / "downloads"),
+            )
+            try:
+                manifest = json.loads(paths.manifest.read_text(encoding="utf-8"))
+                config = paths.config.read_text(encoding="utf-8")
+
+                self.assertEqual(manifest["folder_policy"]["effective"], "batch")
+                self.assertEqual(Path(manifest["paths"]["output"]), root / "downloads" / "mixed-links")
+                self.assertIn(
+                    '"%(upload_date>%Y-%m-%d|NA)s - %(uploader|Unknown)s - %(title).180B [%(id)s].%(ext)s"',
+                    config,
+                )
+                self.assertNotIn('"%(uploader|Unknown)s/%(upload_date>%Y-%m-%d|NA)s', config)
+            finally:
+                import shutil
+
+                shutil.rmtree(paths.root, ignore_errors=True)
+
+    def test_inventory_items_auto_keep_uploader_folders(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            paths = create_batch_from_urls(
+                urls=["https://www.youtube.com/watch?v=alpha123"],
+                rights_basis="fixture",
+                name="channel-fixture",
+                output_dir=str(root / "downloads"),
+                items=[{"id": "alpha123", "position": 1, "status": "inventoried", "url": "https://www.youtube.com/watch?v=alpha123"}],
+            )
+            try:
+                manifest = json.loads(paths.manifest.read_text(encoding="utf-8"))
+                config = paths.config.read_text(encoding="utf-8")
+
+                self.assertEqual(manifest["folder_policy"]["effective"], "by-uploader")
+                self.assertEqual(Path(manifest["paths"]["output"]), root / "downloads")
+                self.assertIn('"%(uploader|Unknown)s/%(upload_date>%Y-%m-%d|NA)s', config)
             finally:
                 import shutil
 

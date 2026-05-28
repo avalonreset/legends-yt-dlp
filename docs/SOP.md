@@ -17,6 +17,7 @@ Before creating or running a batch, confirm:
 - whether the job needs a rights evidence file
 - desired limits such as maximum items, height, filesize, or download count
 - where outputs should go, if the default batch output folder is not enough
+- whether outputs should use one batch folder, uploader folders, or a flat folder
 
 If the rights basis is unclear, stop before inventory or planning.
 
@@ -42,6 +43,14 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\
 ```
 
 The batch folder contains the manifest, URL list, `yt-dlp.conf`, copied rights evidence when provided, and `items.jsonl`.
+
+Use folder policy deliberately:
+
+- mixed ad hoc links: prefer `--folder-policy batch`, which keeps the whole request in one named folder under `--output`;
+- channel, playlist, or multi-source archive work: prefer `--folder-policy by-uploader`, especially when the user will compare creators or source scopes;
+- one-off local staging: use `--folder-policy flat` only when the output folder already represents the job.
+
+`--folder-policy auto` applies those defaults: direct multi-link plans become one batch folder, while inventoried channel/playlist work stays grouped by uploader.
 
 ## 3. Review The Item Ledger
 

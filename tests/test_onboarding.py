@@ -25,6 +25,7 @@ class OnboardingTests(unittest.TestCase):
         self.assertIn("yt-dlp install", "\n".join(steps))
         self.assertIn("setup production", "\n".join(steps))
         self.assertIn("Ask the user these before a real batch", text)
+        self.assertIn("one batch folder", text)
         self.assertIn("Safety boundary", text)
 
     def test_onboarding_ready_state_shows_first_smoke_flow(self) -> None:

@@ -91,6 +91,7 @@ Use `intelligence doctor --require-gpu` before describing a local ASR setup as G
 Use this sequence for real channel, playlist, or larger URL-set work:
 
 1. Consult the user for scope, authorized source URLs, rights basis, rights evidence file, output location, and limits.
+   Also choose folder policy: mixed ad hoc links usually belong in one batch folder; channel, playlist, or multi-source archive work usually belongs in uploader/source folders.
 2. Inventory channel or playlist URLs before downloading.
 3. Create or review the item ledger.
 4. Run production preflight.
@@ -122,6 +123,14 @@ Attach rights evidence when available:
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --rights "<owned or authorized reason>" --rights-file "<rights-evidence.md>" --name "<batch-name>"
 ```
+
+For mixed hand-curated links, keep the user's working set together:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --rights "<owned or authorized reason>" --name "<batch-name>" --folder-policy batch
+```
+
+Folder policies are `auto`, `batch`, `by-uploader`, and `flat`. Use `batch` for one folder per request. Use `by-uploader` for channel, playlist, or multi-source archive work.
 
 ### Inventory A Channel Or Playlist
 

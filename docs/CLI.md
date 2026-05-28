@@ -109,6 +109,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.yo
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://example.com/a" "https://example.com/b" --rights "owned or authorized" --name "multi-url"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --name "url-file"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --rights-file ".\rights-evidence.md" --name "url-file"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --name "url-file" --folder-policy batch
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.youtube.com/watch?v=..." --rights "owned or authorized" --name "smoke" --max-downloads 1 --max-height 360 --max-filesize 50M
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
 ```
@@ -125,11 +126,21 @@ The plan command creates:
 
 Generated batch folders are ignored by git.
 
+Folder policy controls the human-facing output layout:
+
+- `auto`: direct multi-link plans use one named batch folder; inventoried channel/playlist work uses uploader folders.
+- `batch`: put all media for the batch into one named folder under `--output`.
+- `by-uploader`: group media under uploader/channel folders.
+- `flat`: put files directly in the selected output folder.
+
+Use `batch` for mixed ad hoc links when the user wants one working folder. Use `by-uploader` when the source scope naturally splits by channel, creator, or project.
+
 ## Inventory
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --rights-file ".\rights-evidence.md" --name "channel-name"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "https://www.youtube.com/playlist?list=..." --rights "owned or authorized" --name "playlist-name" --max-items 50
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --name "channel-name" --folder-policy by-uploader
 ```
 
 `inventory` expands a channel, playlist, or source URL into a batch without downloading media. It runs production doctor first unless `--no-production` is used for diagnostics. It creates `manifest.json`, `urls.txt`, `yt-dlp.conf`, and `items.jsonl`.

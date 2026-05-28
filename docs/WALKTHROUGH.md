@@ -89,7 +89,8 @@ Ask:
 3. Do you have a rights evidence file to attach with `--rights-file`?
 4. Should this start bounded with `--max-items`, `--max-height`, `--max-filesize`, or `--max-downloads`?
 5. Where should outputs go, if not the batch downloads folder?
-6. Do you want inventory-only review before any media download?
+6. Should output use one batch folder, uploader folders, or a flat folder?
+7. Do you want inventory-only review before any media download?
 
 Use [examples/batch-intake.md](../examples/batch-intake.md) and [examples/rights-evidence-template.md](../examples/rights-evidence-template.md) to keep this clean. Copy the rights template to a local evidence file and fill it in before attaching it:
 
@@ -109,7 +110,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\
 For a hand-curated URL file:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\examples\urls.txt" --rights "<owned or authorized reason>" --rights-file ".\rights-evidence.md" --name "<batch-name>" --max-height 360 --max-filesize 75M
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\examples\urls.txt" --rights "<owned or authorized reason>" --rights-file ".\rights-evidence.md" --name "<batch-name>" --max-height 360 --max-filesize 75M --folder-policy batch
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json"
 ```
 

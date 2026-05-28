@@ -8,6 +8,15 @@ tags: [log, meta]
 
 # Log
 
+## 2026-05-28 - Output Folder Policies Added
+
+- User feedback exposed a product ergonomics gap: mixed ad hoc video links should not be scattered across uploader folders when the user expects one working folder.
+- Flattened the completed X status batch into `C:\Users\rccol\Downloads\x-status-videos-20260528`, moving all 8 `.mp4` files and 8 `.info.json` sidecars together.
+- Updated the X batch `items.jsonl` paths and manifest output path, then reran `verify`; it passes with 8 archive entries, 8 media files, 8 info JSON files, and 91,319,216 media bytes.
+- Added first-class `--folder-policy` support for `plan` and `inventory`: `auto`, `batch`, `by-uploader`, and `flat`.
+- `auto` now uses one named batch folder for direct multi-link plans while keeping inventoried channel/playlist work grouped by uploader.
+- Updated README, CLI docs, SOP, walkthrough, and skill command references with folder-policy guidance.
+
 ## 2026-05-28 - Ledger Verification and ASR GPU Gates Hardened
 
 - Downloaded the user-provided YouTube video `jK7ss4TvtcY` through the normal Slayer flow into `C:\Users\rccol\Downloads` with Mullvad production posture, 1080p cap, dry-run, real run, verify, and ledger refresh.

@@ -113,8 +113,11 @@ Create a batch:
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --name "channel-name"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --name "catalog-name"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --rights-file ".\rights-evidence.md" --name "catalog-name"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --name "catalog-name" --folder-policy batch
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
 ```
+
+Folder policy controls output layout. `auto` puts direct multi-link plans into one named batch folder and keeps inventoried channel/playlist work grouped by uploader. Use `--folder-policy batch` for mixed one-off links, `--folder-policy by-uploader` for channel/archive work, and `--folder-policy flat` only when the selected output folder already represents the job.
 
 For channel or playlist work, inventory first:
 
