@@ -50,7 +50,7 @@ from .mullvad import (
 )
 from .onboarding import onboarding_json, onboarding_text
 from .paths import PROJECT_ROOT
-from .smoke import SMOKE_VIDEOS, create_smoke_batch
+from .smoke import SMOKE_VIDEOS, create_custom_smoke_batch, create_smoke_batch
 from .tools import find_ytdlp, install_ytdlp, run_tool
 from .verify import verify_batch
 
@@ -428,13 +428,27 @@ def cmd_inventory(args: argparse.Namespace) -> int:
 
 def cmd_smoke_plan(args: argparse.Namespace) -> int:
     try:
-        paths = create_smoke_batch(
-            count=args.count,
-            name=args.name,
-            output_dir=args.output,
-            max_height=args.max_height,
-            max_filesize=args.max_filesize,
-        )
+        if args.url:
+            paths = create_custom_smoke_batch(
+                urls=args.url,
+                rights_basis=args.rights,
+                name=args.name or "custom-smoke-pack",
+                output_dir=args.output,
+                max_height=args.max_height,
+                max_filesize=args.max_filesize,
+            )
+            planned_videos = []
+            url_count = len(args.url)
+        else:
+            paths = create_smoke_batch(
+                count=args.count,
+                name=args.name or "legacy-smoke-pack",
+                output_dir=args.output,
+                max_height=args.max_height,
+                max_filesize=args.max_filesize,
+            )
+            planned_videos = list(SMOKE_VIDEOS[: args.count])
+            url_count = args.count
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 2
@@ -442,9 +456,14 @@ def cmd_smoke_plan(args: argparse.Namespace) -> int:
     print(f"Manifest: {paths.manifest}")
     print(f"Item ledger: {paths.ledger}")
     print(f"yt-dlp config: {paths.config}")
-    print(f"URL count: {args.count}")
-    for video in SMOKE_VIDEOS[: args.count]:
-        print(f"- {video.duration_seconds}s | {video.title} | {video.url}")
+    print(f"URL count: {url_count}")
+    if args.url:
+        for url in args.url:
+            print(f"- custom | {url}")
+    else:
+        print("Note: built-in smoke URLs are legacy compatibility fixtures; prefer --url for new manual validation.")
+        for video in planned_videos:
+            print(f"- {video.duration_seconds}s | {video.title} | {video.url}")
     return 0
 
 
@@ -562,7 +581,11 @@ def cmd_intelligence_init(args: argparse.Namespace) -> int:
 
 
 def cmd_intelligence_doctor(args: argparse.Namespace) -> int:
-    checks = doctor_intelligence(Path(args.manifest))
+    checks = doctor_intelligence(
+        Path(args.manifest),
+        require_crispasr=args.require_crispasr,
+        require_gpu=args.require_gpu,
+    )
     for check in checks:
         print_check(check.name, check.ok, check.detail)
     return 0 if all(check.ok for check in checks) else 1
@@ -678,6 +701,9 @@ def cmd_intelligence_transcribe(args: argparse.Namespace) -> int:
                 threads=args.threads,
                 vad=not args.no_vad,
                 crispasr_path=Path(args.crispasr) if args.crispasr else None,
+                gpu_backend=args.gpu_backend,
+                no_gpu=args.no_gpu,
+                require_gpu=args.require_gpu,
                 timeout=args.timeout,
             )
         except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as exc:
@@ -1059,9 +1085,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     smoke = sub.add_parser("smoke", help="Create and run curated validation batches")
     smoke_sub = smoke.add_subparsers(dest="smoke_command", required=True)
-    smoke_plan = smoke_sub.add_parser("plan", help="Create the curated NASA Goddard smoke-test batch")
+    smoke_plan = smoke_sub.add_parser("plan", help="Create a bounded smoke-test batch")
     smoke_plan.add_argument("--count", type=int, default=5)
-    smoke_plan.add_argument("--name", default="nasa-goddard-smoke-pack")
+    smoke_plan.add_argument("--url", action="append", help="Custom smoke-test URL; repeatable. Prefer this for new validation.")
+    smoke_plan.add_argument("--rights", default="Operator-provided smoke-test URL for install validation; operator must verify permission, license, and platform terms before real download.")
+    smoke_plan.add_argument("--name")
     smoke_plan.add_argument("--output", help="Output directory override")
     smoke_plan.add_argument("--max-height", type=int, default=360)
     smoke_plan.add_argument("--max-filesize", default="75M")
@@ -1087,6 +1115,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     intelligence_doctor = intelligence_sub.add_parser("doctor", help="Check local intelligence prerequisites and workspace state")
     intelligence_doctor.add_argument("manifest", help="Path to batch manifest.json")
+    intelligence_doctor.add_argument("--require-crispasr", action="store_true", help="Fail if CrispASR is not installed")
+    intelligence_doctor.add_argument("--require-gpu", action="store_true", help="Fail if the CrispASR binary does not report a CUDA/Vulkan/Metal-style GPU backend")
     intelligence_doctor.set_defaults(func=cmd_intelligence_doctor)
 
     intelligence_status_parser = intelligence_sub.add_parser("status", help="Summarize intelligence artifacts for a batch")
@@ -1125,6 +1155,9 @@ def build_parser() -> argparse.ArgumentParser:
     transcribe.add_argument("--crispasr", help="Path to crispasr.exe; defaults to CRISPASR_CLI, .local/bin, or PATH")
     transcribe.add_argument("--model", default="auto", help="CrispASR model path or auto")
     transcribe.add_argument("--backend", default="parakeet", help="CrispASR backend name")
+    transcribe.add_argument("--gpu-backend", help="Force CrispASR GPU backend, for example cuda, vulkan, metal, or cpu")
+    transcribe.add_argument("--no-gpu", action="store_true", help="Pass --no-gpu to CrispASR for an explicit CPU run")
+    transcribe.add_argument("--require-gpu", action="store_true", help="Refuse transcription unless CrispASR diagnostics report a compiled GPU backend")
     transcribe.add_argument("--threads", type=int, help="Worker threads for CrispASR")
     transcribe.add_argument("--no-vad", action="store_true", help="Do not pass --vad to CrispASR")
     transcribe.add_argument("--timeout", type=int, default=60 * 60 * 4, help="Per-file ASR timeout in seconds")

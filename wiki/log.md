@@ -8,6 +8,19 @@ tags: [log, meta]
 
 # Log
 
+## 2026-05-28 - Ledger Verification and ASR GPU Gates Hardened
+
+- Downloaded the user-provided YouTube video `jK7ss4TvtcY` through the normal Slayer flow into `C:\Users\rccol\Downloads` with Mullvad production posture, 1080p cap, dry-run, real run, verify, and ledger refresh.
+- ffprobe confirmed the downloaded MP4 is `1920x1080`, H.264, 30fps, 45.77s, and 23,944,375 bytes.
+- The broad `Downloads` output path exposed a verifier gap: old `verify` counted unrelated media files in the output folder. Hardened ledger refresh and verification so batch counts come from planned/archive-matched ledger artifacts.
+- Added CrispASR diagnostics parsing plus `intelligence doctor --require-gpu`, `intelligence transcribe --gpu-backend`, and `intelligence transcribe --require-gpu`.
+- Current local CrispASR diagnostics prove the installed binary is CPU-only (`ggml backends: cpu`), even though the workstation has an RTX 4090. The suite now refuses GPU-required ASR jobs until diagnostics report CUDA/Vulkan/Metal-style support.
+- Tested the Windows GPU-build path far enough to classify the current blockers: CUDA builds need a Visual Studio/CUDA host-compiler pairing that the installed toolchain accepts, and Vulkan builds need the Vulkan SDK installed. No product claim should call this workstation GPU-ready until `intelligence doctor --require-gpu` passes.
+- Added preflight guardrails so `intelligence transcribe` rejects contradictory GPU flags such as `--require-gpu --no-gpu` before any long ASR job starts.
+- Added `smoke plan --url` and updated onboarding/docs/runbooks so new manual validation uses operator-provided authorized smoke sources. Count-based built-in fixtures remain as legacy compatibility only.
+- Verification after the hardening pass: 54 tests passed, compileall passed, diff check passed, vault health passed, and the real broad-Downloads batch now verifies as exactly 1 media file and 1 info JSON.
+- Operator preference update: historical NASA evidence remains in the log, but future manual smoke testing should avoid NASA sources unless explicitly requested.
+
 ## 2026-05-28 - First-Run Walkthrough Added
 
 - Added `slayer onboard` as a non-mutating first-run guide that prints readiness, missing setup steps, interview prompts, reference docs, and the next safe commands.

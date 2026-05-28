@@ -12,6 +12,7 @@ from slayer_cli.intelligence import (
     init_intelligence,
     intelligence_paths,
     make_clip_plan,
+    parse_crispasr_diagnostics,
     read_jsonl,
     search_words,
     transcribe_with_crispasr,
@@ -228,10 +229,16 @@ class IntelligenceTests(unittest.TestCase):
             manifest = self.make_manifest(root)
             media = root / "downloads" / "fixture.mp4"
             captured: dict[str, Path] = {}
+            commands: list[tuple[str, ...]] = []
 
             def fake_import(manifest_path: Path, json_path: Path, **_: object) -> tuple[Path, int]:
                 captured["json_path"] = json_path
                 return root / "intelligence" / "words" / "vid123.words.jsonl", 3
+
+            def fake_run_command(args: object, **_: object) -> CommandResult:
+                command = tuple(str(arg) for arg in args)  # type: ignore[union-attr]
+                commands.append(command)
+                return CommandResult(command, 0, "", "")
 
             with (
                 patch(
@@ -242,10 +249,7 @@ class IntelligenceTests(unittest.TestCase):
                     "slayer_cli.intelligence.extract_audio",
                     return_value=CommandResult(("ffmpeg",), 0, "", ""),
                 ),
-                patch(
-                    "slayer_cli.intelligence.run_command",
-                    return_value=CommandResult(("crispasr",), 0, "", ""),
-                ),
+                patch("slayer_cli.intelligence.run_command", side_effect=fake_run_command),
                 patch("slayer_cli.intelligence.import_crispasr_json", side_effect=fake_import),
             ):
                 audio, transcript, words, count, results = transcribe_with_crispasr(
@@ -253,6 +257,7 @@ class IntelligenceTests(unittest.TestCase):
                     media,
                     video_id="vid123",
                     item_id="vid123",
+                    gpu_backend="cuda",
                 )
 
             self.assertEqual(audio.name, "vid123.wav")
@@ -261,6 +266,88 @@ class IntelligenceTests(unittest.TestCase):
             self.assertEqual(words.name, "vid123.words.jsonl")
             self.assertEqual(count, 3)
             self.assertEqual(len(results), 2)
+            self.assertIn("--gpu-backend", commands[0])
+            self.assertIn("cuda", commands[0])
+
+    def test_transcribe_rejects_conflicting_gpu_flags(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = self.make_manifest(root)
+            media = root / "clip.mp4"
+            media.write_bytes(b"fake")
+
+            with patch("slayer_cli.intelligence.find_crispasr") as find_crispasr:
+                find_crispasr.return_value = ToolInfo(
+                    "crispasr",
+                    root / "crispasr.exe",
+                    None,
+                    True,
+                    "CrispASR CLI found",
+                )
+
+                with self.assertRaisesRegex(ValueError, "--require-gpu cannot be combined with --no-gpu"):
+                    transcribe_with_crispasr(
+                        manifest,
+                        media,
+                        video_id="vid123",
+                        no_gpu=True,
+                        require_gpu=True,
+                    )
+
+                with self.assertRaisesRegex(ValueError, "--no-gpu cannot be combined"):
+                    transcribe_with_crispasr(
+                        manifest,
+                        media,
+                        video_id="vid123",
+                        gpu_backend="cuda",
+                        no_gpu=True,
+                    )
+
+                with self.assertRaisesRegex(ValueError, "--gpu-backend cpu"):
+                    transcribe_with_crispasr(
+                        manifest,
+                        media,
+                        video_id="vid123",
+                        gpu_backend="cpu",
+                        require_gpu=True,
+                    )
+
+    def test_parse_crispasr_diagnostics_reports_cpu_only(self) -> None:
+        diagnostics = parse_crispasr_diagnostics(
+            """
+=== build info ===
+  ggml backends : cpu
+
+=== ggml backends + devices ===
+  registered backends: 1
+    [0] CPU (devices: 1)
+  registered devices : 1
+    [0] cpu    name=CPU desc=12th Gen Intel(R) Core(TM) i9-12900K mem=71672/130822 MiB id=?
+"""
+        )
+
+        self.assertEqual(diagnostics.ggml_backends, ["cpu"])
+        self.assertFalse(diagnostics.has_gpu_backend)
+        self.assertIn("CPU-only", diagnostics.detail)
+
+    def test_parse_crispasr_diagnostics_detects_gpu_backend(self) -> None:
+        diagnostics = parse_crispasr_diagnostics(
+            """
+=== build info ===
+  ggml backends : cpu cuda vulkan
+
+=== ggml backends + devices ===
+  registered backends: 3
+    [0] CUDA (devices: 1)
+    [1] Vulkan (devices: 1)
+  registered devices : 2
+    [0] cuda0  name=NVIDIA GeForce RTX 4090 desc=CUDA mem=20000/24564 MiB id=0
+"""
+        )
+
+        self.assertTrue(diagnostics.has_gpu_backend)
+        self.assertEqual(diagnostics.gpu_backends, ["cuda", "vulkan"])
+        self.assertIn("GPU backend", diagnostics.detail)
 
     def test_clip_plan_clamps_padding_and_requires_media_path(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

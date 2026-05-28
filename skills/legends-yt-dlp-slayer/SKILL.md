@@ -84,6 +84,8 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence vault b
 
 The stable contract is a timestamped word ledger. Prefer the ready-made CrispASR Parakeet backend for local transcription. Heavy ASR stacks such as NVIDIA NeMo + Parakeet remain advanced external producers of that ledger, preferably isolated in WSL2, Docker, or a separate Python environment.
 
+Use `intelligence doctor --require-gpu` before describing a local ASR setup as GPU-ready. CPU-only CrispASR still runs locally and token-free, but `--require-gpu` must not be mixed with `--no-gpu` or `--gpu-backend cpu`.
+
 ### Productized Archive SOP
 
 Use this sequence for real channel, playlist, or larger URL-set work:
@@ -142,10 +144,10 @@ Read `references/batch-catalog.md` before planning large archives.
 
 ### Validate The Install
 
-Use the curated five-video smoke pack before treating an install as ready:
+Use a small operator-verified smoke URL before treating an install as ready:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --count 5
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --url "<authorized-video-url>" --name "first-smoke"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "<manifest.json>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --dry-run
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --yes

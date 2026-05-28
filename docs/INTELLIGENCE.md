@@ -47,8 +47,13 @@ Check local state:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor "batches\...\manifest.json" --require-gpu
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence status "batches\...\manifest.json"
 ```
+
+`doctor --require-gpu` is the truth gate for long local ASR jobs. It fails unless the discovered CrispASR binary reports a compiled GPU backend such as CUDA, Vulkan, or Metal. A CPU-only CrispASR build is still local and token-free, but it should not be described as GPU-ready.
+
+Contradictory transcription flags are rejected before work starts. Do not combine `--require-gpu` with `--no-gpu` or `--gpu-backend cpu`.
 
 Import timestamped words from JSONL or JSON:
 
@@ -61,6 +66,7 @@ Run the ready-made CrispASR Parakeet backend on local media:
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --model auto
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --limit 5
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
 ```
 
 Import existing CrispASR `-ojf` JSON:

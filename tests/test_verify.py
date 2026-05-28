@@ -24,6 +24,11 @@ class VerifyTests(unittest.TestCase):
                 '{"id":"two","webpage_url":"https://www.youtube.com/watch?v=two","title":"Two"}\n',
                 encoding="utf-8",
             )
+            (output / "unrelated.mp4").write_bytes(b"not part of this batch")
+            (output / "unrelated.info.json").write_text(
+                '{"id":"unrelated","webpage_url":"https://www.youtube.com/watch?v=unrelated","title":"Unrelated"}\n',
+                encoding="utf-8",
+            )
             archive = root / "archive.txt"
             archive.write_text("youtube one\nyoutube two\n", encoding="utf-8")
             ledger = root / "items.jsonl"
@@ -59,16 +64,15 @@ class VerifyTests(unittest.TestCase):
             report_dir.mkdir(parents=True, exist_ok=True)
             (report_dir / "report.json").write_text("{}\n", encoding="utf-8")
             try:
-                summary = summarize_batch(manifest)
-                self.assertEqual(summary.media_files, 2)
-                self.assertEqual(summary.info_json_files, 2)
-                self.assertEqual(summary.archive_entries, 2)
-                self.assertEqual(summary.report_files, 1)
-                self.assertEqual(summary.ledger_items, 2)
                 _, checks = verify_batch(manifest, probe=False)
                 self.assertTrue(all(check.ok for check in checks))
                 refreshed = summarize_batch(manifest)
                 self.assertEqual(refreshed.ledger_statuses, {"downloaded": 2})
+                self.assertEqual(refreshed.media_files, 2)
+                self.assertEqual(refreshed.info_json_files, 2)
+                self.assertEqual(refreshed.archive_entries, 2)
+                self.assertEqual(refreshed.report_files, 1)
+                self.assertEqual(refreshed.ledger_items, 2)
             finally:
                 shutil.rmtree(report_dir, ignore_errors=True)
 

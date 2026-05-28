@@ -45,7 +45,7 @@ class OnboardingTests(unittest.TestCase):
         text = onboarding_text(checks)
 
         self.assertEqual(payload["status"], "READY")
-        self.assertIn("smoke plan --count 1", "\n".join(payload["next_steps"]))
+        self.assertIn("smoke plan --url", "\n".join(payload["next_steps"]))
         self.assertIn("Normal first batch flow", text)
         self.assertIn("inventory", text)
 

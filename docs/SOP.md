@@ -71,10 +71,10 @@ This sets Mullvad to a conservative Windows production posture:
 
 ## 5. Validate The Install
 
-Create the curated five-video NASA Goddard smoke batch:
+Create a small authorized smoke batch:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --count 5
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --url "https://www.youtube.com/watch?v=..." --name "first-smoke"
 ```
 
 Then run the standard batch gate:

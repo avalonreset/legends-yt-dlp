@@ -69,7 +69,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL1>" "<URL2
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --rights "<basis>" --name "<name>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "<channel-or-playlist-url>" --rights "<basis>" --rights-file ".\rights-evidence.md" --name "<name>" --max-items 25
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "<manifest.json>"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --count 5
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --url "<authorized-video-url>" --name "first-smoke"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "<manifest.json>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --dry-run
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --yes
@@ -79,3 +79,19 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "<manifest.js
 ```
 
 `run` defaults to safe VPN recovery. It can reconnect Mullvad and retry after transient tunnel/network failures. It must not continue through source-side block signals.
+
+## Intelligence
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence init "<manifest.json>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor "<manifest.json>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor "<manifest.json>" --require-gpu
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "<manifest.json>" --all --model auto
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "<manifest.json>" --all --model auto --gpu-backend cuda --require-gpu
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence search "<manifest.json>" "agentic workflow"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips plan "<manifest.json>" --query "agentic workflow"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips render "<clip-plan.json>" --yes
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence vault build "<manifest.json>"
+```
+
+`intelligence doctor --require-gpu` is the local ASR truth gate. CPU-only CrispASR remains local and token-free, but do not call a setup GPU-ready unless diagnostics report a GPU backend.

@@ -19,6 +19,7 @@ INTELLIGENCE_SCHEMA_VERSION = 1
 WORD_RE = re.compile(r"[a-z0-9]+(?:'[a-z0-9]+)?")
 RAW_WORD_RE = re.compile(r"[A-Za-z0-9]+(?:'[A-Za-z0-9]+)?")
 CRISPASR_ENGINE = "crispasr/parakeet-tdt-0.6b-v3"
+GPU_BACKEND_NAMES = {"cuda", "vulkan", "metal", "kompute", "opencl", "sycl"}
 
 
 @dataclass(frozen=True)
@@ -31,6 +32,34 @@ class IntelligencePaths:
     clips: Path
     vault: Path
     manifest: Path
+
+
+@dataclass(frozen=True)
+class CrispASRDiagnostics:
+    ok: bool
+    path: Path | None
+    ggml_backends: list[str]
+    registered_backends: list[str]
+    devices: list[str]
+    raw: str
+    error: str = ""
+
+    @property
+    def gpu_backends(self) -> list[str]:
+        return [backend for backend in self.ggml_backends if backend.lower() in GPU_BACKEND_NAMES]
+
+    @property
+    def has_gpu_backend(self) -> bool:
+        return bool(self.gpu_backends)
+
+    @property
+    def detail(self) -> str:
+        if not self.ok:
+            return self.error or "diagnostics unavailable"
+        backend_text = ", ".join(self.ggml_backends) if self.ggml_backends else "unknown"
+        device_text = "; ".join(self.devices[:3]) if self.devices else "none reported"
+        mode = f"GPU backend(s): {', '.join(self.gpu_backends)}" if self.has_gpu_backend else "CPU-only backend"
+        return f"{mode}; ggml backends: {backend_text}; devices: {device_text}"
 
 
 def now_iso() -> str:
@@ -209,17 +238,96 @@ def init_intelligence(manifest_path: Path) -> Path:
     return paths.manifest
 
 
-def doctor_intelligence(manifest_path: Path) -> list[Check]:
+def parse_crispasr_diagnostics(raw: str, *, path: Path | None = None, ok: bool = True, error: str = "") -> CrispASRDiagnostics:
+    ggml_backends: list[str] = []
+    registered_backends: list[str] = []
+    devices: list[str] = []
+    for line in raw.splitlines():
+        stripped = line.strip()
+        lower = stripped.lower()
+        if lower.startswith("ggml backends"):
+            _, _, value = stripped.partition(":")
+            ggml_backends = [
+                part.strip().lower()
+                for part in re.split(r"[, ]+", value.strip())
+                if part.strip()
+            ]
+            continue
+        backend_match = re.match(r"^\[\d+\]\s+([A-Za-z0-9_-]+)\s+\(devices:", stripped)
+        if backend_match:
+            registered_backends.append(backend_match.group(1))
+            continue
+        device_match = re.match(r"^\[\d+\]\s+([A-Za-z0-9_-]+)\s+name=(.+)$", stripped)
+        if device_match:
+            devices.append(f"{device_match.group(1)} {device_match.group(2)}")
+    return CrispASRDiagnostics(
+        ok=ok,
+        path=path,
+        ggml_backends=ggml_backends,
+        registered_backends=registered_backends,
+        devices=devices,
+        raw=raw,
+        error=error,
+    )
+
+
+def crispasr_diagnostics(crispasr_path: Path | None = None, *, timeout: int = 30) -> CrispASRDiagnostics:
+    tool = find_crispasr()
+    executable = crispasr_path or tool.path
+    if not executable:
+        return CrispASRDiagnostics(
+            ok=False,
+            path=None,
+            ggml_backends=[],
+            registered_backends=[],
+            devices=[],
+            raw="",
+            error="CrispASR CLI not found",
+        )
+    result = run_command([executable, "--diagnostics"], timeout=timeout)
+    raw = "\n".join(part for part in [result.stdout, result.stderr] if part)
+    return parse_crispasr_diagnostics(
+        raw,
+        path=Path(executable),
+        ok=result.ok,
+        error=f"diagnostics exited {result.returncode}" if not result.ok else "",
+    )
+
+
+def doctor_intelligence(
+    manifest_path: Path,
+    *,
+    require_crispasr: bool = False,
+    require_gpu: bool = False,
+) -> list[Check]:
     paths = intelligence_paths(manifest_path.parent)
     ffmpeg = find_ffmpeg()
     crispasr = find_crispasr()
     status = intelligence_status(manifest_path)
+    diagnostics = crispasr_diagnostics(crispasr.path) if crispasr.path else None
+    crispasr_ok = crispasr.ok or not require_crispasr
+    gpu_ok = bool(diagnostics and diagnostics.has_gpu_backend) or not require_gpu
+    local_backend_check_name = "crispasr gpu backend" if require_gpu else "crispasr local backend"
     return [
         Check("batch manifest", manifest_path.exists(), str(manifest_path)),
         Check("intelligence workspace", paths.root.exists(), str(paths.root) if paths.root.exists() else "not initialized"),
         Check("word ledger", True, f"{status['words']} word(s) in {status['word_files']} file(s)"),
         Check("ffmpeg", ffmpeg.ok, ffmpeg.detail if not ffmpeg.version else ffmpeg.version),
-        Check("crispasr", True, str(crispasr.path) if crispasr.path else "recommended Parakeet backend not installed; import mode still available"),
+        Check(
+            "crispasr",
+            crispasr_ok,
+            str(crispasr.path) if crispasr.path else "recommended Parakeet backend not installed; import mode still available",
+        ),
+        Check(
+            "crispasr diagnostics",
+            bool(diagnostics and diagnostics.ok) or not require_crispasr,
+            diagnostics.detail if diagnostics else "not available",
+        ),
+        Check(
+            local_backend_check_name,
+            gpu_ok,
+            diagnostics.detail if diagnostics else "not available",
+        ),
     ]
 
 
@@ -529,6 +637,9 @@ def transcribe_with_crispasr(
     threads: int | None = None,
     vad: bool = True,
     crispasr_path: Path | None = None,
+    gpu_backend: str | None = None,
+    no_gpu: bool = False,
+    require_gpu: bool = False,
     timeout: int = 60 * 60 * 4,
 ) -> tuple[Path, Path, Path, int, list[CommandResult]]:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -538,6 +649,17 @@ def transcribe_with_crispasr(
     executable = crispasr_path or tool.path
     if not executable:
         raise RuntimeError("CrispASR CLI not found. Set CRISPASR_CLI or install it into .local/bin.")
+    selected_gpu_backend = gpu_backend.strip().lower() if gpu_backend else ""
+    if no_gpu and selected_gpu_backend and selected_gpu_backend != "cpu":
+        raise ValueError("--no-gpu cannot be combined with a non-CPU --gpu-backend")
+    if require_gpu and no_gpu:
+        raise ValueError("--require-gpu cannot be combined with --no-gpu")
+    if require_gpu and selected_gpu_backend == "cpu":
+        raise ValueError("--require-gpu cannot be combined with --gpu-backend cpu")
+    if require_gpu:
+        diagnostics = crispasr_diagnostics(Path(executable))
+        if not diagnostics.has_gpu_backend:
+            raise RuntimeError(f"CrispASR GPU backend unavailable: {diagnostics.detail}")
     target_id = slugify(video_id or item_id or media_path.stem)
     audio_path = paths.audio / f"{target_id}.wav"
     transcript_base = paths.transcripts / f"{target_id}.crispasr"
@@ -563,6 +685,10 @@ def transcribe_with_crispasr(
     ]
     if threads:
         command.extend(["-t", str(threads)])
+    if gpu_backend:
+        command.extend(["--gpu-backend", gpu_backend])
+    if no_gpu:
+        command.append("--no-gpu")
     if vad:
         command.append("--vad")
     asr_result = run_command(command, timeout=timeout)

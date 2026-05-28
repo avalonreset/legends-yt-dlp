@@ -160,8 +160,10 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence init "batches\...\manifest.json"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor "batches\...\manifest.json" --require-gpu
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence status "batches\...\manifest.json"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --model auto
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --limit 5
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence import-crispasr "batches\...\manifest.json" --input ".\transcript.json" --video-id "abc123" --media-path ".\video.mp4"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence ingest-words "batches\...\manifest.json" --input ".\words.jsonl" --video-id "abc123"
@@ -175,6 +177,10 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence vault b
 
 The default ready-made ASR path is CrispASR with Parakeet TDT v3. The generic import path still accepts timestamped word ledgers from JSONL or JSON. Exact search operates over normalized contiguous word tokens, so `agentic` matches `Agentic`, but `agent` does not match `agentic`.
 
+`intelligence doctor --require-gpu` is the release gate for GPU-backed Parakeet. CPU-only CrispASR still runs locally without Codex or Claude token spend, but the suite should not call it GPU-ready unless CrispASR diagnostics report a CUDA, Vulkan, Metal, or similar backend.
+
+`intelligence transcribe` rejects contradictory GPU flags before work starts; `--require-gpu` cannot be combined with `--no-gpu` or `--gpu-backend cpu`.
+
 Clip planning writes reviewable JSON before media rendering. Rendering requires an explicit `--yes` and local `ffmpeg`.
 
 See [Post-Capture Intelligence](INTELLIGENCE.md) and [CrispASR Parakeet Backend](CRISPASR.md).
@@ -182,10 +188,11 @@ See [Post-Capture Intelligence](INTELLIGENCE.md) and [CrispASR Parakeet Backend]
 ## Smoke Pack
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --count 5
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --url "https://www.youtube.com/watch?v=..." --name "first-smoke"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --count 1
 ```
 
-Creates a curated NASA Goddard validation batch with short videos and conservative defaults. Use it to verify a local install before a real user batch.
+Creates a bounded validation batch with conservative defaults. Prefer `--url` with an operator-verified source for new manual validation. The count-based built-in smoke URLs remain only as legacy compatibility fixtures.
 
 ## Preflight
 
@@ -226,4 +233,4 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\manifest.json" --no-probe
 ```
 
-`verify` checks archive entries, media files, info JSON sidecars, run reports, total media bytes, and ffprobe media readability.
+`verify` checks archive entries, run reports, ledger-scoped media files, ledger-scoped info JSON sidecars, total batch media bytes, and ffprobe media readability. When a batch writes into a broad folder such as `Downloads`, verifier counts come from the item ledger instead of unrelated media already in that folder.

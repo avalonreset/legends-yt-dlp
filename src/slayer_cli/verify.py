@@ -43,6 +43,69 @@ def info_json_files_under(output: Path) -> list[Path]:
     return sorted(path for path in output.rglob("*") if path.is_file() and path.name.endswith(INFO_SUFFIX))
 
 
+def existing_file(value: object, *, suffixes: set[str] | None = None, info_json: bool = False) -> Path | None:
+    if not value:
+        return None
+    path = Path(str(value))
+    if not path.exists() or not path.is_file():
+        return None
+    if info_json:
+        return path if path.name.endswith(INFO_SUFFIX) else None
+    if suffixes is not None and path.suffix.lower() not in suffixes:
+        return None
+    return path
+
+
+def unique_paths(paths: list[Path]) -> list[Path]:
+    seen: set[str] = set()
+    unique: list[Path] = []
+    for path in paths:
+        key = str(path.resolve())
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(path)
+    return sorted(unique, key=lambda path: str(path).lower())
+
+
+def ledger_media_files(manifest: dict) -> list[Path]:
+    ledger_path = manifest.get("paths", {}).get("item_ledger")
+    if not ledger_path:
+        return []
+    files = [
+        path
+        for item in load_item_ledger(Path(ledger_path))
+        for path in [existing_file(item.get("output_path"), suffixes=MEDIA_EXTENSIONS)]
+        if path is not None
+    ]
+    return unique_paths(files)
+
+
+def ledger_info_json_files(manifest: dict) -> list[Path]:
+    ledger_path = manifest.get("paths", {}).get("item_ledger")
+    if not ledger_path:
+        return []
+    files = [
+        path
+        for item in load_item_ledger(Path(ledger_path))
+        for path in [existing_file(item.get("info_json_path"), info_json=True)]
+        if path is not None
+    ]
+    return unique_paths(files)
+
+
+def batch_media_files(manifest: dict) -> list[Path]:
+    if manifest.get("paths", {}).get("item_ledger"):
+        return ledger_media_files(manifest)
+    return media_files_under(Path(manifest["paths"]["output"]))
+
+
+def batch_info_json_files(manifest: dict) -> list[Path]:
+    if manifest.get("paths", {}).get("item_ledger"):
+        return ledger_info_json_files(manifest)
+    return info_json_files_under(Path(manifest["paths"]["output"]))
+
+
 def archive_entries(path: Path) -> list[str]:
     if not path.exists():
         return []
@@ -66,9 +129,9 @@ def expected_download_count(manifest: dict) -> int:
 
 def summarize_batch(manifest_path: Path) -> VerifySummary:
     manifest = load_manifest(manifest_path)
-    output = Path(manifest["paths"]["output"])
     archive = Path(manifest["paths"]["download_archive"])
-    media = media_files_under(output)
+    media = batch_media_files(manifest)
+    info_json = batch_info_json_files(manifest)
     reports = report_files_for(manifest_path)
     ledger_path = manifest.get("paths", {}).get("item_ledger")
     ledger_summary = {"items": 0, "statuses": {}, "warnings": 0}
@@ -82,7 +145,7 @@ def summarize_batch(manifest_path: Path) -> VerifySummary:
         expected_downloads=expected_download_count(manifest),
         archive_entries=len(archive_entries(archive)),
         media_files=len(media),
-        info_json_files=len(info_json_files_under(output)),
+        info_json_files=len(info_json),
         report_files=len(reports),
         total_media_bytes=sum(path.stat().st_size for path in media),
         ledger_items=int(ledger_summary.get("items", 0)),
@@ -113,15 +176,14 @@ def probe_media(path: Path) -> Check:
 
 
 def verify_batch(manifest_path: Path, *, allow_empty: bool = False, probe: bool = True) -> tuple[VerifySummary, list[Check]]:
-    summary = summarize_batch(manifest_path)
     manifest = load_manifest(manifest_path)
     output = Path(manifest["paths"]["output"])
     archive = Path(manifest["paths"]["download_archive"])
-    media = media_files_under(output)
     ledger_path = manifest.get("paths", {}).get("item_ledger")
     if ledger_path:
         refresh_item_ledger(manifest)
-        summary = summarize_batch(manifest_path)
+    summary = summarize_batch(manifest_path)
+    media = batch_media_files(manifest)
     checks = [
         Check("manifest", manifest_path.exists(), str(manifest_path)),
         Check("output path", output.exists(), str(output)),

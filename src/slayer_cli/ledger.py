@@ -162,6 +162,8 @@ def merge_download_artifacts(items: list[dict], *, archive: Path, output: Path) 
         if index is None and item_url:
             index = index_by_url.get(item_url)
         if index is None:
+            if merged and (not item_id or item_id not in archived):
+                continue
             index = len(merged)
             merged.append(planned_item(str(item_url or ""), position=index + 1, metadata={"id": item_id}))
         item = merged[index]

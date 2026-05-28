@@ -22,7 +22,7 @@ Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful but easy to operat
 - Inventories channel and playlist URLs into a reviewable item ledger before downloads.
 - Copies optional rights evidence files into the batch folder.
 - Provides a one-command production setup path for Mullvad safety posture.
-- Provides a curated NASA Goddard smoke pack for install validation.
+- Supports custom operator-provided smoke URLs for install validation.
 - Supports bounded smoke jobs with max downloads, height, and filesize limits.
 - Generates stable anonymous-mode `yt-dlp` config files with download archives and conservative retry/sleep settings.
 - Blocks real runs until production preflight passes.
@@ -57,7 +57,7 @@ Working now:
 - JavaScript runtime detection/configuration for YouTube extraction
 - bounded batch limits for smoke tests and controlled archive jobs
 - official `yt-dlp.exe` install and version check
-- curated 5-video smoke-pack planning
+- custom smoke-pack planning
 - batch `plan`
 - channel/playlist `inventory`
 - multi-URL and URL-file batch planning
@@ -97,10 +97,10 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --require-con
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --production
 ```
 
-Validate the install with the curated smoke pack:
+Validate the install with a small authorized smoke URL:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --count 5
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --url "https://www.youtube.com/watch?v=..." --name "first-smoke"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\...\manifest.json"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --dry-run
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes
@@ -139,12 +139,16 @@ Analyze verified local media after download:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence init "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor "batches\...\manifest.json" --require-gpu
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --media ".\video.mp4" --video-id "VIDEO_ID" --model auto
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence ingest-words "batches\...\manifest.json" --input ".\examples\intelligence-words.jsonl" --video-id "VIDEO_ID"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence search "batches\...\manifest.json" "agentic workflow"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips plan "batches\...\manifest.json" --query "agentic workflow"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence vault build "batches\...\manifest.json"
 ```
+
+`intelligence doctor --require-gpu` is the truth gate for GPU-backed Parakeet. CPU-only CrispASR still runs locally without Codex or Claude token spend, but the project does not label that install GPU-ready unless CrispASR diagnostics report a compiled GPU backend.
 
 ## Safety Boundary
 

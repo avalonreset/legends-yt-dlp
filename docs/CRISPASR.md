@@ -53,6 +53,41 @@ cmake --build build-mingw-lowwin --target crispasr-cli
 
 The `_WIN32_WINNT=0x0601` flag avoids older MinGW headers failing on the newer `THREAD_POWER_THROTTLING_STATE` API used by ggml.
 
+## CPU vs GPU Truth Gate
+
+Local transcription is not the same as GPU transcription. Before a long job, run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor "batches\...\manifest.json" --require-gpu
+```
+
+The command runs `crispasr --diagnostics` and fails unless the binary reports a compiled GPU backend such as CUDA, Vulkan, or Metal. If diagnostics say `ggml backends: cpu`, Parakeet still runs locally without Codex/Claude tokens, but it is a CPU-only install.
+
+To force a GPU backend once diagnostics prove it exists:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
+```
+
+Do not combine contradictory GPU flags. `--require-gpu --no-gpu` and `--require-gpu --gpu-backend cpu` are rejected before transcription starts.
+
+## Windows GPU Build Notes
+
+On the current Windows test workstation, the checked-in integration path is verified as local and token-free, but not GPU-ready yet:
+
+- `crispasr --diagnostics` reports `ggml backends: cpu`.
+- The machine has an RTX 4090, so hardware is not the blocker.
+- A CUDA build attempt with installed CUDA toolkits failed because the installed Visual Studio 2022 host compiler is newer than the CUDA compiler accepts.
+- A Vulkan build attempt did not start because the Vulkan SDK is not installed.
+
+Treat those as setup blockers, not application failures. The product gate remains:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor "batches\...\manifest.json" --require-gpu
+```
+
+Only call a machine GPU-ready after that command passes and diagnostics list a CUDA, Vulkan, Metal, or similar backend.
+
 ## One-File Transcription
 
 ```powershell

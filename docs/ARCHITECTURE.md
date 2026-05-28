@@ -37,7 +37,7 @@ Batch Orchestrator
   - uses download archive files for resumability
 
 Smoke Pack
-  - creates a curated NASA Goddard validation batch
+  - creates bounded validation batches from operator-provided smoke URLs
   - gives operators a safe install test before real work
 
 Verifier

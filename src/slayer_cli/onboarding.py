@@ -54,7 +54,7 @@ def next_setup_steps(checks: list[Check], *, require_connected: bool = True) -> 
     if not steps:
         steps.extend(
             [
-                command_line("smoke plan --count 1 --name first-smoke"),
+                command_line('smoke plan --url "<authorized-video-url>" --name first-smoke'),
                 command_line('preflight "batches\\...\\manifest.json"'),
                 command_line('run "batches\\...\\manifest.json" --dry-run'),
                 command_line('run "batches\\...\\manifest.json" --yes'),

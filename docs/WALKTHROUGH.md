@@ -68,7 +68,7 @@ Production posture requires Mullvad connected, Lockdown on, split tunneling off,
 ## 5. Validate With A Smoke Run
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --count 1 --name first-smoke
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --url "<authorized-video-url>" --name first-smoke
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\...\manifest.json"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --dry-run
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes
@@ -77,6 +77,8 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\
 ```
 
 Use the manifest path printed by `smoke plan`.
+
+Use a short source the operator has permission to download. The count-based built-in smoke fixtures remain for compatibility, but new manual validation should use `--url`.
 
 ## 6. Interview The User Before A Real Batch
 

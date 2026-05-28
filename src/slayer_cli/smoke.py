@@ -9,6 +9,10 @@ SMOKE_RIGHTS_BASIS = (
     "Official NASA Goddard public-facing videos for install validation; NASA media is generally not "
     "copyrighted unless noted, but operators must verify third-party restrictions before reuse."
 )
+CUSTOM_SMOKE_RIGHTS_BASIS = (
+    "Operator-provided smoke-test URL for install validation; operator must verify permission, "
+    "license, and platform terms before real download."
+)
 
 
 @dataclass(frozen=True)
@@ -58,6 +62,27 @@ def create_smoke_batch(
     return create_batch_from_urls(
         urls=smoke_urls(count),
         rights_basis=SMOKE_RIGHTS_BASIS,
+        name=name,
+        output_dir=output_dir,
+        max_height=max_height,
+        max_filesize=max_filesize,
+    )
+
+
+def create_custom_smoke_batch(
+    *,
+    urls: list[str],
+    rights_basis: str = CUSTOM_SMOKE_RIGHTS_BASIS,
+    name: str = "custom-smoke-pack",
+    output_dir: str | None = None,
+    max_height: int | None = 360,
+    max_filesize: str | None = "75M",
+) -> BatchPaths:
+    if not urls:
+        raise ValueError("At least one --url is required for a custom smoke batch")
+    return create_batch_from_urls(
+        urls=urls,
+        rights_basis=rights_basis,
         name=name,
         output_dir=output_dir,
         max_height=max_height,

@@ -29,3 +29,7 @@
 - Added `slayer intelligence` MVP for post-download word-ledger import, exact phrase search, FFmpeg clip planning/rendering, and Obsidian transcript vault export.
 - Added CrispASR/Parakeet as the preferred ready-made transcription backend with `intelligence transcribe` and `import-crispasr`.
 - Fixed CrispASR transcript artifact naming after a real downloaded-video smoke test and added regression coverage.
+- Hardened `verify` to count ledger-scoped media/info artifacts so broad output folders such as `Downloads` do not inflate batch verification.
+- Added CrispASR diagnostics parsing plus GPU-required doctor/transcribe gates for honest CPU-vs-GPU Parakeet operation.
+- Made `intelligence transcribe` reject contradictory GPU flags before launching ASR.
+- Added `smoke plan --url` so new validation can use operator-provided authorized smoke sources instead of the legacy built-in fixtures.

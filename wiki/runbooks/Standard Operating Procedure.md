@@ -19,14 +19,14 @@ This applies the expected Mullvad posture and verifies `doctor --production`.
 ## Install Validation
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --count 5
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --url "<authorized-video-url>" --name first-smoke
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\...\manifest.json"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --dry-run
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\manifest.json"
 ```
 
-Current live evidence: the five-video NASA Goddard smoke pack downloaded 5 media files, 5 info JSON files, wrote 5 archive entries, generated run reports, and passed ffprobe validation.
+Current live evidence includes historical bundled smoke tests and a user-provided 1080p single-video download. Future manual validation should use operator-provided authorized smoke URLs.
 
 ## Real Batch
 
