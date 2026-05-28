@@ -8,6 +8,12 @@ tags: [log, meta]
 
 # Log
 
+## 2026-05-28 - Product Assessment Filed
+
+- Added [[Product Assessment 2026-05-28]] with current strengths, weak areas, and next product priorities.
+- Updated [[Roadmap]] with Phase 5 productization priorities: item ledger, run summary UX, inventory-only planning, rights evidence, alpha packaging, license posture, and public docs polish.
+- Updated [[hot]] and [[index]] so future sessions start from the current product-readiness view.
+
 ## 2026-05-28 - Product SOP and Five-Video Smoke Pack
 
 - Added `setup production` to apply Mullvad production posture and verify production doctor in one command.

@@ -2,7 +2,7 @@
 type: roadmap
 status: active
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-05-28
 tags: [roadmap, meta]
 ---
 
@@ -49,3 +49,12 @@ tags: [roadmap, meta]
 - Run lawful sample smoke tests.
 - Publish alpha release notes.
 
+## Phase 5 - Productization Priorities
+
+- Add a structured per-item ledger with URL, ID, title, status, attempts, warnings, output path, bytes, and duration.
+- Add a concise run summary that reports downloaded, skipped, failed, warning, and verification counts.
+- Add inventory-only planning for channels and playlists before any download.
+- Add optional rights evidence files for permission/license proof.
+- Decide v0.1.0-alpha packaging: zip release, PowerShell installer, or Python package.
+- Finalize license and upstream notice posture before community distribution.
+- Improve public docs with a complete smoke-pack transcript and expected outputs.

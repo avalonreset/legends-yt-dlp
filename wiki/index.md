@@ -2,7 +2,7 @@
 type: meta
 status: active
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-05-28
 tags: [index, meta]
 ---
 
@@ -83,3 +83,4 @@ tags: [index, meta]
 
 - [[Glossary]]
 - [[Health Check]]
+- [[Product Assessment 2026-05-28]]

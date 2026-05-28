@@ -11,7 +11,7 @@ tags: [hot-cache, meta]
 
 ## Last Updated
 
-2026-05-28. Product hardening now has a professional operator path: `setup production`, curated `smoke plan`, guarded `run`, `verify`, idempotent rerun checks, and a documented SOP.
+2026-05-28. Product hardening now has a professional operator path plus a fresh assessment of remaining release gaps.
 
 ## Key Recent Facts
 
@@ -41,6 +41,7 @@ tags: [hot-cache, meta]
 - `verify` checks archive entries, reports, media files, info JSON sidecars, and ffprobe media readability.
 - A five-video NASA Goddard smoke run completed with 5 archive entries, 5 MP4 files, 5 info JSON files, 19,173,401 media bytes, and clean idempotent rerun behavior.
 - The smoke run exposed a successful-run YouTube 429 warning; classification now flags source-side warnings even when yt-dlp exits 0.
+- [[Product Assessment 2026-05-28]] records that the next quality jump is structured per-item state, better run summaries, inventory-only planning, rights evidence, release packaging, and license/distribution polish.
 
 ## Recent Changes
 
@@ -53,9 +54,10 @@ tags: [hot-cache, meta]
 - Added the Codex skill suite and updated docs for catalog-style batch planning.
 - Created [[Account Cookie Policy]] and updated the preflight/runbook docs for production privacy posture.
 - Added bounded smoke-test options, compact run reports, guarded disconnect testing, production setup, smoke-pack planning, batch verification, and fixed recovery from explicit Mullvad disconnected state.
+- Added [[Product Assessment 2026-05-28]] and expanded [[Roadmap]] with productization priorities.
 
 ## Active Threads
 
-- Remaining release gate is a final clean check and push after the SOP/productization pass is verified.
+- Next release gate is a productization pass: item ledger, run summaries, inventory mode, rights evidence, and alpha packaging.
 - Existing older manifests may fail production preflight until regenerated because they lack the newer anonymous-auth and limit policy flags.
 - Next GitHub step is optional: create a first alpha tag after reviewing the pushed hardening commit.
