@@ -36,7 +36,7 @@ tags: [hot-cache, meta]
 - Live GitHub metadata updated: stronger description, discussions enabled, topics expanded for `yt-dlp`, Mullvad VPN, digital preservation, privacy tools, and operator tooling.
 - New post-capture intelligence research recommends a Parakeet-first local transcription module: NeMo/Parakeet for ASR word timestamps, optional NeMo Forced Aligner for CTM/ASS refinement, optional pyannote for speaker segments, and FFmpeg clip plans/rendering.
 - The intelligence module should store a structured word ledger, not plain transcript text, so exact word/phrase search can return FFmpeg-ready clip spans.
-- Unit gate: 39 tests pass; compileall passes; package inspection passes; vault health/secret scan are part of the final gate.
+- Unit gate: 41 tests pass; compileall passes; package inspection passes; vault health/secret scan are part of the final gate.
 
 ## Recent Changes
 

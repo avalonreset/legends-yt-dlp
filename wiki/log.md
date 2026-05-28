@@ -64,6 +64,7 @@ tags: [log, meta]
 - Ranked NeMo Forced Aligner as the precision/refinement path for compatible CTC or hybrid CTC models, with CTM/ASS output suited to a Slayer word ledger.
 - Ranked pyannote.audio as optional diarization and WhisperX/stable-ts/MFA/ctc-segmentation as fallback or advanced paths.
 - Added [[Local Transcription and Clip Extraction Stack 2026-05-28]] and updated research index, hot cache, and roadmap.
+- Verification after filing: 41 unit tests passed, vault health passed, and `git diff --check` passed.
 
 ## 2026-05-28 - Guarded Disconnect Testing Added
 
