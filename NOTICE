@@ -28,6 +28,34 @@ Mullvad VPN
 - Distribution note: this project does not bundle Mullvad VPN, Mullvad CLI, or
   Mullvad assets. Users install and license Mullvad separately.
 
+NVIDIA NeMo
+
+- Project: https://github.com/NVIDIA/NeMo
+- License: Apache-2.0 for the open-source toolkit.
+- Use in this repository: optional external ASR runtime for future
+  post-capture transcription workflows.
+- Distribution note: this project does not bundle NeMo, PyTorch, CUDA, or any
+  NeMo container image.
+
+NVIDIA Parakeet ASR models
+
+- Parakeet v2: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v2
+- Parakeet v3: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
+- Model license: CC BY 4.0 according to the public model cards.
+- Use in this repository: recommended optional ASR model family for producing
+  timestamped word ledgers.
+- Distribution note: this project does not bundle Parakeet model weights. Users
+  download and use the models under their own accepted model terms.
+
+FFmpeg
+
+- Project: https://ffmpeg.org
+- License note: FFmpeg build licensing depends on the exact build and enabled
+  libraries. See https://ffmpeg.org/legal.html.
+- Use in this repository: external local binary for media probing, audio
+  extraction, clip rendering, and montage assembly.
+- Distribution note: this project does not bundle FFmpeg.
+
 Platform and trademark notes
 ----------------------------
 

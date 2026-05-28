@@ -66,6 +66,15 @@ tags: [log, meta]
 - Added [[Local Transcription and Clip Extraction Stack 2026-05-28]] and updated research index, hot cache, and roadmap.
 - Verification after filing: 41 unit tests passed, vault health passed, and `git diff --check` passed.
 
+## 2026-05-28 - Post-Capture Intelligence MVP Added
+
+- Added `src/slayer_cli/intelligence.py` as the standard-library intelligence core.
+- Added `slayer intelligence init`, `doctor`, `status`, `ingest-words`/`import-words`, `search`, `clips plan`, `clips render`, and `vault build` commands.
+- The MVP accepts timestamped JSONL or JSON word input, normalizes it into `intelligence/words/*.words.jsonl`, exact-searches contiguous normalized tokens, writes search results, generates reviewable FFmpeg clip plans, and exports transcript vault pages.
+- Added `docs/INTELLIGENCE.md`, `examples/intelligence-words.jsonl`, tests, and updated README/CLI/architecture/NOTICE/skill docs.
+- Preserved the boundary: intelligence analyzes already-downloaded lawful local media only and does not download, call yt-dlp, operate Mullvad, rotate relays, or continue through source-side controls.
+- Verification after implementation: 46 unit tests passed, compileall passed, vault health passed, and `git diff --check` passed.
+
 ## 2026-05-28 - Guarded Disconnect Testing Added
 
 - Added `mullvad disconnect-test` as the approved fail-closed test path.

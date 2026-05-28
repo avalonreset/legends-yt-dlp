@@ -155,6 +155,27 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\
 
 `ledger` summarizes and samples the batch item ledger. `--refresh` reconciles ledger status from the download archive, info JSON sidecars, and media files. Use it after dry-runs, real runs, and verification so the operator can review planned, inventoried, archived, downloaded, metadata-only, warning, or blocked items.
 
+## Intelligence
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence init "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence status "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence ingest-words "batches\...\manifest.json" --input ".\words.jsonl" --video-id "abc123"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence search "batches\...\manifest.json" "agentic workflow"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips plan "batches\...\manifest.json" --query "agentic workflow"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips render "batches\...\intelligence\clips\agentic-workflow\clip-plan.json" --yes
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence vault build "batches\...\manifest.json"
+```
+
+`intelligence` analyzes already-downloaded, verified local media. It does not download media, call `yt-dlp`, operate Mullvad, rotate relays, or continue through source-side blocks.
+
+The MVP accepts timestamped word ledgers from JSONL or JSON. Exact search operates over normalized contiguous word tokens, so `agentic` matches `Agentic`, but `agent` does not match `agentic`.
+
+Clip planning writes reviewable JSON before media rendering. Rendering requires an explicit `--yes` and local `ffmpeg`.
+
+See [Post-Capture Intelligence](INTELLIGENCE.md).
+
 ## Smoke Pack
 
 ```powershell

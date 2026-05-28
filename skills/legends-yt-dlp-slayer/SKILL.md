@@ -68,6 +68,20 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect-t
 
 Do not use raw `disconnect` during operator work unless the user explicitly accepts the risk. The guarded test constrains to a US relay by default, checks Lockdown behavior, and reconnects before returning.
 
+### Post-Capture Intelligence
+
+Use this only after a lawful local batch has been downloaded and verified. The intelligence module never downloads media, calls `yt-dlp`, operates Mullvad, rotates relays, or continues through source-side controls.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence init "<manifest.json>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence ingest-words "<manifest.json>" --input "<words.jsonl>" --video-id "<video-id>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence search "<manifest.json>" "agentic workflow"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips plan "<manifest.json>" --query "agentic workflow"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence vault build "<manifest.json>"
+```
+
+The stable contract is a timestamped word ledger. Heavy ASR backends such as NVIDIA NeMo + Parakeet should be optional external producers of that ledger, preferably isolated in WSL2, Docker, or a separate Python environment.
+
 ### Productized Archive SOP
 
 Use this sequence for real channel, playlist, or larger URL-set work:

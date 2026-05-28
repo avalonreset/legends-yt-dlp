@@ -26,3 +26,4 @@
 - Added MIT license, NOTICE, SECURITY.md, CITATION.cff, contribution/community templates, issue templates, and pull request template.
 - Added alpha packaging script and packaging/legal docs.
 - Added `onboard` first-run guidance command, walkthrough docs, and batch intake/rights evidence examples.
+- Added `slayer intelligence` MVP for post-download word-ledger import, exact phrase search, FFmpeg clip planning/rendering, and Obsidian transcript vault export.

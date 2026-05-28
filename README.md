@@ -28,6 +28,10 @@ Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful but easy to operat
 - Blocks real runs until production preflight passes.
 - Requires an explicit `--yes` flag for real downloads.
 - Verifies completed batches with archive, report, info JSON, media count, and ffprobe checks.
+- Imports timestamped word ledgers for verified local media.
+- Searches exact words and phrases across local transcripts.
+- Generates reviewable FFmpeg clip plans and optional montages.
+- Builds Obsidian-compatible transcript vault pages.
 
 ## Why It Exists
 
@@ -61,6 +65,7 @@ Working now:
 - batch `preflight`
 - guarded `run`
 - batch `verify`
+- post-capture `intelligence` workspace, word import, search, clip planning, rendering, and vault export
 - Codex skill suite under `skills/legends-yt-dlp-slayer`
 
 Still needs before a release tag:
@@ -129,6 +134,16 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json" --refresh
 ```
 
+Analyze verified local media after download:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence init "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence ingest-words "batches\...\manifest.json" --input ".\examples\intelligence-words.jsonl" --video-id "VIDEO_ID"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence search "batches\...\manifest.json" "agentic workflow"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips plan "batches\...\manifest.json" --query "agentic workflow"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence vault build "batches\...\manifest.json"
+```
+
 ## Safety Boundary
 
 Allowed:
@@ -169,6 +184,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - [First-Run Walkthrough](docs/WALKTHROUGH.md)
 - [Standard Operating Procedure](docs/SOP.md)
 - [Architecture](docs/ARCHITECTURE.md)
+- [Post-Capture Intelligence](docs/INTELLIGENCE.md)
 - [Safety and Use Policy](docs/SAFETY.md)
 - [Legal and Attribution Notes](docs/LEGAL.md)
 - [Alpha Packaging](docs/PACKAGING.md)

@@ -23,6 +23,17 @@ from .batch import (
 from .doctor import overall_ok, run_doctor
 from .envfile import read_env_file, redact
 from .inventory import create_batch_from_inventory
+from .intelligence import (
+    build_vault,
+    doctor_intelligence,
+    import_words as intelligence_import_words,
+    init_intelligence,
+    intelligence_status,
+    make_clip_plan,
+    render_clip_plan,
+    search_words,
+    write_search_results,
+)
 from .ledger import load_item_ledger, refresh_item_ledger, summarize_ledger
 from .mullvad import (
     disconnect_refusal_reason,
@@ -536,6 +547,134 @@ def cmd_ledger(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_intelligence_init(args: argparse.Namespace) -> int:
+    try:
+        target = init_intelligence(Path(args.manifest))
+    except (OSError, KeyError, json.JSONDecodeError) as exc:
+        print(f"Could not initialize intelligence workspace: {exc}", file=sys.stderr)
+        return 1
+    print(f"Intelligence workspace initialized: {target.parent}")
+    print(f"Manifest: {target}")
+    return 0
+
+
+def cmd_intelligence_doctor(args: argparse.Namespace) -> int:
+    checks = doctor_intelligence(Path(args.manifest))
+    for check in checks:
+        print_check(check.name, check.ok, check.detail)
+    return 0 if all(check.ok for check in checks) else 1
+
+
+def cmd_intelligence_status(args: argparse.Namespace) -> int:
+    status_payload = intelligence_status(Path(args.manifest))
+    if args.json:
+        print(json.dumps(status_payload, indent=2, ensure_ascii=False))
+        return 0
+    print(f"Intelligence root: {status_payload['root']}")
+    print(f"Word files: {status_payload['word_files']}")
+    print(f"Words: {status_payload['words']}")
+    print(f"Search result files: {status_payload['search_files']}")
+    print(f"Clip plans: {status_payload['clip_plans']}")
+    print(f"Vault exists: {status_payload['vault_exists']}")
+    return 0
+
+
+def cmd_intelligence_import_words(args: argparse.Namespace) -> int:
+    try:
+        target, count = intelligence_import_words(
+            Path(args.manifest),
+            Path(args.input),
+            video_id=args.video_id,
+            item_id=args.item_id,
+            media_path=args.media_path,
+            engine=args.engine,
+        )
+    except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
+        print(f"Could not import word ledger: {exc}", file=sys.stderr)
+        return 1
+    print(f"Imported words: {count}")
+    print(f"Word ledger: {target}")
+    return 0
+
+
+def cmd_intelligence_search(args: argparse.Namespace) -> int:
+    try:
+        matches = search_words(
+            Path(args.manifest),
+            args.query,
+            pad_start=args.pad_before,
+            pad_end=args.pad_after,
+            context_window=args.context,
+        )
+        results_path = write_search_results(Path(args.manifest), args.query, matches)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"Intelligence search failed: {exc}", file=sys.stderr)
+        return 1
+    payload = {"query": args.query, "matches": matches[: args.limit], "match_count": len(matches), "results": str(results_path)}
+    if args.json:
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        return 0
+    print(f"Query: {args.query}")
+    print(f"Matches: {len(matches)}")
+    print(f"Results: {results_path}")
+    for match in matches[: args.limit]:
+        print(
+            f"{match['video_id']} {match['start']:.3f}-{match['end']:.3f} "
+            f"(clip {match['clip_start']:.3f}-{match['clip_end']:.3f}) | {match['context']}"
+        )
+    if len(matches) > args.limit:
+        print(f"... {len(matches) - args.limit} more match(es)")
+    return 0
+
+
+def cmd_intelligence_clips_plan(args: argparse.Namespace) -> int:
+    try:
+        plan_path, plan = make_clip_plan(Path(args.manifest), args.query, pad_start=args.pad_before, pad_end=args.pad_after)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"Could not create clip plan: {exc}", file=sys.stderr)
+        return 1
+    if args.json:
+        print(json.dumps(plan, indent=2, ensure_ascii=False))
+        return 0
+    print(f"Clip plan: {plan_path}")
+    print(f"Clips: {plan['clip_count']}")
+    print(f"Montage output: {plan['montage_output']}")
+    return 0
+
+
+def cmd_intelligence_clips_render(args: argparse.Namespace) -> int:
+    if not args.yes:
+        print("Refusing to render media without --yes. Review the clip plan first.", file=sys.stderr)
+        return 2
+    try:
+        results, montage = render_clip_plan(Path(args.plan))
+    except (OSError, RuntimeError, json.JSONDecodeError) as exc:
+        print(f"Could not render clip plan: {exc}", file=sys.stderr)
+        return 1
+    for result in results:
+        if not result.ok:
+            if result.stderr:
+                print(result.stderr, file=sys.stderr)
+            print(f"FFmpeg failed with exit code {result.returncode}", file=sys.stderr)
+            return result.returncode or 1
+    print(f"Rendered clips: {max(0, len(results) - 1)}")
+    if montage:
+        print(f"Montage: {montage}")
+    return 0
+
+
+def cmd_intelligence_vault_build(args: argparse.Namespace) -> int:
+    try:
+        vault, pages = build_vault(Path(args.manifest))
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"Could not build transcript vault: {exc}", file=sys.stderr)
+        return 1
+    print(f"Vault: {vault}")
+    print(f"Transcript pages: {pages}")
+    print(f"Index: {vault / 'index.md'}")
+    return 0
+
+
 def cmd_run(args: argparse.Namespace) -> int:
     if not args.dry_run and (args.no_production or args.no_require_connected):
         print("Refusing real download without production VPN posture. Remove --no-production/--no-require-connected.", file=sys.stderr)
@@ -836,6 +975,64 @@ def build_parser() -> argparse.ArgumentParser:
     ledger.add_argument("--limit", type=int, default=20, help="Maximum item rows to print")
     ledger.add_argument("--json", action="store_true", help="Print machine-readable JSON")
     ledger.set_defaults(func=cmd_ledger)
+
+    intelligence = sub.add_parser("intelligence", help="Analyze already-downloaded local media with word ledgers and clip plans")
+    intelligence_sub = intelligence.add_subparsers(dest="intelligence_command", required=True)
+
+    intelligence_init = intelligence_sub.add_parser("init", help="Create the intelligence workspace for a batch")
+    intelligence_init.add_argument("manifest", help="Path to batch manifest.json")
+    intelligence_init.set_defaults(func=cmd_intelligence_init)
+
+    intelligence_doctor = intelligence_sub.add_parser("doctor", help="Check local intelligence prerequisites and workspace state")
+    intelligence_doctor.add_argument("manifest", help="Path to batch manifest.json")
+    intelligence_doctor.set_defaults(func=cmd_intelligence_doctor)
+
+    intelligence_status_parser = intelligence_sub.add_parser("status", help="Summarize intelligence artifacts for a batch")
+    intelligence_status_parser.add_argument("manifest", help="Path to batch manifest.json")
+    intelligence_status_parser.add_argument("--json", action="store_true", help="Print machine-readable JSON")
+    intelligence_status_parser.set_defaults(func=cmd_intelligence_status)
+
+    for command_name in ["ingest-words", "import-words"]:
+        import_words_parser = intelligence_sub.add_parser(command_name, help="Import a timestamped word JSONL/JSON file")
+        import_words_parser.add_argument("manifest", help="Path to batch manifest.json")
+        import_words_parser.add_argument("--input", required=True, help="JSONL file or JSON object/list containing timestamped words")
+        import_words_parser.add_argument("--video-id", help="Video id to attach to imported words")
+        import_words_parser.add_argument("--item-id", help="Item id to attach to imported words")
+        import_words_parser.add_argument("--media-path", help="Local media path to attach to imported words")
+        import_words_parser.add_argument("--engine", default="imported", help="Source engine label")
+        import_words_parser.set_defaults(func=cmd_intelligence_import_words)
+
+    intelligence_search = intelligence_sub.add_parser("search", help="Exact word/phrase search over imported word ledgers")
+    intelligence_search.add_argument("manifest", help="Path to batch manifest.json")
+    intelligence_search.add_argument("query", help="Exact word or phrase to find")
+    intelligence_search.add_argument("--pad-before", type=float, default=0.5, help="Clip padding before each match in seconds")
+    intelligence_search.add_argument("--pad-after", type=float, default=0.75, help="Clip padding after each match in seconds")
+    intelligence_search.add_argument("--context", type=int, default=8, help="Context words to show around each match")
+    intelligence_search.add_argument("--limit", type=int, default=20, help="Maximum rows to print")
+    intelligence_search.add_argument("--json", action="store_true", help="Print machine-readable JSON")
+    intelligence_search.set_defaults(func=cmd_intelligence_search)
+
+    intelligence_clips = intelligence_sub.add_parser("clips", help="Plan or render clips from word-ledger matches")
+    intelligence_clips_sub = intelligence_clips.add_subparsers(dest="clips_command", required=True)
+    clips_plan = intelligence_clips_sub.add_parser("plan", help="Create a reviewable FFmpeg clip plan")
+    clips_plan.add_argument("manifest", help="Path to batch manifest.json")
+    clips_plan.add_argument("--query", required=True, help="Exact word or phrase to clip")
+    clips_plan.add_argument("--pad-before", type=float, default=0.5, help="Clip padding before each match in seconds")
+    clips_plan.add_argument("--pad-after", type=float, default=0.75, help="Clip padding after each match in seconds")
+    clips_plan.add_argument("--json", action="store_true", help="Print machine-readable JSON")
+    clips_plan.set_defaults(func=cmd_intelligence_clips_plan)
+
+    clips_render = intelligence_clips_sub.add_parser("render", help="Render a reviewed clip plan with FFmpeg")
+    clips_render.add_argument("plan", help="Path to clip-plan.json")
+    clips_render.add_argument("--yes", action="store_true", help="Allow local media writes")
+    clips_render.set_defaults(func=cmd_intelligence_clips_render)
+
+    intelligence_vault = intelligence_sub.add_parser("vault", help="Build transcript vault pages from word ledgers")
+    intelligence_vault_sub = intelligence_vault.add_subparsers(dest="vault_command", required=True)
+    for command_name in ["build", "export"]:
+        vault_build = intelligence_vault_sub.add_parser(command_name, help="Build Obsidian-compatible transcript pages")
+        vault_build.add_argument("manifest", help="Path to batch manifest.json")
+        vault_build.set_defaults(func=cmd_intelligence_vault_build)
 
     preflight = sub.add_parser("preflight", help="Check a batch before running")
     preflight.add_argument("manifest", help="Path to batch manifest.json")

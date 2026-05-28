@@ -64,13 +64,13 @@ tags: [roadmap, meta]
 
 ## Phase 6 - Post-Capture Intelligence
 
-- Add an optional `slayer intelligence` module for already-downloaded lawful media.
+- Add an optional `slayer intelligence` module for already-downloaded lawful media. MVP command surface is now in place.
 - Extract local audio with FFmpeg into normalized WAV artifacts.
 - Use NVIDIA NeMo + Parakeet as the first ASR engine for word-level timestamped transcripts.
-- Store transcript output as a structured word ledger plus raw engine output.
-- Implement exact word/phrase search over normalized word tokens, returning video id, media path, start/end, confidence, and surrounding context.
-- Generate reviewable FFmpeg clip plans before rendering any montage.
+- Store transcript output as a structured word ledger plus raw engine output. MVP imports compatible word ledgers now.
+- Implement exact word/phrase search over normalized word tokens, returning video id, media path, start/end, confidence, and surrounding context. MVP complete.
+- Generate reviewable FFmpeg clip plans before rendering any montage. MVP complete.
 - Add optional pyannote.audio diarization to assign speaker segments to word spans.
 - Add optional NeMo Forced Aligner refinement for compatible CTC/hybrid CTC models.
-- Build Obsidian transcript vault pages per video and per search/montage.
+- Build Obsidian transcript vault pages per video and per search/montage. Per-video MVP complete.
 - Keep this module separate from download execution and preserve source-side stop conditions.

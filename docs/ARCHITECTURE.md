@@ -44,6 +44,13 @@ Verifier
   - checks archive entries, reports, media files, and info JSON sidecars
   - validates media files through ffprobe when available
 
+Post-Capture Intelligence
+  - analyzes already-downloaded verified local media
+  - imports timestamped ASR word ledgers
+  - exact-searches normalized word tokens
+  - writes FFmpeg clip plans and optional rendered montages
+  - exports Obsidian-compatible transcript pages
+
 Codex Skill Suite
   - guides Codex through setup, planning, preflight, dry-run, and guarded real runs
   - keeps safety/error policy in context
@@ -87,6 +94,16 @@ download archive, info JSON sidecars, and media files.
 
 SQLite can come later if multi-batch dashboards or richer query support justify it.
 
+Post-capture intelligence state is also file-based under each batch:
+
+- `intelligence/manifest.json`
+- `intelligence/words/*.words.jsonl`
+- `intelligence/searches/*.matches.jsonl`
+- `intelligence/clips/*/clip-plan.json`
+- `intelligence/vault/*.md`
+
+The core intelligence contract is the word ledger, not plain transcript text. ASR backends such as NVIDIA NeMo + Parakeet can be optional producers of that ledger without becoming core package dependencies.
+
 ## Skill Packaging
 
 The Codex-first package lives under `skills/legends-yt-dlp-slayer/`.
@@ -99,3 +116,5 @@ Alpha packages are generated from source files with `scripts/package-alpha.ps1`.
 Packages intentionally exclude `.env`, `.local`, `batches`, `reports`, media,
 cookies, caches, secrets, and git metadata. Operators install `yt-dlp.exe`
 locally with `slayer yt-dlp install` after unpacking.
+
+Heavy ASR runtimes such as PyTorch, NeMo, Parakeet models, WhisperX, or pyannote are not bundled in the alpha package. They should be installed by the operator in an isolated WSL2, Docker, or separate Python environment.

@@ -11,7 +11,7 @@ tags: [hot-cache, meta]
 
 ## Last Updated
 
-2026-05-28. Item-ledger/inventory planning, clean-clone install, resume behavior, legal/community files, packaging, GitHub metadata, first-run onboarding, and the post-capture intelligence research track are now hardened enough for alpha planning.
+2026-05-28. Item-ledger/inventory planning, clean-clone install, resume behavior, legal/community files, packaging, GitHub metadata, first-run onboarding, and the first post-capture intelligence MVP are now hardened enough for alpha planning.
 
 ## Key Recent Facts
 
@@ -36,7 +36,8 @@ tags: [hot-cache, meta]
 - Live GitHub metadata updated: stronger description, discussions enabled, topics expanded for `yt-dlp`, Mullvad VPN, digital preservation, privacy tools, and operator tooling.
 - New post-capture intelligence research recommends a Parakeet-first local transcription module: NeMo/Parakeet for ASR word timestamps, optional NeMo Forced Aligner for CTM/ASS refinement, optional pyannote for speaker segments, and FFmpeg clip plans/rendering.
 - The intelligence module should store a structured word ledger, not plain transcript text, so exact word/phrase search can return FFmpeg-ready clip spans.
-- Unit gate: 41 tests pass; compileall passes; package inspection passes; vault health/secret scan are part of the final gate.
+- `slayer intelligence` now has an MVP command surface for workspace init, doctor/status, timestamped word import, exact word/phrase search, clip-plan generation, optional FFmpeg rendering, and Obsidian transcript vault export.
+- Unit gate: 46 tests pass; compileall passes; package inspection passes; vault health/secret scan are part of the final gate.
 
 ## Recent Changes
 
@@ -46,6 +47,6 @@ tags: [hot-cache, meta]
 ## Active Threads
 
 - Next release gate is deciding whether to tag/publish `v0.1.0-alpha` with the generated zip after user review.
-- New product track for the next development slice: `slayer intelligence` as a post-download module for audio extraction, local Parakeet transcription, word-ledger search, clip-plan generation, optional diarization/alignment, and Obsidian vault export.
+- New product track for the next development slice: connect a Parakeet/NeMo producer to the existing `slayer intelligence` word-ledger contract without adding heavy ASR dependencies to the core package.
 - Existing older manifests may fail production preflight until regenerated because they lack the newer anonymous-auth and limit policy flags.
 - Next GitHub step is optional: create a first alpha tag after reviewing the pushed hardening commit.
