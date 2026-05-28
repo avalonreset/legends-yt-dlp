@@ -11,3 +11,6 @@
 - Added the Codex skill suite under `skills/legends-yt-dlp-slayer`.
 - Added multi-URL / URL-file batch planning and batch catalog listing.
 - Added safe VPN recovery for disconnected Mullvad/tunnel/network failures.
+- Added production Lockdown/auth-cookie hardening.
+- Added JavaScript runtime detection/configuration for YouTube dry-runs.
+- Fixed yt-dlp config quoting for output templates and paths with spaces.

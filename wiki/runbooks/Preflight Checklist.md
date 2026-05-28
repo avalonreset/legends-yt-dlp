@@ -15,6 +15,7 @@ Before any batch runs:
 - Output folder is selected.
 - yt-dlp is available.
 - ffmpeg is available if needed.
+- A JavaScript runtime is available for YouTube extraction.
 - Mullvad CLI is available.
 - Mullvad reports connected.
 - Lockdown mode is on.

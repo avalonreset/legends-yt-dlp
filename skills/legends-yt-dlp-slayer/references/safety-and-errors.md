@@ -11,6 +11,7 @@ Before any real run:
 - `doctor --production` passes.
 - Batch has a rights basis.
 - Batch preflight passes.
+- A JavaScript runtime is available for YouTube extraction.
 - Generated `yt-dlp` config uses anonymous mode: `--ignore-config`, `--no-cookies`, and `--no-cookies-from-browser`.
 - No browser cookies, cookie files, username/password auth, `.netrc`, or account credentials are used for production batches.
 - User explicitly approves a real run.

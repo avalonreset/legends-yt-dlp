@@ -11,7 +11,7 @@ tags: [hot-cache, meta]
 
 ## Last Updated
 
-2026-05-27. Production safety hardening now treats Mullvad Lockdown and anonymous yt-dlp operation as first-class release requirements.
+2026-05-27. Production safety hardening now treats Mullvad Lockdown, anonymous yt-dlp operation, and a JavaScript runtime for YouTube extraction as first-class release requirements.
 
 ## Key Recent Facts
 
@@ -31,6 +31,7 @@ tags: [hot-cache, meta]
 - Production preflight now requires Mullvad connected, Lockdown on, split tunneling off, LAN sharing blocked, and auto-connect on.
 - Generated yt-dlp configs now force anonymous operation with `--ignore-config`, `--no-cookies`, and `--no-cookies-from-browser`.
 - Production preflight rejects browser cookies, cookie files, username/password auth, `.netrc`, and other account-auth options.
+- Fresh dry-run smoke testing passed through Mullvad with no yt-dlp ERROR/WARNING lines after fixing config quoting and enabling Node as the JavaScript runtime.
 
 ## Recent Changes
 
@@ -45,6 +46,6 @@ tags: [hot-cache, meta]
 
 ## Active Threads
 
-- Next blocker is a lawful user-provided test URL for a dry-run or real smoke test using a newly planned production batch.
+- Next blocker is a lawful user-provided test URL for a real smoke download using a newly planned production batch.
 - Existing older manifests may fail production preflight until regenerated because they lack the new anonymous-auth policy flags.
 - Next GitHub step is optional: create a first alpha tag only after a connected Mullvad smoke test passes.

@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 from .doctor import Check, overall_ok, run_doctor
 from .paths import PROJECT_ROOT
 from .process import CommandResult, run_command
-from .tools import find_ytdlp
+from .tools import find_js_runtime, find_ytdlp
 
 
 BATCHES_DIR = PROJECT_ROOT / "batches"
@@ -180,20 +180,23 @@ def write_ytdlp_config(config: Path, urls: Path, archive: Path, output: Path, te
     def ytdlp_path(path: Path) -> str:
         return path.resolve().as_posix()
 
+    def quote_config_value(value: str) -> str:
+        return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
     lines = [
         "--ignore-config",
         "--no-cookies",
         "--no-cookies-from-browser",
         "--batch-file",
-        ytdlp_path(urls),
+        quote_config_value(ytdlp_path(urls)),
         "--download-archive",
-        ytdlp_path(archive),
+        quote_config_value(ytdlp_path(archive)),
         "--paths",
-        f"home:{ytdlp_path(output)}",
+        quote_config_value(f"home:{ytdlp_path(output)}"),
         "--paths",
-        f"temp:{ytdlp_path(temp)}",
+        quote_config_value(f"temp:{ytdlp_path(temp)}"),
         "--output",
-        "%(uploader|Unknown)s/%(upload_date>%Y-%m-%d|NA)s - %(title).180B [%(id)s].%(ext)s",
+        quote_config_value("%(uploader|Unknown)s/%(upload_date>%Y-%m-%d|NA)s - %(title).180B [%(id)s].%(ext)s"),
         "--windows-filenames",
         "--continue",
         "--no-overwrites",
@@ -216,6 +219,10 @@ def write_ytdlp_config(config: Path, urls: Path, archive: Path, output: Path, te
         "--write-info-json",
         "--newline",
     ]
+    js_runtime = find_js_runtime()
+    if js_runtime.path:
+        runtime_value = f"{js_runtime.detail}:{js_runtime.path.resolve().as_posix()}"
+        lines[3:3] = ["--js-runtimes", quote_config_value(runtime_value)]
     config.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -333,7 +340,7 @@ def only_mullvad_connection_failed(checks: list[Check]) -> bool:
 
 
 def classify_run_failure(result: CommandResult) -> str:
-    output = f"{result.stdout}\n{result.stderr}".lower()
+    output = (result.stderr or result.stdout).lower()
     if any(pattern in output for pattern in SOURCE_BLOCK_PATTERNS):
         return "source-block"
     if any(pattern in output for pattern in TRANSIENT_NETWORK_PATTERNS):

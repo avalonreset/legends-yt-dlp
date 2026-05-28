@@ -28,6 +28,7 @@ class BatchTests(unittest.TestCase):
             self.assertIn("--ignore-config", text)
             self.assertIn("--no-cookies", text)
             self.assertIn("--no-cookies-from-browser", text)
+            self.assertIn('"%(uploader|Unknown)s/%(upload_date>%Y-%m-%d|NA)s - %(title).180B [%(id)s].%(ext)s"', text)
             self.assertNotIn("\\", text)
 
     def test_auth_policy_rejects_browser_cookies(self) -> None:
@@ -66,6 +67,10 @@ class BatchTests(unittest.TestCase):
     def test_classify_source_block(self) -> None:
         result = CommandResult(("yt-dlp",), 1, "", "HTTP Error 429: Too Many Requests")
         self.assertEqual(classify_run_failure(result), "source-block")
+
+    def test_classify_ignores_login_text_in_successful_metadata_stdout_when_stderr_has_real_error(self) -> None:
+        result = CommandResult(("yt-dlp",), 1, '{"requires_login": false}', "ERROR: [generic] '-' is not a valid URL")
+        self.assertEqual(classify_run_failure(result), "unknown")
 
     def test_classify_transient_network(self) -> None:
         result = CommandResult(("yt-dlp",), 1, "", "Connection reset by peer")

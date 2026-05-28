@@ -16,7 +16,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --production
 
 Checks Mullvad, `yt-dlp`, `ffmpeg`, local account configuration, and connected state.
 
-`doctor --production` additionally requires Mullvad Lockdown on, split tunneling off, LAN sharing blocked, and auto-connect on.
+`doctor --production` additionally requires a JavaScript runtime for YouTube extraction, Mullvad Lockdown on, split tunneling off, LAN sharing blocked, and auto-connect on.
 
 ## Mullvad
 
@@ -95,7 +95,7 @@ Generated batch folders are ignored by git.
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\...\manifest.json"
 ```
 
-Default preflight requires production posture and anonymous `yt-dlp` auth policy: Mullvad connected, Lockdown on, split tunneling off, LAN sharing blocked, auto-connect on, no browser cookies, no cookie files, no account auth, and ignored user-level `yt-dlp` config.
+Default preflight requires production posture and anonymous `yt-dlp` auth policy: Mullvad connected, a JavaScript runtime available, Lockdown on, split tunneling off, LAN sharing blocked, auto-connect on, no browser cookies, no cookie files, no account auth, and ignored user-level `yt-dlp` config.
 
 For local harness testing only:
 

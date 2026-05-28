@@ -11,6 +11,7 @@ Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful but easy to operat
 - Downloads the official Windows `yt-dlp.exe` release from `yt-dlp/yt-dlp`.
 - Verifies the downloaded binary against upstream `SHA2-256SUMS`.
 - Detects `ffmpeg`.
+- Detects a JavaScript runtime for modern YouTube extraction.
 - Creates rights-aware batch manifests.
 - Generates stable anonymous-mode `yt-dlp` config files with download archives and conservative retry/sleep settings.
 - Blocks real runs until production preflight passes.
@@ -34,6 +35,7 @@ Working now:
 - Mullvad safe recovery for tunnel/network failures
 - production posture checks for Mullvad Lockdown, split tunneling, LAN sharing, and auto-connect
 - anonymous yt-dlp auth/cookie policy checks
+- JavaScript runtime detection/configuration for YouTube extraction
 - official `yt-dlp.exe` install and version check
 - batch `plan`
 - multi-URL and URL-file batch planning

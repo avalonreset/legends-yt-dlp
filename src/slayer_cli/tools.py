@@ -83,6 +83,15 @@ def find_ffmpeg() -> ToolInfo:
     return ToolInfo("ffmpeg", path, version, True, "ffmpeg found")
 
 
+def find_js_runtime() -> ToolInfo:
+    for runtime, env_var in [("deno", "DENO_CLI"), ("node", "NODE_CLI")]:
+        path = find_executable(runtime, env_var=env_var)
+        if path:
+            version = version_for(path, "--version")
+            return ToolInfo("yt-dlp JS runtime", path, version, True, runtime)
+    return ToolInfo("yt-dlp JS runtime", None, None, False, "deno or node not found")
+
+
 def download_file(url: str, target: Path) -> None:
     target.parent.mkdir(parents=True, exist_ok=True)
     tmp = target.with_suffix(target.suffix + ".tmp")
@@ -126,4 +135,3 @@ def install_ytdlp() -> tuple[Path, str, str | None]:
 
 def run_tool(path: Path, *args: str, timeout: int = 60) -> CommandResult:
     return run_command([path, *args], timeout=timeout)
-

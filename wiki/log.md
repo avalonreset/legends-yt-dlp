@@ -8,6 +8,13 @@ tags: [log, meta]
 
 # Log
 
+## 2026-05-27 - Dry-Run Smoke Test Hardened
+
+- Found and fixed a generated yt-dlp config quoting bug that caused output-template fragments to be parsed as URLs.
+- Added JavaScript runtime detection to production doctor.
+- Added `--js-runtimes` to generated yt-dlp configs when Node or Deno is available.
+- Reran a production dry-run smoke test through Mullvad; it exited 0 with no ERROR/WARNING lines and no media download.
+
 ## 2026-05-27 - Production Lockdown and Cookie Policy Hardened
 
 - Added production posture checks for Mullvad Lockdown, split tunneling, LAN sharing, and auto-connect.

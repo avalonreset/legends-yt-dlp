@@ -11,7 +11,7 @@ from .mullvad import (
     status as mullvad_status,
 )
 from .paths import PROJECT_ROOT
-from .tools import ToolInfo, find_ffmpeg, find_mullvad, find_ytdlp
+from .tools import ToolInfo, find_ffmpeg, find_js_runtime, find_mullvad, find_ytdlp
 
 
 @dataclass(frozen=True)
@@ -52,6 +52,7 @@ def run_doctor(*, production: bool = False) -> list[Check]:
         checks.append(Check("mullvad connected", False, mullvad.error or "status unavailable"))
 
     if production:
+        checks.append(tool_check(find_js_runtime()))
         for name, state in [
             ("mullvad lockdown", lockdown_setting()),
             ("mullvad split tunnel off", split_tunnel_setting()),

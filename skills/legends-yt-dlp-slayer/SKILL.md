@@ -26,7 +26,7 @@ Allowed: lawful archiving with a documented rights basis, Mullvad privacy checks
 
 Disallowed: bypassing DRM, paywalls, login challenges, captchas, access controls, account controls, throttling, bans, or IP blocks. Do not automatically rotate Mullvad relays/IPs to keep downloading through source-side blocks.
 
-Production mode is mandatory for real downloads. It requires Mullvad connected, Lockdown mode on, split tunneling off, LAN sharing blocked, auto-connect on, and anonymous `yt-dlp` operation with no browser cookies, cookie files, username/password auth, `.netrc`, or inherited user config.
+Production mode is mandatory for real downloads. It requires Mullvad connected, a JavaScript runtime for YouTube extraction, Lockdown mode on, split tunneling off, LAN sharing blocked, auto-connect on, and anonymous `yt-dlp` operation with no browser cookies, cookie files, username/password auth, `.netrc`, or inherited user config.
 
 If the user asks for automatic IP switching on download errors, implement only this safe policy:
 
