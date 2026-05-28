@@ -14,3 +14,5 @@
 - Added production Lockdown/auth-cookie hardening.
 - Added JavaScript runtime detection/configuration for YouTube dry-runs.
 - Fixed yt-dlp config quoting for output templates and paths with spaces.
+- Added bounded smoke-job limits and compact run reports.
+- Added guarded Mullvad disconnect testing with automatic recovery and an emergency unlock fallback.

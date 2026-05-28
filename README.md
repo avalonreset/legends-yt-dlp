@@ -13,6 +13,7 @@ Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful but easy to operat
 - Detects `ffmpeg`.
 - Detects a JavaScript runtime for modern YouTube extraction.
 - Creates rights-aware batch manifests.
+- Supports bounded smoke jobs with max downloads, height, and filesize limits.
 - Generates stable anonymous-mode `yt-dlp` config files with download archives and conservative retry/sleep settings.
 - Blocks real runs until production preflight passes.
 - Requires an explicit `--yes` flag for real downloads.
@@ -33,9 +34,11 @@ Working now:
 - Mullvad status/login/connect/lockdown wrappers
 - Mullvad inspect and settings wrappers
 - Mullvad safe recovery for tunnel/network failures
+- guarded Mullvad disconnect testing that reconnects before returning
 - production posture checks for Mullvad Lockdown, split tunneling, LAN sharing, and auto-connect
 - anonymous yt-dlp auth/cookie policy checks
 - JavaScript runtime detection/configuration for YouTube extraction
+- bounded batch limits for smoke tests and controlled archive jobs
 - official `yt-dlp.exe` install and version check
 - batch `plan`
 - multi-URL and URL-file batch planning
@@ -66,6 +69,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad login
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lockdown on
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad connect
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad recover
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect-test --emergency-unlock
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --require-connected
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --production
 ```

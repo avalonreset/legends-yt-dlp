@@ -14,6 +14,7 @@ from .tools import find_js_runtime, find_ytdlp
 
 
 BATCHES_DIR = PROJECT_ROOT / "batches"
+REPORTS_DIR = PROJECT_ROOT / "reports"
 
 SOURCE_BLOCK_PATTERNS = (
     "captcha",
@@ -126,6 +127,9 @@ def create_batch_from_urls(
     rights_basis: str,
     name: str | None = None,
     output_dir: str | None = None,
+    max_height: int | None = None,
+    max_downloads: int | None = None,
+    max_filesize: str | None = None,
 ) -> BatchPaths:
     if not urls:
         raise ValueError("At least one URL is required")
@@ -134,6 +138,10 @@ def create_batch_from_urls(
         raise ValueError(f"Invalid URL: {invalid[0]}")
     if not rights_basis.strip():
         raise ValueError("A rights basis is required")
+    if max_height is not None and max_height <= 0:
+        raise ValueError("--max-height must be greater than 0")
+    if max_downloads is not None and max_downloads <= 0:
+        raise ValueError("--max-downloads must be greater than 0")
 
     parsed = urlparse(urls[0])
     batch_name = name or parsed.netloc
@@ -159,6 +167,11 @@ def create_batch_from_urls(
             "output": str(output_path),
             "temp": str(paths.temp),
         },
+        "limits": {
+            "max_height": max_height,
+            "max_downloads": max_downloads,
+            "max_filesize": max_filesize,
+        },
         "policy": {
             "requires_mullvad_connected": True,
             "requires_mullvad_lockdown": True,
@@ -171,12 +184,31 @@ def create_batch_from_urls(
         },
     }
     paths.urls.write_text("\n".join(urls) + "\n", encoding="utf-8")
-    write_ytdlp_config(paths.config, paths.urls, paths.archive, output_path, paths.temp)
+    write_ytdlp_config(
+        paths.config,
+        paths.urls,
+        paths.archive,
+        output_path,
+        paths.temp,
+        max_height=max_height,
+        max_downloads=max_downloads,
+        max_filesize=max_filesize,
+    )
     paths.manifest.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     return paths
 
 
-def write_ytdlp_config(config: Path, urls: Path, archive: Path, output: Path, temp: Path) -> None:
+def write_ytdlp_config(
+    config: Path,
+    urls: Path,
+    archive: Path,
+    output: Path,
+    temp: Path,
+    *,
+    max_height: int | None = None,
+    max_downloads: int | None = None,
+    max_filesize: str | None = None,
+) -> None:
     def ytdlp_path(path: Path) -> str:
         return path.resolve().as_posix()
 
@@ -223,7 +255,22 @@ def write_ytdlp_config(config: Path, urls: Path, archive: Path, output: Path, te
     if js_runtime.path:
         runtime_value = f"{js_runtime.detail}:{js_runtime.path.resolve().as_posix()}"
         lines[3:3] = ["--js-runtimes", quote_config_value(runtime_value)]
+    if max_height:
+        format_selector = f"bestvideo[height<={max_height}]+bestaudio/best[height<={max_height}]/best"
+        lines.extend(["--format", quote_config_value(format_selector), "--merge-output-format", "mp4"])
+    if max_downloads:
+        lines.extend(["--max-downloads", str(max_downloads)])
+    if max_filesize:
+        lines.extend(["--max-filesize", quote_config_value(max_filesize)])
     config.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def js_runtime_args() -> list[str]:
+    js_runtime = find_js_runtime()
+    if not js_runtime.path:
+        return []
+    runtime_value = f"{js_runtime.detail}:{js_runtime.path.resolve().as_posix()}"
+    return ["--js-runtimes", runtime_value]
 
 
 def read_config_options(config: Path) -> list[str]:
@@ -256,6 +303,10 @@ def auth_policy_check(config: Path) -> Check:
 
 def load_manifest(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def save_manifest(path: Path, manifest: dict) -> None:
+    path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
 def find_batch_manifests() -> list[Path]:
@@ -340,12 +391,72 @@ def only_mullvad_connection_failed(checks: list[Check]) -> bool:
 
 
 def classify_run_failure(result: CommandResult) -> str:
-    output = (result.stderr or result.stdout).lower()
+    if result.returncode == 101:
+        return "limit-reached"
+    output = result.stderr.lower()
+    if not output:
+        output = "\n".join(
+            line for line in result.stdout.lower().splitlines() if line.startswith(("error:", "warning:"))
+        )
     if any(pattern in output for pattern in SOURCE_BLOCK_PATTERNS):
         return "source-block"
     if any(pattern in output for pattern in TRANSIENT_NETWORK_PATTERNS):
         return "transient-network"
     return "unknown"
+
+
+def run_status(*, dry_run: bool, returncode: int, category: str) -> str:
+    if returncode == 0:
+        return "dry_run_passed" if dry_run else "completed"
+    if category == "limit-reached":
+        return "limit_reached"
+    if category == "source-block":
+        return "paused_source_block"
+    if category == "transient-network":
+        return "paused_network_failure"
+    return "failed"
+
+
+def write_run_report(
+    manifest_path: Path,
+    *,
+    dry_run: bool,
+    result: CommandResult,
+    category: str,
+    started: str,
+    ended: str,
+) -> Path:
+    manifest = load_manifest(manifest_path)
+    status = run_status(dry_run=dry_run, returncode=result.returncode, category=category)
+    report_dir = REPORTS_DIR / manifest_path.parent.name
+    report_dir.mkdir(parents=True, exist_ok=True)
+    report_path = report_dir / f"{datetime.now().strftime('%Y%m%d-%H%M%S')}-run-report.json"
+    stderr_lines = [line for line in result.stderr.splitlines() if line.strip()]
+    report = {
+        "schema_version": 1,
+        "batch": manifest.get("name", manifest_path.parent.name),
+        "manifest": str(manifest_path),
+        "dry_run": dry_run,
+        "started": started,
+        "ended": ended,
+        "returncode": result.returncode,
+        "classification": category,
+        "status": status,
+        "stdout_bytes": len(result.stdout.encode("utf-8", errors="replace")),
+        "stderr_bytes": len(result.stderr.encode("utf-8", errors="replace")),
+        "stderr_tail": stderr_lines[-20:],
+    }
+    report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    manifest["status"] = status
+    manifest["last_run"] = {
+        "dry_run": dry_run,
+        "ended": ended,
+        "returncode": result.returncode,
+        "classification": category,
+        "report": str(report_path),
+    }
+    save_manifest(manifest_path, manifest)
+    return report_path
 
 
 def run_batch(path: Path, *, dry_run: bool = True) -> CommandResult:
@@ -354,7 +465,7 @@ def run_batch(path: Path, *, dry_run: bool = True) -> CommandResult:
     tool = find_ytdlp()
     if not tool.path:
         return CommandResult(("yt-dlp",), 127, "", "yt-dlp not found")
-    args = [tool.path, "--ignore-config", "--config-location", config]
+    args = [tool.path, "--ignore-config", *js_runtime_args(), "--config-location", config]
     if dry_run:
         args.extend(["--simulate", "--dump-json"])
     return run_command(args, timeout=24 * 60 * 60)

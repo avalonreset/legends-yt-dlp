@@ -2,7 +2,7 @@
 type: runbook
 status: active
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-05-28
 tags: [runbook, mullvad, vpn]
 ---
 
@@ -31,6 +31,8 @@ C:\Program Files\Mullvad VPN\resources\mullvad.exe
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad recover
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect-test --emergency-unlock
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad account get
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad account devices
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad version
@@ -62,7 +64,18 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad raw --timeou
 
 The wrapper redacts the Mullvad account number in command output.
 
+## Disconnect Safety
+
+Raw disconnect can strand the operator when Lockdown is on. The wrapped `mullvad disconnect` command refuses in that state unless `--force` is explicit.
+
+Use this for controlled fail-closed testing:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect-test --emergency-unlock
+```
+
+The guarded test sets a US relay constraint by default, enables Lockdown, verifies the blocked disconnected state, and reconnects before returning. `--emergency-unlock` disables Lockdown only if recovery fails, restoring operator connectivity at the cost of native-IP exposure.
+
 ## Boundary
 
 Relay/location controls are manual operator controls. They must not be automated as a response to YouTube throttling, captchas, account controls, or block signals.
-

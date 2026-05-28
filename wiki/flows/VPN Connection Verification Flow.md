@@ -2,7 +2,7 @@
 type: flow
 status: draft
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-05-28
 tags: [flow, vpn, mullvad]
 ---
 
@@ -27,4 +27,4 @@ flowchart TD
 - Exact commands must be verified on the target Windows machine.
 - Do not parse localized text if a structured output mode exists.
 - Ambiguous output is a failed preflight.
-
+- Do not run raw disconnect tests during operator work. Use `mullvad disconnect-test --emergency-unlock` so disconnect, Lockdown verification, and recovery happen inside one local command.

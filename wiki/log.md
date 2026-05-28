@@ -8,6 +8,22 @@ tags: [log, meta]
 
 # Log
 
+## 2026-05-28 - Guarded Disconnect Testing Added
+
+- Added `mullvad disconnect-test` as the approved fail-closed test path.
+- Made `mullvad disconnect` refuse by default when Lockdown is on unless `--force` is explicit.
+- Defaulted guarded disconnect tests to a US relay constraint and added `--emergency-unlock` as a recovery-failure fallback.
+- Live evidence: `mullvad disconnect-test --emergency-unlock --attempts 3 --wait-seconds 5 --settle-seconds 4` confirmed Lockdown blocked internet access after disconnect and recovered Mullvad on the first attempt before returning.
+- Hardened recovery state detection so disconnected and disconnecting states use `connect` instead of `reconnect`.
+
+## 2026-05-28 - Bounded NASA Smoke Download Passed
+
+- Planned an authorized bounded NASA smoke batch for `https://www.youtube.com/watch?v=4HSFKwho7MQ` with `--max-downloads 1 --max-height 360 --max-filesize 30M`.
+- Dry-run reached the configured download limit and wrote a compact run report.
+- Real run downloaded one MP4 and one info JSON, wrote `youtube 4HSFKwho7MQ` to the archive, and wrote a compact run report.
+- Rerunning the same manifest was idempotent: file count stayed unchanged and yt-dlp skipped the archived video.
+- Deliberate disconnect testing confirmed production doctor, preflight, and run fail closed while Lockdown blocks internet access.
+
 ## 2026-05-27 - Dry-Run Smoke Test Hardened
 
 - Found and fixed a generated yt-dlp config quoting bug that caused output-template fragments to be parsed as URLs.

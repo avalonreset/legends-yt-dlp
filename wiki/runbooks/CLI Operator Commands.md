@@ -2,7 +2,7 @@
 type: runbook
 status: active
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-05-28
 tags: [runbook, cli, operator]
 ---
 
@@ -28,12 +28,16 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad status --ver
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad login
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lockdown on
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad connect
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad recover
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect-test --emergency-unlock
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
 ```
 
 The `login` command reads `MULLVAD_ACCOUNT_NUMBER` from `.env` and redacts it in output.
 
 First-class Mullvad wrappers now cover account/device reads, version, auto-connect, LAN sharing, relay constraints and updates, DNS defaults/custom servers, tunnel options, split tunneling, anti-censorship mode, and API access inspection. `mullvad raw` remains available for installed CLI features not yet wrapped.
+
+`mullvad disconnect` refuses by default when Lockdown is on. Use `mullvad disconnect-test --emergency-unlock` for fail-closed testing; it constrains Mullvad to a US relay by default, verifies the blocked state, and reconnects before returning. The emergency unlock path disables Lockdown only if recovery fails, which is an operator-rescue fallback rather than production posture.
 
 ## Batch Planning
 

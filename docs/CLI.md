@@ -26,10 +26,13 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad login
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lockdown on
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad connect
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad recover
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect-test --emergency-unlock
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
 ```
 
 `mullvad login` reads `MULLVAD_ACCOUNT_NUMBER` from `.env` and redacts it in output.
+
+`mullvad disconnect` refuses by default when Lockdown is on, because that can strand the operator without internet access. Use `mullvad disconnect-test` for fail-closed testing; it constrains the relay to `us` by default, disconnects, verifies Lockdown behavior, and reconnects before returning. `--emergency-unlock` disables Lockdown only if recovery fails.
 
 The CLI exposes first-class wrappers for the useful Mullvad command surface:
 
@@ -76,6 +79,7 @@ The install command downloads the official Windows standalone executable and ver
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --name "channel-name"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://example.com/a" "https://example.com/b" --rights "owned or authorized" --name "multi-url"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --name "url-file"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.youtube.com/watch?v=..." --rights "owned or authorized" --name "smoke" --max-downloads 1 --max-height 360 --max-filesize 50M
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
 ```
 
@@ -86,6 +90,7 @@ The plan command creates:
 - `yt-dlp.conf`
 - download archive path
 - output and temp folders
+- optional limits for smoke jobs and bounded runs
 
 Generated batch folders are ignored by git.
 

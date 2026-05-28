@@ -48,6 +48,14 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
 
 Read `references/commands.md` for the full command surface.
 
+For VPN fail-closed testing, use only the guarded command:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect-test --emergency-unlock
+```
+
+Do not use raw `disconnect` during operator work unless the user explicitly accepts the risk. The guarded test constrains to a US relay by default, checks Lockdown behavior, and reconnects before returning.
+
 ### Plan A Batch
 
 For one or more explicit URLs:
@@ -60,6 +68,12 @@ For many URLs, create a text file with one URL per line and run:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --rights "<owned or authorized reason>" --name "<batch-name>"
+```
+
+For smoke tests or bounded jobs, add limits:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL>" --rights "<owned or authorized reason>" --name "<batch-name>" --max-downloads 1 --max-height 360 --max-filesize 50M
 ```
 
 Read `references/batch-catalog.md` before planning large archives.

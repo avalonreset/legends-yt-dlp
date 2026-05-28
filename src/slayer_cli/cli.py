@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import sys
+import time
+from datetime import datetime
 from pathlib import Path
 
 from .batch import (
@@ -13,10 +15,20 @@ from .batch import (
     preflight_ok,
     read_url_file,
     run_batch,
+    write_run_report,
 )
 from .doctor import overall_ok, run_doctor
 from .envfile import read_env_file, redact
-from .mullvad import connect, login, recover_connection, redact_account_in_text, run_mullvad, set_lockdown, status
+from .mullvad import (
+    disconnect_refusal_reason,
+    lockdown_setting,
+    login,
+    recover_connection,
+    redact_account_in_text,
+    run_mullvad,
+    set_lockdown,
+    status,
+)
 from .paths import PROJECT_ROOT
 from .tools import find_ytdlp, install_ytdlp, run_tool
 
@@ -75,7 +87,18 @@ def cmd_mullvad_connect(_: argparse.Namespace) -> int:
     return print_mullvad_result(["connect"], timeout=120)
 
 
-def cmd_mullvad_disconnect(_: argparse.Namespace) -> int:
+def print_recovery_messages(messages: tuple[str, ...]) -> None:
+    account = env_account()
+    for message in messages:
+        print(redact_account_in_text(message, account))
+
+
+def cmd_mullvad_disconnect(args: argparse.Namespace) -> int:
+    refusal = disconnect_refusal_reason(lockdown_setting(), force=args.force)
+    if refusal:
+        print(refusal, file=sys.stderr)
+        print("For fail-closed testing, use: slayer mullvad disconnect-test --emergency-unlock", file=sys.stderr)
+        return 2
     return print_mullvad_result(["disconnect"], timeout=120)
 
 
@@ -85,10 +108,66 @@ def cmd_mullvad_reconnect(_: argparse.Namespace) -> int:
 
 def cmd_mullvad_recover(args: argparse.Namespace) -> int:
     result = recover_connection(attempts=args.attempts, wait_seconds=args.wait_seconds)
-    account = env_account()
-    for message in result.messages:
-        print(redact_account_in_text(message, account))
+    print_recovery_messages(result.messages)
     return 0 if result.ok else 1
+
+
+def cmd_mullvad_disconnect_test(args: argparse.Namespace) -> int:
+    if args.relay_location:
+        result = run_mullvad("relay", "set", "location", *args.relay_location, timeout=120)
+        output = redacted_result_output(result.stdout, result.stderr)
+        if output:
+            print(output)
+        if result.returncode != 0:
+            return result.returncode
+
+    lockdown = set_lockdown(True)
+    output = redacted_result_output(lockdown.stdout, lockdown.stderr)
+    if output:
+        print(output)
+
+    recovery = recover_connection(attempts=args.attempts, wait_seconds=args.wait_seconds)
+    print_recovery_messages(recovery.messages)
+    if not recovery.ok:
+        if args.emergency_unlock:
+            print("Emergency unlock: disabling Lockdown because initial VPN recovery failed.", file=sys.stderr)
+            unlock = set_lockdown(False)
+            output = redacted_result_output(unlock.stdout, unlock.stderr)
+            if output:
+                print(output)
+        return 1
+
+    test_ok = False
+    try:
+        disconnected = run_mullvad("disconnect", timeout=120)
+        output = redacted_result_output(disconnected.stdout, disconnected.stderr)
+        if output:
+            print(output)
+        time.sleep(args.settle_seconds)
+        after_disconnect = status(verbose=True)
+        print(redact_account_in_text(after_disconnect.raw or after_disconnect.error or "", env_account()))
+        raw = (after_disconnect.raw or "").lower()
+        test_ok = disconnected.ok and after_disconnect.available and not after_disconnect.connected and ("lockdown" in raw or "blocked" in raw)
+        if test_ok:
+            print("Disconnect test confirmed: Mullvad disconnected and Lockdown blocked internet access.")
+        else:
+            print("Disconnect test did not confirm the expected fail-closed state.", file=sys.stderr)
+    finally:
+        recovery = recover_connection(attempts=args.attempts, wait_seconds=args.wait_seconds)
+        print_recovery_messages(recovery.messages)
+        final = status(verbose=True)
+        if final.connected:
+            print("Recovery verified: Mullvad is connected.")
+        elif args.emergency_unlock:
+            print("Emergency unlock: disabling Lockdown after recovery failure.", file=sys.stderr)
+            unlock = set_lockdown(False)
+            output = redacted_result_output(unlock.stdout, unlock.stderr)
+            if output:
+                print(output)
+        else:
+            print("Recovery failed. Run slayer mullvad recover, or slayer mullvad lockdown off as a manual emergency rescue.", file=sys.stderr)
+
+    return 0 if test_ok and status(verbose=True).connected else 1
 
 
 def cmd_mullvad_lockdown(args: argparse.Namespace) -> int:
@@ -209,7 +288,15 @@ def cmd_plan(args: argparse.Namespace) -> int:
             print(f"Could not read URL file: {exc}", file=sys.stderr)
             return 2
     try:
-        paths = create_batch_from_urls(urls=urls, rights_basis=args.rights, name=args.name, output_dir=args.output)
+        paths = create_batch_from_urls(
+            urls=urls,
+            rights_basis=args.rights,
+            name=args.name,
+            output_dir=args.output,
+            max_height=args.max_height,
+            max_downloads=args.max_downloads,
+            max_filesize=args.max_filesize,
+        )
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 2
@@ -268,16 +355,27 @@ def cmd_run(args: argparse.Namespace) -> int:
         print("Refusing real download without --yes. Use --dry-run first.", file=sys.stderr)
         return 2
     for attempt in range(0, args.vpn_recovery_attempts + 1):
+        started = datetime.now().isoformat(timespec="seconds")
         result = run_batch(manifest, dry_run=args.dry_run)
+        ended = datetime.now().isoformat(timespec="seconds")
         output = "\n".join(part for part in [result.stdout, result.stderr] if part)
         if output:
             print(output)
         if result.returncode == 0:
+            report = write_run_report(manifest, dry_run=args.dry_run, result=result, category="ok", started=started, ended=ended)
+            print(f"Run report: {report}")
             return 0
         category = classify_run_failure(result)
+        if category == "limit-reached":
+            report = write_run_report(manifest, dry_run=args.dry_run, result=result, category=category, started=started, ended=ended)
+            print("Configured download limit reached.")
+            print(f"Run report: {report}")
+            return 0
         if not args.recover_vpn or category != "transient-network" or attempt >= args.vpn_recovery_attempts:
             if category == "source-block":
                 print("Source-side block/throttle/login signal detected. Pausing without VPN relay/IP switching.", file=sys.stderr)
+            report = write_run_report(manifest, dry_run=args.dry_run, result=result, category=category, started=started, ended=ended)
+            print(f"Run report: {report}")
             return result.returncode
         print(f"Transient network failure detected. Recovering Mullvad before retry {attempt + 1}.", file=sys.stderr)
         recovery = recover_connection(attempts=1, wait_seconds=args.vpn_recovery_wait)
@@ -311,8 +409,21 @@ def build_parser() -> argparse.ArgumentParser:
     mv_connect = mullvad_sub.add_parser("connect", help="Connect Mullvad")
     mv_connect.set_defaults(func=cmd_mullvad_connect)
 
-    mv_disconnect = mullvad_sub.add_parser("disconnect", help="Disconnect Mullvad")
+    mv_disconnect = mullvad_sub.add_parser("disconnect", help="Disconnect Mullvad; refuses by default if Lockdown is on")
+    mv_disconnect.add_argument("--force", action="store_true", help="Allow disconnect even when Lockdown is on")
     mv_disconnect.set_defaults(func=cmd_mullvad_disconnect)
+
+    mv_disconnect_test = mullvad_sub.add_parser("disconnect-test", help="Safely test fail-closed disconnect and automatic recovery")
+    mv_disconnect_test.add_argument("--attempts", type=int, default=3)
+    mv_disconnect_test.add_argument("--wait-seconds", type=float, default=5.0)
+    mv_disconnect_test.add_argument("--settle-seconds", type=float, default=3.0)
+    mv_disconnect_test.add_argument("--relay-location", nargs="+", default=["us"], help="Relay location constraint for the test; defaults to us")
+    mv_disconnect_test.add_argument(
+        "--emergency-unlock",
+        action="store_true",
+        help="Disable Lockdown only if recovery fails, restoring operator connectivity at the cost of native-IP exposure",
+    )
+    mv_disconnect_test.set_defaults(func=cmd_mullvad_disconnect_test)
 
     mv_reconnect = mullvad_sub.add_parser("reconnect", help="Reconnect Mullvad")
     mv_reconnect.set_defaults(func=cmd_mullvad_reconnect)
@@ -452,6 +563,9 @@ def build_parser() -> argparse.ArgumentParser:
     plan.add_argument("--rights", required=True, help="Documented rights basis for this batch")
     plan.add_argument("--name", help="Batch name")
     plan.add_argument("--output", help="Output directory override")
+    plan.add_argument("--max-height", type=int, help="Limit selected video height, for example 360 for smoke tests")
+    plan.add_argument("--max-downloads", type=int, help="Stop after this many downloads")
+    plan.add_argument("--max-filesize", help="Skip files larger than this yt-dlp size expression, for example 50M")
     plan.set_defaults(func=cmd_plan)
 
     catalog = sub.add_parser("catalog", help="List known local batch manifests")

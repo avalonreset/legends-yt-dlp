@@ -104,6 +104,24 @@ def auto_connect_setting() -> MullvadSetting:
     return setting("auto-connect", "get", expected="on")
 
 
+def disconnect_refusal_reason(lockdown: MullvadSetting, *, force: bool = False) -> str | None:
+    if force:
+        return None
+    if not lockdown.available:
+        return "Refusing to disconnect because the Lockdown setting could not be verified. Use --force to override."
+    if lockdown.ok:
+        return "Refusing to disconnect while Lockdown is on. Use mullvad disconnect-test or --force."
+    return None
+
+
+def recovery_action_for_status(status: MullvadStatus) -> str:
+    if not status.available:
+        return "connect"
+    if "disconnect" in status.raw.lower():
+        return "connect"
+    return "reconnect"
+
+
 def recover_connection(*, attempts: int = 2, wait_seconds: float = 5.0) -> RecoveryResult:
     messages: list[str] = []
     lockdown = set_lockdown(True)
@@ -116,7 +134,8 @@ def recover_connection(*, attempts: int = 2, wait_seconds: float = 5.0) -> Recov
         return RecoveryResult(True, 0, tuple(messages))
 
     for attempt in range(1, attempts + 1):
-        action = reconnect() if current.available else connect()
+        action_name = recovery_action_for_status(current)
+        action = reconnect() if action_name == "reconnect" else connect()
         output = "\n".join(part for part in [action.stdout, action.stderr] if part).strip()
         if output:
             messages.append(output)

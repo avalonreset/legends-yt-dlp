@@ -3,7 +3,7 @@ type: meta
 title: "Hot Cache"
 status: active
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-05-28
 tags: [hot-cache, meta]
 ---
 
@@ -11,7 +11,7 @@ tags: [hot-cache, meta]
 
 ## Last Updated
 
-2026-05-27. Production safety hardening now treats Mullvad Lockdown, anonymous yt-dlp operation, and a JavaScript runtime for YouTube extraction as first-class release requirements.
+2026-05-28. Production hardening has live evidence for bounded YouTube smoke downloads, idempotent reruns, US-constrained Mullvad operation, and fail-closed disconnect recovery.
 
 ## Key Recent Facts
 
@@ -32,6 +32,10 @@ tags: [hot-cache, meta]
 - Generated yt-dlp configs now force anonymous operation with `--ignore-config`, `--no-cookies`, and `--no-cookies-from-browser`.
 - Production preflight rejects browser cookies, cookie files, username/password auth, `.netrc`, and other account-auth options.
 - Fresh dry-run smoke testing passed through Mullvad with no yt-dlp ERROR/WARNING lines after fixing config quoting and enabling Node as the JavaScript runtime.
+- Current live Mullvad posture is connected through a US relay constraint, with Lockdown mode on.
+- A bounded authorized NASA smoke batch downloaded one item, wrote an archive entry, generated compact run reports, and reran idempotently without duplicating files.
+- Deliberate disconnect testing confirmed Lockdown blocks internet access, production doctor/preflight/run fail closed, and `mullvad recover` reconnects successfully.
+- `mullvad disconnect` now refuses by default when Lockdown is on; use `mullvad disconnect-test --emergency-unlock` for controlled fail-closed testing with automatic recovery.
 
 ## Recent Changes
 
@@ -43,9 +47,10 @@ tags: [hot-cache, meta]
 - Added [[Mullvad Control Surface]] and evidence for the current CLI settings.
 - Added the Codex skill suite and updated docs for catalog-style batch planning.
 - Created [[Account Cookie Policy]] and updated the preflight/runbook docs for production privacy posture.
+- Added bounded smoke-test options, compact run reports, guarded disconnect testing, and fixed recovery from explicit Mullvad disconnected state.
 
 ## Active Threads
 
-- Next blocker is a lawful user-provided test URL for a real smoke download using a newly planned production batch.
-- Existing older manifests may fail production preflight until regenerated because they lack the new anonymous-auth policy flags.
-- Next GitHub step is optional: create a first alpha tag only after a connected Mullvad smoke test passes.
+- Remaining release gate is a final clean check and push after the vault is updated.
+- Existing older manifests may fail production preflight until regenerated because they lack the newer anonymous-auth and limit policy flags.
+- Next GitHub step is optional: create a first alpha tag after reviewing the pushed hardening commit.

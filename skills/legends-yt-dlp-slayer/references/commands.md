@@ -22,7 +22,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lockdown on
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad connect
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad reconnect
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad recover
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect-test --emergency-unlock
 ```
 
 Useful settings:
@@ -44,6 +44,8 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad relay locati
 ```
 
 Do not use relay selection as an automatic response to source-side blocks.
+
+`mullvad disconnect` refuses by default when Lockdown is on. Use `disconnect-test` for controlled fail-closed testing because it reconnects before returning. Use `disconnect --force` only for explicit manual maintenance.
 
 ## yt-dlp
 
