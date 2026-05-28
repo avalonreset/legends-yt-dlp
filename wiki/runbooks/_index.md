@@ -2,7 +2,7 @@
 type: index
 status: active
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-05-28
 tags: [runbooks, index]
 ---
 
@@ -14,3 +14,4 @@ tags: [runbooks, index]
 - [[Blocked or Throttled SOP]]
 - [[CLI Operator Commands]]
 - [[Mullvad Control Surface]]
+- [[Standard Operating Procedure]]

@@ -20,6 +20,7 @@ Mullvad Guard
   - checks status
   - supports login/connect/lockdown wrappers
   - blocks preflight when disconnected
+  - can apply the full production posture with setup production
 
 yt-dlp Manager
   - downloads official Windows yt-dlp.exe
@@ -31,6 +32,14 @@ Batch Orchestrator
   - writes urls.txt
   - writes yt-dlp.conf
   - uses download archive files for resumability
+
+Smoke Pack
+  - creates a curated NASA Goddard validation batch
+  - gives operators a safe install test before real work
+
+Verifier
+  - checks archive entries, reports, media files, and info JSON sidecars
+  - validates media files through ffprobe when available
 
 Codex Skill Suite
   - guides Codex through setup, planning, preflight, dry-run, and guarded real runs

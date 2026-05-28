@@ -393,11 +393,7 @@ def only_mullvad_connection_failed(checks: list[Check]) -> bool:
 def classify_run_failure(result: CommandResult) -> str:
     if result.returncode == 101:
         return "limit-reached"
-    output = result.stderr.lower()
-    if not output:
-        output = "\n".join(
-            line for line in result.stdout.lower().splitlines() if line.startswith(("error:", "warning:"))
-        )
+    output = diagnostic_output(result).lower()
     if any(pattern in output for pattern in SOURCE_BLOCK_PATTERNS):
         return "source-block"
     if any(pattern in output for pattern in TRANSIENT_NETWORK_PATTERNS):
@@ -405,8 +401,27 @@ def classify_run_failure(result: CommandResult) -> str:
     return "unknown"
 
 
+def diagnostic_output(result: CommandResult) -> str:
+    lines = [line for line in result.stderr.splitlines() if line.strip()]
+    lines.extend(line for line in result.stdout.splitlines() if line.lower().startswith(("error:", "warning:")))
+    return "\n".join(lines)
+
+
+def classify_success(result: CommandResult) -> str:
+    output = diagnostic_output(result).lower()
+    if any(pattern in output for pattern in SOURCE_BLOCK_PATTERNS):
+        return "source-warning"
+    if any(pattern in output for pattern in TRANSIENT_NETWORK_PATTERNS):
+        return "network-warning"
+    return "ok"
+
+
 def run_status(*, dry_run: bool, returncode: int, category: str) -> str:
     if returncode == 0:
+        if category == "source-warning":
+            return "completed_with_source_warnings"
+        if category == "network-warning":
+            return "completed_with_network_warnings"
         return "dry_run_passed" if dry_run else "completed"
     if category == "limit-reached":
         return "limit_reached"
@@ -432,6 +447,7 @@ def write_run_report(
     report_dir.mkdir(parents=True, exist_ok=True)
     report_path = report_dir / f"{datetime.now().strftime('%Y%m%d-%H%M%S')}-run-report.json"
     stderr_lines = [line for line in result.stderr.splitlines() if line.strip()]
+    diagnostic_lines = [line for line in diagnostic_output(result).splitlines() if line.strip()]
     report = {
         "schema_version": 1,
         "batch": manifest.get("name", manifest_path.parent.name),
@@ -445,6 +461,7 @@ def write_run_report(
         "stdout_bytes": len(result.stdout.encode("utf-8", errors="replace")),
         "stderr_bytes": len(result.stderr.encode("utf-8", errors="replace")),
         "stderr_tail": stderr_lines[-20:],
+        "diagnostic_tail": diagnostic_lines[-20:],
     }
     report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     manifest["status"] = status

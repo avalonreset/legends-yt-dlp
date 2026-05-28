@@ -8,6 +8,17 @@ tags: [log, meta]
 
 # Log
 
+## 2026-05-28 - Product SOP and Five-Video Smoke Pack
+
+- Added `setup production` to apply Mullvad production posture and verify production doctor in one command.
+- Added `smoke plan --count 5` with a curated NASA Goddard validation pack.
+- Added `verify` to check archive entries, reports, media files, info JSON sidecars, total media bytes, and ffprobe media readability.
+- Real five-video smoke evidence: 5 archive entries, 5 MP4 files, 5 info JSON files, 19,173,401 media bytes, and ffprobe passed for all media.
+- Rerunning the same five-video manifest stayed idempotent: file count remained 10 and all 5 YouTube IDs were skipped from `archive.txt`.
+- Fixed Windows console Unicode output for media filenames.
+- Made dry-runs suppress raw yt-dlp JSON unless `--show-output` is passed.
+- Hardened successful-run diagnostics so source-side warnings such as HTTP 429 are surfaced in reports even when yt-dlp exits 0.
+
 ## 2026-05-28 - Guarded Disconnect Testing Added
 
 - Added `mullvad disconnect-test` as the approved fail-closed test path.

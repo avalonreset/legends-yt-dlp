@@ -18,6 +18,15 @@ Checks Mullvad, `yt-dlp`, `ffmpeg`, local account configuration, and connected s
 
 `doctor --production` additionally requires a JavaScript runtime for YouTube extraction, Mullvad Lockdown on, split tunneling off, LAN sharing blocked, and auto-connect on.
 
+## Setup
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 setup production
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 setup production --relay-location us
+```
+
+`setup production` applies the expected Mullvad posture, connects or recovers the VPN, and runs production doctor.
+
 ## Mullvad
 
 ```powershell
@@ -94,6 +103,14 @@ The plan command creates:
 
 Generated batch folders are ignored by git.
 
+## Smoke Pack
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --count 5
+```
+
+Creates a curated NASA Goddard validation batch with short videos and conservative defaults. Use it to verify a local install before a real user batch.
+
 ## Preflight
 
 ```powershell
@@ -113,12 +130,24 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --dry-run
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --dry-run --show-output
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes --vpn-recovery-attempts 3
 ```
 
 Real downloads require passing production preflight and an explicit `--yes`. The runner refuses real downloads with `--no-production` or `--no-require-connected`.
 
+Dry-runs suppress raw `yt-dlp` JSON by default and still write a compact run report. Use `--show-output` only when debugging extractor output.
+
 `run` defaults to safe VPN recovery for Mullvad/tunnel/network failures. Use `--no-recover-vpn` for diagnostics.
 
 Do not use relay/location commands as an automatic response to source-side throttling or block signals.
+
+## Verify
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\manifest.json" --no-probe
+```
+
+`verify` checks archive entries, media files, info JSON sidecars, run reports, total media bytes, and ffprobe media readability.

@@ -8,6 +8,7 @@ Run all commands from the project root.
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --require-connected
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --production
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 setup production
 ```
 
 Use `doctor --production` before real work. It requires connected Mullvad, Lockdown on, split tunneling off, LAN sharing blocked, and auto-connect on.
@@ -61,10 +62,12 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL>" --rights "<basis>" --name "<name>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL1>" "<URL2>" --rights "<basis>" --name "<name>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --rights "<basis>" --name "<name>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --count 5
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "<manifest.json>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --dry-run
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --yes
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --yes --vpn-recovery-attempts 3
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "<manifest.json>"
 ```
 
 `run` defaults to safe VPN recovery. It can reconnect Mullvad and retry after transient tunnel/network failures. It must not continue through source-side block signals.

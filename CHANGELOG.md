@@ -16,3 +16,6 @@
 - Fixed yt-dlp config quoting for output templates and paths with spaces.
 - Added bounded smoke-job limits and compact run reports.
 - Added guarded Mullvad disconnect testing with automatic recovery and an emergency unlock fallback.
+- Added `setup production`, curated `smoke plan`, and batch `verify` commands.
+- Added media verification through ffprobe and Unicode-safe console output.
+- Made dry-runs suppress raw yt-dlp JSON unless `--show-output` is passed.

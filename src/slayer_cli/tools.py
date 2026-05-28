@@ -83,6 +83,14 @@ def find_ffmpeg() -> ToolInfo:
     return ToolInfo("ffmpeg", path, version, True, "ffmpeg found")
 
 
+def find_ffprobe() -> ToolInfo:
+    path = find_executable("ffprobe", env_var="FFPROBE_CLI")
+    if not path:
+        return ToolInfo("ffprobe", None, None, False, "ffprobe not found")
+    version = version_for(path, "-version")
+    return ToolInfo("ffprobe", path, version, True, "ffprobe found")
+
+
 def find_js_runtime() -> ToolInfo:
     for runtime, env_var in [("deno", "DENO_CLI"), ("node", "NODE_CLI")]:
         path = find_executable(runtime, env_var=env_var)

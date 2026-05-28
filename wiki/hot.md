@@ -11,7 +11,7 @@ tags: [hot-cache, meta]
 
 ## Last Updated
 
-2026-05-28. Production hardening has live evidence for bounded YouTube smoke downloads, idempotent reruns, US-constrained Mullvad operation, and fail-closed disconnect recovery.
+2026-05-28. Product hardening now has a professional operator path: `setup production`, curated `smoke plan`, guarded `run`, `verify`, idempotent rerun checks, and a documented SOP.
 
 ## Key Recent Facts
 
@@ -36,6 +36,11 @@ tags: [hot-cache, meta]
 - A bounded authorized NASA smoke batch downloaded one item, wrote an archive entry, generated compact run reports, and reran idempotently without duplicating files.
 - Deliberate disconnect testing confirmed Lockdown blocks internet access, production doctor/preflight/run fail closed, and `mullvad recover` reconnects successfully.
 - `mullvad disconnect` now refuses by default when Lockdown is on; use `mullvad disconnect-test --emergency-unlock` for controlled fail-closed testing with automatic recovery.
+- `setup production` applies the full Mullvad production posture and verifies production doctor.
+- `smoke plan --count 5` creates a curated NASA Goddard validation batch.
+- `verify` checks archive entries, reports, media files, info JSON sidecars, and ffprobe media readability.
+- A five-video NASA Goddard smoke run completed with 5 archive entries, 5 MP4 files, 5 info JSON files, 19,173,401 media bytes, and clean idempotent rerun behavior.
+- The smoke run exposed a successful-run YouTube 429 warning; classification now flags source-side warnings even when yt-dlp exits 0.
 
 ## Recent Changes
 
@@ -47,10 +52,10 @@ tags: [hot-cache, meta]
 - Added [[Mullvad Control Surface]] and evidence for the current CLI settings.
 - Added the Codex skill suite and updated docs for catalog-style batch planning.
 - Created [[Account Cookie Policy]] and updated the preflight/runbook docs for production privacy posture.
-- Added bounded smoke-test options, compact run reports, guarded disconnect testing, and fixed recovery from explicit Mullvad disconnected state.
+- Added bounded smoke-test options, compact run reports, guarded disconnect testing, production setup, smoke-pack planning, batch verification, and fixed recovery from explicit Mullvad disconnected state.
 
 ## Active Threads
 
-- Remaining release gate is a final clean check and push after the vault is updated.
+- Remaining release gate is a final clean check and push after the SOP/productization pass is verified.
 - Existing older manifests may fail production preflight until regenerated because they lack the newer anonymous-auth and limit policy flags.
 - Next GitHub step is optional: create a first alpha tag after reviewing the pushed hardening commit.

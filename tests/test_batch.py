@@ -4,6 +4,7 @@ from pathlib import Path
 from slayer_cli.batch import (
     auth_policy_check,
     classify_run_failure,
+    classify_success,
     create_batch_from_urls,
     read_url_file,
     run_status,
@@ -113,9 +114,14 @@ class BatchTests(unittest.TestCase):
         result = CommandResult(("yt-dlp",), 1, "", "Connection reset by peer")
         self.assertEqual(classify_run_failure(result), "transient-network")
 
+    def test_classify_success_with_source_warning(self) -> None:
+        result = CommandResult(("yt-dlp",), 0, "WARNING: HTTP Error 429: Too Many Requests", "")
+        self.assertEqual(classify_success(result), "source-warning")
+
     def test_run_status_maps_outcomes(self) -> None:
         self.assertEqual(run_status(dry_run=True, returncode=0, category="ok"), "dry_run_passed")
         self.assertEqual(run_status(dry_run=False, returncode=0, category="ok"), "completed")
+        self.assertEqual(run_status(dry_run=False, returncode=0, category="source-warning"), "completed_with_source_warnings")
         self.assertEqual(run_status(dry_run=False, returncode=101, category="limit-reached"), "limit_reached")
         self.assertEqual(run_status(dry_run=False, returncode=1, category="source-block"), "paused_source_block")
         self.assertEqual(run_status(dry_run=False, returncode=1, category="transient-network"), "paused_network_failure")

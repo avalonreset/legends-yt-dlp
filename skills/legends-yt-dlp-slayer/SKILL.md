@@ -41,6 +41,7 @@ For the detailed policy, read `references/safety-and-errors.md`.
 ### Setup / Inspect
 
 ```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 setup production
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp version
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
@@ -78,6 +79,18 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL>" --right
 
 Read `references/batch-catalog.md` before planning large archives.
 
+### Validate The Install
+
+Use the curated five-video smoke pack before treating an install as ready:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --count 5
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "<manifest.json>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --dry-run
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --yes
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "<manifest.json>"
+```
+
 ### Preflight / Dry Run / Real Run
 
 ```powershell
@@ -89,9 +102,12 @@ Only after the user explicitly approves a real download:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --yes
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "<manifest.json>"
 ```
 
 `run` defaults to safe VPN recovery. It may reconnect Mullvad and retry for tunnel/network failures. Use `--no-recover-vpn` only for diagnostics.
+
+Dry-runs suppress raw yt-dlp JSON by default. Use `--show-output` only when debugging.
 
 ## Concurrency Policy
 
@@ -109,4 +125,5 @@ Report:
 - URL count
 - whether it was dry-run or real
 - stop condition, if any
+- verify result, if a real run occurred
 - next safe action

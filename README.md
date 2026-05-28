@@ -13,10 +13,13 @@ Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful but easy to operat
 - Detects `ffmpeg`.
 - Detects a JavaScript runtime for modern YouTube extraction.
 - Creates rights-aware batch manifests.
+- Provides a one-command production setup path for Mullvad safety posture.
+- Provides a curated NASA Goddard smoke pack for install validation.
 - Supports bounded smoke jobs with max downloads, height, and filesize limits.
 - Generates stable anonymous-mode `yt-dlp` config files with download archives and conservative retry/sleep settings.
 - Blocks real runs until production preflight passes.
 - Requires an explicit `--yes` flag for real downloads.
+- Verifies completed batches with archive, report, info JSON, media count, and ffprobe checks.
 
 ## Why It Exists
 
@@ -31,6 +34,7 @@ Early private alpha.
 Working now:
 
 - `doctor`
+- `setup production`
 - Mullvad status/login/connect/lockdown wrappers
 - Mullvad inspect and settings wrappers
 - Mullvad safe recovery for tunnel/network failures
@@ -40,23 +44,25 @@ Working now:
 - JavaScript runtime detection/configuration for YouTube extraction
 - bounded batch limits for smoke tests and controlled archive jobs
 - official `yt-dlp.exe` install and version check
+- curated 5-video smoke-pack planning
 - batch `plan`
 - multi-URL and URL-file batch planning
 - batch `catalog`
 - batch `preflight`
 - guarded `run`
+- batch `verify`
 - Codex skill suite under `skills/legends-yt-dlp-slayer`
 
 Still needs before a release tag:
 
-- real download smoke tests
+- alpha packaging/release notes
 
 ## Quick Start
 
 From the project root:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 setup production
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp version
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad status --verbose
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
@@ -74,6 +80,16 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --require-con
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --production
 ```
 
+Validate the install with the curated smoke pack:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --count 5
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --dry-run
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\manifest.json"
+```
+
 Create a batch:
 
 ```powershell
@@ -88,6 +104,7 @@ Preflight and run:
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\...\manifest.json"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --dry-run
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\manifest.json"
 ```
 
 ## Safety Boundary
@@ -127,6 +144,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ## Documentation
 
 - [CLI Commands](docs/CLI.md)
+- [Standard Operating Procedure](docs/SOP.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Safety and Use Policy](docs/SAFETY.md)
 - [Changelog](CHANGELOG.md)

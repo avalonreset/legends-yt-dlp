@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 import time
 from datetime import datetime
@@ -9,6 +10,7 @@ from pathlib import Path
 from .batch import (
     catalog_rows,
     classify_run_failure,
+    classify_success,
     create_batch_from_urls,
     only_mullvad_connection_failed,
     preflight_batch,
@@ -30,12 +32,20 @@ from .mullvad import (
     status,
 )
 from .paths import PROJECT_ROOT
+from .smoke import SMOKE_VIDEOS, create_smoke_batch
 from .tools import find_ytdlp, install_ytdlp, run_tool
+from .verify import verify_batch
 
 
 def print_check(name: str, ok: bool, detail: str) -> None:
     marker = "PASS" if ok else "FAIL"
     print(f"[{marker}] {name}: {detail}")
+
+
+def configure_console() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
 
 
 def env_account() -> str | None:
@@ -61,6 +71,42 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     for check in checks:
         print_check(check.name, check.ok, check.detail)
     return 0 if overall_ok(checks, require_connected=args.require_connected or args.production) else 1
+
+
+def print_mullvad_step(label: str, mv_args: list[str], *, timeout: int = 120) -> int:
+    print(f"## {label}")
+    result = run_mullvad(*mv_args, timeout=timeout)
+    output = redacted_result_output(result.stdout, result.stderr)
+    if output:
+        print(output)
+    if result.returncode != 0:
+        print(f"{label} failed.", file=sys.stderr)
+    return result.returncode
+
+
+def cmd_setup_production(args: argparse.Namespace) -> int:
+    steps: list[tuple[str, list[str]]] = [
+        ("Relay constraint", ["relay", "set", "location", *args.relay_location]),
+        ("Lockdown mode", ["lockdown-mode", "set", "on"]),
+        ("Auto-connect", ["auto-connect", "set", "on"]),
+        ("LAN sharing", ["lan", "set", "block"]),
+        ("Split tunnel", ["split-tunnel", "set", "off"]),
+        ("Quantum-resistant tunnel", ["tunnel", "set", "quantum-resistant", "on"]),
+        ("IPv6", ["tunnel", "set", "ipv6", "off"]),
+    ]
+    for label, mv_args in steps:
+        exit_code = print_mullvad_step(label, mv_args)
+        if exit_code != 0:
+            return exit_code
+    if not args.no_connect:
+        recovery = recover_connection(attempts=args.attempts, wait_seconds=args.wait_seconds)
+        print_recovery_messages(recovery.messages)
+        if not recovery.ok:
+            return 1
+    checks = run_doctor(production=True)
+    for check in checks:
+        print_check(check.name, check.ok, check.detail)
+    return 0 if overall_ok(checks, require_connected=True) else 1
 
 
 def cmd_mullvad_status(args: argparse.Namespace) -> int:
@@ -307,6 +353,27 @@ def cmd_plan(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_smoke_plan(args: argparse.Namespace) -> int:
+    try:
+        paths = create_smoke_batch(
+            count=args.count,
+            name=args.name,
+            output_dir=args.output,
+            max_height=args.max_height,
+            max_filesize=args.max_filesize,
+        )
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+    print(f"Smoke batch created: {paths.root}")
+    print(f"Manifest: {paths.manifest}")
+    print(f"yt-dlp config: {paths.config}")
+    print(f"URL count: {args.count}")
+    for video in SMOKE_VIDEOS[: args.count]:
+        print(f"- {video.duration_seconds}s | {video.title} | {video.url}")
+    return 0
+
+
 def cmd_catalog(_: argparse.Namespace) -> int:
     rows = catalog_rows()
     if not rows:
@@ -324,6 +391,26 @@ def cmd_preflight(args: argparse.Namespace) -> int:
     for check in checks:
         print_check(check.name, check.ok, check.detail)
     return 0 if preflight_ok(checks, require_connected=not args.no_require_connected) else 1
+
+
+def cmd_verify(args: argparse.Namespace) -> int:
+    try:
+        summary, checks = verify_batch(Path(args.manifest), allow_empty=args.allow_empty, probe=not args.no_probe)
+    except (OSError, KeyError, json.JSONDecodeError) as exc:
+        print(f"Could not verify batch: {exc}", file=sys.stderr)
+        return 1
+    print(f"Batch: {summary.batch_name}")
+    print(f"Status: {summary.status}")
+    print(f"URLs: {summary.url_count}")
+    print(f"Expected downloads: {summary.expected_downloads}")
+    print(f"Archive entries: {summary.archive_entries}")
+    print(f"Media files: {summary.media_files}")
+    print(f"Info JSON files: {summary.info_json_files}")
+    print(f"Reports: {summary.report_files}")
+    print(f"Media bytes: {summary.total_media_bytes}")
+    for check in checks:
+        print_check(check.name, check.ok, check.detail)
+    return 0 if all(check.ok for check in checks) else 1
 
 
 def cmd_run(args: argparse.Namespace) -> int:
@@ -359,10 +446,18 @@ def cmd_run(args: argparse.Namespace) -> int:
         result = run_batch(manifest, dry_run=args.dry_run)
         ended = datetime.now().isoformat(timespec="seconds")
         output = "\n".join(part for part in [result.stdout, result.stderr] if part)
-        if output:
+        if output and (args.show_output or not args.dry_run or result.returncode != 0):
             print(output)
+        elif output:
+            byte_count = len(output.encode("utf-8", errors="replace"))
+            print(f"yt-dlp output suppressed ({byte_count} bytes). Use --show-output to print it.")
         if result.returncode == 0:
-            report = write_run_report(manifest, dry_run=args.dry_run, result=result, category="ok", started=started, ended=ended)
+            category = classify_success(result)
+            report = write_run_report(manifest, dry_run=args.dry_run, result=result, category=category, started=started, ended=ended)
+            if category == "source-warning":
+                print("Source-side warning detected in a successful run. Review the run report before scaling this source.", file=sys.stderr)
+            elif category == "network-warning":
+                print("Network warning detected in a successful run. Review the run report before scaling this source.", file=sys.stderr)
             print(f"Run report: {report}")
             return 0
         category = classify_run_failure(result)
@@ -395,6 +490,15 @@ def build_parser() -> argparse.ArgumentParser:
     doctor.add_argument("--require-connected", action="store_true", help="Fail if Mullvad is not connected")
     doctor.add_argument("--production", action="store_true", help="Require connected Mullvad, Lockdown, split tunnel off, LAN blocked, and auto-connect on")
     doctor.set_defaults(func=cmd_doctor)
+
+    setup = sub.add_parser("setup", help="Configure local production posture")
+    setup_sub = setup.add_subparsers(dest="setup_command", required=True)
+    setup_production = setup_sub.add_parser("production", help="Set safe Mullvad defaults and verify production doctor")
+    setup_production.add_argument("--relay-location", nargs="+", default=["us"], help="Mullvad relay constraint; defaults to us")
+    setup_production.add_argument("--attempts", type=int, default=3)
+    setup_production.add_argument("--wait-seconds", type=float, default=5.0)
+    setup_production.add_argument("--no-connect", action="store_true", help="Apply settings without connecting/recovering Mullvad")
+    setup_production.set_defaults(func=cmd_setup_production)
 
     mullvad = sub.add_parser("mullvad", help="Operate Mullvad through the official CLI")
     mullvad_sub = mullvad.add_subparsers(dest="mullvad_command", required=True)
@@ -568,6 +672,16 @@ def build_parser() -> argparse.ArgumentParser:
     plan.add_argument("--max-filesize", help="Skip files larger than this yt-dlp size expression, for example 50M")
     plan.set_defaults(func=cmd_plan)
 
+    smoke = sub.add_parser("smoke", help="Create and run curated validation batches")
+    smoke_sub = smoke.add_subparsers(dest="smoke_command", required=True)
+    smoke_plan = smoke_sub.add_parser("plan", help="Create the curated NASA Goddard smoke-test batch")
+    smoke_plan.add_argument("--count", type=int, default=5)
+    smoke_plan.add_argument("--name", default="nasa-goddard-smoke-pack")
+    smoke_plan.add_argument("--output", help="Output directory override")
+    smoke_plan.add_argument("--max-height", type=int, default=360)
+    smoke_plan.add_argument("--max-filesize", default="75M")
+    smoke_plan.set_defaults(func=cmd_smoke_plan)
+
     catalog = sub.add_parser("catalog", help="List known local batch manifests")
     catalog.set_defaults(func=cmd_catalog)
 
@@ -577,9 +691,16 @@ def build_parser() -> argparse.ArgumentParser:
     preflight.add_argument("--no-production", action="store_true", help="Local harness only: skip production posture and anonymous-auth policy checks")
     preflight.set_defaults(func=cmd_preflight)
 
+    verify = sub.add_parser("verify", help="Verify batch artifacts, reports, archive entries, and media files")
+    verify.add_argument("manifest", help="Path to batch manifest.json")
+    verify.add_argument("--allow-empty", action="store_true", help="Allow dry-run or planned batches with no artifacts yet")
+    verify.add_argument("--no-probe", action="store_true", help="Skip ffprobe media validation")
+    verify.set_defaults(func=cmd_verify)
+
     run = sub.add_parser("run", help="Run or dry-run a batch")
     run.add_argument("manifest", help="Path to batch manifest.json")
     run.add_argument("--dry-run", action="store_true", help="Simulate yt-dlp without downloading")
+    run.add_argument("--show-output", action="store_true", help="Print raw yt-dlp output; dry-runs suppress it by default")
     run.add_argument("--yes", action="store_true", help="Allow real downloads after preflight")
     run.add_argument("--no-require-connected", action="store_true", help="Do not fail solely because Mullvad is disconnected")
     run.add_argument("--no-production", action="store_true", help="Diagnostics only. Real downloads refuse this flag.")
@@ -593,6 +714,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    configure_console()
     parser = build_parser()
     args = parser.parse_args(argv)
     return args.func(args)
