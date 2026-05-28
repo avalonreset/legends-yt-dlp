@@ -34,10 +34,12 @@ tags: [hot-cache, meta]
 - First-run onboarding added: `slayer onboard` prints readiness, missing setup steps, the user interview checklist, reference docs, and the next safe commands without mutating state.
 - Walkthrough/examples added: `docs/WALKTHROUGH.md`, `examples/batch-intake.md`, `examples/rights-evidence-template.md`, and `examples/urls.txt`.
 - Live GitHub metadata updated: stronger description, discussions enabled, topics expanded for `yt-dlp`, Mullvad VPN, digital preservation, privacy tools, and operator tooling.
-- New post-capture intelligence research recommends a Parakeet-first local transcription module: NeMo/Parakeet for ASR word timestamps, optional NeMo Forced Aligner for CTM/ASS refinement, optional pyannote for speaker segments, and FFmpeg clip plans/rendering.
+- New post-capture intelligence research now recommends a ready-made Parakeet-first path: CrispASR with Parakeet TDT v3 GGUF as the preferred local CLI backend, with NeMo/Parakeet kept as the upstream/reference fallback.
 - The intelligence module should store a structured word ledger, not plain transcript text, so exact word/phrase search can return FFmpeg-ready clip spans.
-- `slayer intelligence` now has an MVP command surface for workspace init, doctor/status, timestamped word import, exact word/phrase search, clip-plan generation, optional FFmpeg rendering, and Obsidian transcript vault export.
-- Unit gate: 46 tests pass; compileall passes; package inspection passes; vault health/secret scan are part of the final gate.
+- `slayer intelligence` now has an MVP command surface for workspace init, doctor/status, CrispASR transcription/import, timestamped word import, exact word/phrase search, clip-plan generation, optional FFmpeg rendering, and Obsidian transcript vault export.
+- Local CrispASR build succeeded in ignored `.local` with MinGW/Ninja and is discoverable at `.local/bin/crispasr.exe`.
+- End-to-end generated speech smoke passed: Parakeet transcript import produced 6 token-timed word rows; exact search, clip plan/render, and transcript vault export all worked.
+- Unit gate: 49 tests pass; compileall passes; package inspection passes; vault health/secret scan are part of the final gate.
 
 ## Recent Changes
 
@@ -47,6 +49,6 @@ tags: [hot-cache, meta]
 ## Active Threads
 
 - Next release gate is deciding whether to tag/publish `v0.1.0-alpha` with the generated zip after user review.
-- New product track for the next development slice: connect a Parakeet/NeMo producer to the existing `slayer intelligence` word-ledger contract without adding heavy ASR dependencies to the core package.
+- New product track for the next development slice: run CrispASR/Parakeet against a short real downloaded video with clear narration, then package the install helper.
 - Existing older manifests may fail production preflight until regenerated because they lack the newer anonymous-auth and limit policy flags.
 - Next GitHub step is optional: create a first alpha tag after reviewing the pushed hardening commit.

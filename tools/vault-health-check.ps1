@@ -20,8 +20,23 @@ foreach ($rel in $Required) {
     }
 }
 
+$IgnoredMarkdownDirs = @(
+    "\\.git\\",
+    "\\.local\\",
+    "\\batches\\",
+    "\\reports\\",
+    "\\downloads\\",
+    "\\dist\\",
+    "\\cache\\",
+    "\\secrets\\",
+    "\\cookies\\"
+)
+
 $MarkdownFiles = Get-ChildItem -Path $Root -Recurse -Filter *.md -File |
-    Where-Object { $_.FullName -notmatch "\\.git\\" }
+    Where-Object {
+        $fullName = $_.FullName
+        -not ($IgnoredMarkdownDirs | Where-Object { $fullName -match $_ })
+    }
 
 $NameMap = @{}
 foreach ($file in $MarkdownFiles) {

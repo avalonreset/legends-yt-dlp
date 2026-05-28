@@ -46,6 +46,7 @@ Verifier
 
 Post-Capture Intelligence
   - analyzes already-downloaded verified local media
+  - runs external CrispASR/Parakeet transcription when installed
   - imports timestamped ASR word ledgers
   - exact-searches normalized word tokens
   - writes FFmpeg clip plans and optional rendered montages
@@ -102,7 +103,8 @@ Post-capture intelligence state is also file-based under each batch:
 - `intelligence/clips/*/clip-plan.json`
 - `intelligence/vault/*.md`
 
-The core intelligence contract is the word ledger, not plain transcript text. ASR backends such as NVIDIA NeMo + Parakeet can be optional producers of that ledger without becoming core package dependencies.
+The core intelligence contract is the word ledger, not plain transcript text. External ASR backends such as CrispASR + Parakeet or NVIDIA NeMo + Parakeet can produce that ledger without becoming core package dependencies.
+The default ready-made producer is CrispASR with the Parakeet backend, discovered via `CRISPASR_CLI`, `.local/bin`, or `PATH`.
 
 ## Skill Packaging
 
@@ -117,4 +119,4 @@ Packages intentionally exclude `.env`, `.local`, `batches`, `reports`, media,
 cookies, caches, secrets, and git metadata. Operators install `yt-dlp.exe`
 locally with `slayer yt-dlp install` after unpacking.
 
-Heavy ASR runtimes such as PyTorch, NeMo, Parakeet models, WhisperX, or pyannote are not bundled in the alpha package. They should be installed by the operator in an isolated WSL2, Docker, or separate Python environment.
+Heavy ASR runtimes and model weights such as CrispASR, Parakeet GGUF files, PyTorch, NeMo, WhisperX, or pyannote are not bundled in the alpha package. They should be installed by the operator as external tools. The normal path is CrispASR as a local CLI; NeMo/WhisperX remain advanced fallback environments.

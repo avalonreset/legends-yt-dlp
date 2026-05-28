@@ -75,6 +75,16 @@ tags: [log, meta]
 - Preserved the boundary: intelligence analyzes already-downloaded lawful local media only and does not download, call yt-dlp, operate Mullvad, rotate relays, or continue through source-side controls.
 - Verification after implementation: 46 unit tests passed, compileall passed, vault health passed, and `git diff --check` passed.
 
+## 2026-05-28 - CrispASR Parakeet Backend Selected
+
+- Researched ready-made Parakeet transcription tools and selected CrispASR with Parakeet TDT v3 GGUF as the preferred backend for Slayer intelligence.
+- Added `find_crispasr`, `slayer intelligence transcribe`, and `slayer intelligence import-crispasr` so Slayer can call an external CrispASR executable or ingest its full JSON output.
+- Added robust CrispASR JSON parsing into normalized Slayer word ledgers, preserving exact search and clip-plan behavior.
+- Added `docs/CRISPASR.md` and updated intelligence docs, CLI docs, README, architecture, NOTICE, roadmap, skill reference, and tests.
+- NeMo remains the upstream/reference route, but the product path is now a ready-made local CLI instead of a custom ASR runner.
+- Local backend evidence: cloned CrispASR into ignored `.local`, built `crispasr.exe` with MinGW/Ninja using `_WIN32_WINNT=0x0601`, copied it to `.local/bin`, and confirmed Slayer discovers it.
+- End-to-end intelligence smoke passed on a generated local speech WAV: CrispASR/Parakeet produced 6 token-timed word rows, exact search found `agentic workflow`, clip plan/render succeeded, and vault export wrote the transcript page.
+
 ## 2026-05-28 - Guarded Disconnect Testing Added
 
 - Added `mullvad disconnect-test` as the approved fail-closed test path.

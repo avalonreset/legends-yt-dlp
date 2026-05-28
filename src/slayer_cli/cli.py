@@ -24,14 +24,17 @@ from .doctor import overall_ok, run_doctor
 from .envfile import read_env_file, redact
 from .inventory import create_batch_from_inventory
 from .intelligence import (
+    CRISPASR_ENGINE,
     build_vault,
     doctor_intelligence,
+    import_crispasr_json,
     import_words as intelligence_import_words,
     init_intelligence,
     intelligence_status,
     make_clip_plan,
     render_clip_plan,
     search_words,
+    transcribe_with_crispasr,
     write_search_results,
 )
 from .ledger import load_item_ledger, refresh_item_ledger, summarize_ledger
@@ -597,6 +600,105 @@ def cmd_intelligence_import_words(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_intelligence_import_crispasr(args: argparse.Namespace) -> int:
+    try:
+        target, count = import_crispasr_json(
+            Path(args.manifest),
+            Path(args.input),
+            video_id=args.video_id,
+            item_id=args.item_id,
+            media_path=args.media_path,
+            engine=args.engine,
+        )
+    except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
+        print(f"Could not import CrispASR transcript: {exc}", file=sys.stderr)
+        return 1
+    print(f"Imported CrispASR words: {count}")
+    print(f"Word ledger: {target}")
+    return 0
+
+
+def transcription_targets(args: argparse.Namespace) -> list[dict]:
+    targets: list[dict] = []
+    if args.media:
+        media_path = Path(args.media)
+        targets.append(
+            {
+                "id": args.video_id or args.item_id or media_path.stem,
+                "item_id": args.item_id or args.video_id or media_path.stem,
+                "output_path": str(media_path),
+                "status": "manual",
+            }
+        )
+    if args.all:
+        manifest = load_manifest(Path(args.manifest))
+        statuses = {status.lower() for status in args.status}
+        ledger_path = Path(manifest["paths"]["item_ledger"])
+        for item in load_item_ledger(ledger_path):
+            media_path = item.get("output_path")
+            status = str(item.get("status", "")).lower()
+            if not media_path or status not in statuses:
+                continue
+            if not Path(str(media_path)).exists():
+                continue
+            targets.append(item)
+    if args.limit is not None:
+        targets = targets[: args.limit]
+    return targets
+
+
+def cmd_intelligence_transcribe(args: argparse.Namespace) -> int:
+    if not args.media and not args.all:
+        print("Choose --media for one file or --all for downloaded ledger items.", file=sys.stderr)
+        return 2
+    try:
+        targets = transcription_targets(args)
+    except (OSError, KeyError, json.JSONDecodeError) as exc:
+        print(f"Could not load transcription targets: {exc}", file=sys.stderr)
+        return 1
+    if not targets:
+        print("No local media targets found for transcription.", file=sys.stderr)
+        return 1
+
+    manifest = Path(args.manifest)
+    failures = 0
+    for index, item in enumerate(targets, start=1):
+        media_path = Path(str(item["output_path"]))
+        video_id = args.video_id if args.media else str(item.get("id") or media_path.stem)
+        item_id = args.item_id if args.media else str(item.get("id") or video_id)
+        print(f"[{index}/{len(targets)}] Transcribing {video_id}: {media_path}")
+        try:
+            audio, transcript, words, count, results = transcribe_with_crispasr(
+                manifest,
+                media_path,
+                video_id=video_id,
+                item_id=item_id,
+                model=args.model,
+                backend=args.backend,
+                threads=args.threads,
+                vad=not args.no_vad,
+                crispasr_path=Path(args.crispasr) if args.crispasr else None,
+                timeout=args.timeout,
+            )
+        except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as exc:
+            failures += 1
+            print(f"CrispASR transcription failed: {exc}", file=sys.stderr)
+            continue
+        failed = [result for result in results if not result.ok]
+        if failed:
+            failures += 1
+            result = failed[-1]
+            if result.stderr:
+                print(result.stderr, file=sys.stderr)
+            print(f"Transcription command failed with exit code {result.returncode}", file=sys.stderr)
+            continue
+        print(f"Audio: {audio}")
+        print(f"Transcript: {transcript}")
+        print(f"Word ledger: {words}")
+        print(f"Words: {count}")
+    return 0 if failures == 0 else 1
+
+
 def cmd_intelligence_search(args: argparse.Namespace) -> int:
     try:
         matches = search_words(
@@ -1001,6 +1103,32 @@ def build_parser() -> argparse.ArgumentParser:
         import_words_parser.add_argument("--media-path", help="Local media path to attach to imported words")
         import_words_parser.add_argument("--engine", default="imported", help="Source engine label")
         import_words_parser.set_defaults(func=cmd_intelligence_import_words)
+
+    import_crispasr = intelligence_sub.add_parser("import-crispasr", help="Import CrispASR full JSON output into the Slayer word ledger")
+    import_crispasr.add_argument("manifest", help="Path to batch manifest.json")
+    import_crispasr.add_argument("--input", required=True, help="CrispASR -ojf JSON output")
+    import_crispasr.add_argument("--video-id", help="Video id to attach to imported words")
+    import_crispasr.add_argument("--item-id", help="Item id to attach to imported words")
+    import_crispasr.add_argument("--media-path", help="Local media path to attach to imported words")
+    import_crispasr.add_argument("--engine", default=CRISPASR_ENGINE, help="Source engine label")
+    import_crispasr.set_defaults(func=cmd_intelligence_import_crispasr)
+
+    transcribe = intelligence_sub.add_parser("transcribe", help="Run the ready-made CrispASR Parakeet backend on local media")
+    transcribe.add_argument("manifest", help="Path to batch manifest.json")
+    target_group = transcribe.add_mutually_exclusive_group(required=True)
+    target_group.add_argument("--media", help="Transcribe one local media file")
+    target_group.add_argument("--all", action="store_true", help="Transcribe all downloaded ledger items with local media files")
+    transcribe.add_argument("--video-id", help="Video id for --media mode")
+    transcribe.add_argument("--item-id", help="Item id for --media mode")
+    transcribe.add_argument("--status", action="append", default=["downloaded", "archived", "verified"], help="Ledger status to include with --all; repeatable")
+    transcribe.add_argument("--limit", type=int, help="Maximum number of media files to transcribe")
+    transcribe.add_argument("--crispasr", help="Path to crispasr.exe; defaults to CRISPASR_CLI, .local/bin, or PATH")
+    transcribe.add_argument("--model", default="auto", help="CrispASR model path or auto")
+    transcribe.add_argument("--backend", default="parakeet", help="CrispASR backend name")
+    transcribe.add_argument("--threads", type=int, help="Worker threads for CrispASR")
+    transcribe.add_argument("--no-vad", action="store_true", help="Do not pass --vad to CrispASR")
+    transcribe.add_argument("--timeout", type=int, default=60 * 60 * 4, help="Per-file ASR timeout in seconds")
+    transcribe.set_defaults(func=cmd_intelligence_transcribe)
 
     intelligence_search = intelligence_sub.add_parser("search", help="Exact word/phrase search over imported word ledgers")
     intelligence_search.add_argument("manifest", help="Path to batch manifest.json")

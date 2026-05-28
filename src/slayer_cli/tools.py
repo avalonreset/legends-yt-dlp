@@ -7,7 +7,7 @@ import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 
-from .paths import LOCAL_BIN_DIR
+from .paths import LOCAL_BIN_DIR, LOCAL_DIR
 from .process import CommandResult, run_command
 
 
@@ -81,6 +81,24 @@ def find_ffmpeg() -> ToolInfo:
         return ToolInfo("ffmpeg", None, None, False, "ffmpeg not found")
     version = version_for(path, "-version")
     return ToolInfo("ffmpeg", path, version, True, "ffmpeg found")
+
+
+def find_crispasr() -> ToolInfo:
+    candidates = [
+        LOCAL_BIN_DIR / "crispasr.exe",
+        LOCAL_BIN_DIR / "crispasr",
+        LOCAL_BIN_DIR / "parakeet-main.exe",
+        LOCAL_DIR / "crispasr" / "build" / "bin" / "crispasr.exe",
+        LOCAL_DIR / "crispasr" / "build" / "bin" / "Release" / "crispasr.exe",
+        LOCAL_DIR / "crispasr" / "build-mingw-lowwin" / "bin" / "crispasr.exe",
+        LOCAL_DIR / "crispasr" / "build-vulkan" / "bin" / "crispasr.exe",
+        LOCAL_DIR / "crispasr" / "build-vulkan" / "bin" / "Release" / "crispasr.exe",
+    ]
+    path = find_executable("crispasr", env_var="CRISPASR_CLI", extra_candidates=candidates)
+    if not path:
+        return ToolInfo("crispasr", None, None, False, "CrispASR CLI not found")
+    version = version_for(path, "--version") or version_for(path, "--help")
+    return ToolInfo("crispasr", path, version, True, "CrispASR CLI found")
 
 
 def find_ffprobe() -> ToolInfo:

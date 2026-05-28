@@ -28,6 +28,7 @@ Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful but easy to operat
 - Blocks real runs until production preflight passes.
 - Requires an explicit `--yes` flag for real downloads.
 - Verifies completed batches with archive, report, info JSON, media count, and ffprobe checks.
+- Runs the ready-made CrispASR Parakeet backend against verified local media.
 - Imports timestamped word ledgers for verified local media.
 - Searches exact words and phrases across local transcripts.
 - Generates reviewable FFmpeg clip plans and optional montages.
@@ -65,7 +66,7 @@ Working now:
 - batch `preflight`
 - guarded `run`
 - batch `verify`
-- post-capture `intelligence` workspace, word import, search, clip planning, rendering, and vault export
+- post-capture `intelligence` workspace, CrispASR/Parakeet transcription, word import, search, clip planning, rendering, and vault export
 - Codex skill suite under `skills/legends-yt-dlp-slayer`
 
 Still needs before a release tag:
@@ -138,6 +139,7 @@ Analyze verified local media after download:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence init "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --media ".\video.mp4" --video-id "VIDEO_ID" --model auto
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence ingest-words "batches\...\manifest.json" --input ".\examples\intelligence-words.jsonl" --video-id "VIDEO_ID"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence search "batches\...\manifest.json" "agentic workflow"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips plan "batches\...\manifest.json" --query "agentic workflow"

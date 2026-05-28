@@ -28,17 +28,41 @@ Build this as a separate "post-capture intelligence" module instead of mixing it
 
 Recommended stack:
 
-1. **Default ASR:** NVIDIA NeMo + Parakeet, starting with `nvidia/parakeet-tdt-0.6b-v2` for English and `nvidia/parakeet-tdt-0.6b-v3` when multilingual support matters. NeMo documents direct char, word, and segment timestamp output for Parakeet models, and Parakeet v2/v3 model cards explicitly advertise word-level timestamps and commercial/non-commercial use under CC BY 4.0.
-2. **Precision alignment pass:** NVIDIA NeMo Forced Aligner for CTM/ASS word alignment when a CTC or hybrid CTC model is acceptable. NFA emits token, word, and segment CTM files, handles long files subject to hardware, and can align against ASR-generated text. It cannot use pure transducer models, so this is a second-stage refinement path, not a drop-in Parakeet TDT replacement.
-3. **Diarization:** pyannote.audio community pipeline as optional speaker labeling. Treat it as speaker segments, not word timing. Reconcile speaker labels onto the word ledger by interval overlap.
-4. **Fallback all-in-one:** WhisperX for users who want one mature package with Whisper/faster-whisper ASR, wav2vec2 alignment, VAD, and pyannote diarization. It is not the first choice because the product direction prefers Parakeet, but it is the strongest fallback ecosystem.
-5. **Clip assembly:** FFmpeg for deterministic extraction and montage. Store clip spans first, then render with either a re-encoded concat filter path for frame-accurate output or a stream-copy concat demuxer path only when sources/codecs are compatible.
+1. **Default ready-made ASR:** CrispASR with Parakeet TDT 0.6B v3 GGUF. It is a local C++ CLI, supports Parakeet, full JSON with word/token detail, VAD, Windows build scripts, and avoids a Python/PyTorch dependency chain in Slayer.
+2. **Upstream/reference ASR:** NVIDIA NeMo + Parakeet, starting with `nvidia/parakeet-tdt-0.6b-v2` for English and `nvidia/parakeet-tdt-0.6b-v3` when multilingual support matters. NeMo documents direct char, word, and segment timestamp output for Parakeet models, and Parakeet v2/v3 model cards explicitly advertise word-level timestamps and commercial/non-commercial use under CC BY 4.0.
+3. **Precision alignment pass:** NVIDIA NeMo Forced Aligner for CTM/ASS word alignment when a CTC or hybrid CTC model is acceptable. NFA emits token, word, and segment CTM files, handles long files subject to hardware, and can align against ASR-generated text. It cannot use pure transducer models, so this is a second-stage refinement path, not a drop-in Parakeet TDT replacement.
+4. **Diarization:** pyannote.audio community pipeline as optional speaker labeling. Treat it as speaker segments, not word timing. Reconcile speaker labels onto the word ledger by interval overlap.
+5. **Fallback all-in-one:** WhisperX for users who want one mature package with Whisper/faster-whisper ASR, wav2vec2 alignment, VAD, and pyannote diarization. It is not the first choice because the product direction prefers Parakeet, but it is the strongest fallback ecosystem.
+6. **Clip assembly:** FFmpeg for deterministic extraction and montage. Store clip spans first, then render with either a re-encoded concat filter path for frame-accurate output or a stream-copy concat demuxer path only when sources/codecs are compatible.
 
 ## Ranked Tool Assessment
 
-### 1. NVIDIA NeMo + Parakeet
+### 1. CrispASR + Parakeet TDT v3 GGUF
 
-**Role:** Default local ASR engine.
+**Role:** Default ready-made local ASR CLI for Slayer intelligence.
+
+**Why it fits:** CrispASR is a C++ speech engine with a Parakeet backend, JSON/SRT/VTT/CSV/LRC outputs, full JSON word/token arrays, VAD, auto-download support, and Windows build scripts. The companion Parakeet v3 GGUF conversion provides quantized model files for this runtime and documents built-in TDT timestamps.
+
+**License/commercial:** CrispASR is MIT. The Parakeet GGUF files inherit CC BY 4.0 model terms from NVIDIA Parakeet, so Slayer should not bundle them and should preserve attribution guidance.
+
+**Windows/local practicality:** Better first product path than NeMo because operators can run a local CLI instead of managing a CUDA/PyTorch/NeMo environment. Slayer should discover `CRISPASR_CLI`, `.local/bin/crispasr.exe`, or `crispasr` on `PATH`.
+
+**Integration notes:**
+
+- Extract audio to mono 16 kHz WAV with FFmpeg.
+- Run `crispasr --backend parakeet -m auto -f audio.wav -ojf -of transcript`.
+- Import CrispASR JSON into Slayer's normalized word ledger.
+- Keep raw engine JSON under `intelligence/transcripts/`.
+
+Sources:
+
+- [CrispASR GitHub](https://github.com/CrispStrobe/CrispASR)
+- [CrispASR CLI docs](https://raw.githubusercontent.com/CrispStrobe/CrispASR/main/docs/cli.md)
+- [Parakeet v3 GGUF for CrispASR](https://huggingface.co/cstr/parakeet-tdt-0.6b-v3-GGUF)
+
+### 2. NVIDIA NeMo + Parakeet
+
+**Role:** Upstream/reference ASR engine and advanced fallback.
 
 **Why it fits:** NeMo's ASR docs show loading Parakeet with `ASRModel.from_pretrained`, enabling `timestamps=True`, and reading `timestamp['word']`, `timestamp['segment']`, and `timestamp['char']`. Parakeet v2 is English-focused and explicitly lists accurate word-level timestamps. Parakeet v3 extends support to 25 European languages and lists accurate word-level and segment-level timestamps.
 
@@ -65,7 +89,7 @@ Sources:
 - [Parakeet TDT 0.6B v3 model card](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3)
 - [Parakeet unified EN 0.6B model card](https://huggingface.co/nvidia/parakeet-unified-en-0.6b)
 
-### 2. NVIDIA NeMo Forced Aligner
+### 3. NVIDIA NeMo Forced Aligner
 
 **Role:** Precision alignment and subtitle/CTM generator.
 
@@ -85,7 +109,7 @@ Sources:
 - [NeMo Forced Aligner nightly docs](https://docs.nvidia.com/nemo/speech/nightly/tools/nemo_forced_aligner.html)
 - [NVIDIA forced alignment explainer](https://research.nvidia.com/labs/conv-ai/blogs/2023/2023-08-forced-alignment/)
 
-### 3. WhisperX
+### 4. WhisperX
 
 **Role:** Best mature fallback when a user accepts Whisper.
 
@@ -106,7 +130,7 @@ Sources:
 - [OpenAI Whisper GitHub](https://github.com/openai/whisper)
 - [faster-whisper GitHub](https://github.com/SYSTRAN/faster-whisper)
 
-### 4. pyannote.audio
+### 5. pyannote.audio
 
 **Role:** Optional speaker diarization.
 
@@ -123,7 +147,7 @@ Sources:
 - [pyannote.audio GitHub](https://github.com/pyannote/pyannote-audio)
 - [pyannote speaker-diarization-community-1 model card](https://huggingface.co/pyannote/speaker-diarization-community-1)
 
-### 5. stable-ts
+### 6. stable-ts
 
 **Role:** Whisper-based subtitle/timestamp refinement fallback.
 
@@ -141,7 +165,7 @@ Source:
 
 - [stable-ts GitHub](https://github.com/jianfch/stable-ts)
 
-### 6. Montreal Forced Aligner
+### 7. Montreal Forced Aligner
 
 **Role:** Advanced known-transcript aligner, not default archive transcription.
 
@@ -161,7 +185,7 @@ Sources:
 - [MFA installation docs](https://montreal-forced-aligner.readthedocs.io/en/latest/installation.html)
 - [MFA TextGrid utilities](https://montreal-forced-aligner.readthedocs.io/en/stable/reference/helper/textgrid.html)
 
-### 7. ctc-segmentation and torchaudio forced alignment
+### 8. ctc-segmentation and torchaudio forced alignment
 
 **Role:** Low-level building blocks for a custom aligner later.
 
@@ -178,7 +202,7 @@ Sources:
 - [ctc-segmentation GitHub](https://github.com/lumaku/ctc-segmentation)
 - [torchaudio CTC forced alignment tutorial](https://docs.pytorch.org/audio/2.3.0/tutorials/ctc_forced_alignment_api_tutorial.html)
 
-### 8. FFmpeg
+### 9. FFmpeg
 
 **Role:** Audio extraction, clip rendering, and montage assembly.
 
@@ -246,7 +270,7 @@ Initial command surface:
 
 ```powershell
 slayer intelligence init --batch .\runs\batch-20260528\manifest.json
-slayer intelligence transcribe --batch .\runs\batch-20260528 --engine parakeet --device cuda
+slayer intelligence transcribe --batch .\runs\batch-20260528 --engine crispasr --model auto
 slayer intelligence index --batch .\runs\batch-20260528
 slayer intelligence search --batch .\runs\batch-20260528 --query "agentic"
 slayer intelligence clips plan --batch .\runs\batch-20260528 --query "agentic" --pad-start 0.50 --pad-end 0.75

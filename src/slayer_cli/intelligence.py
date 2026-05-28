@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -11,11 +12,13 @@ from typing import Iterable
 from .doctor import Check
 from .ledger import load_item_ledger
 from .process import CommandResult, run_command
-from .tools import find_ffmpeg
+from .tools import find_crispasr, find_ffmpeg
 
 
 INTELLIGENCE_SCHEMA_VERSION = 1
 WORD_RE = re.compile(r"[a-z0-9]+(?:'[a-z0-9]+)?")
+RAW_WORD_RE = re.compile(r"[A-Za-z0-9]+(?:'[A-Za-z0-9]+)?")
+CRISPASR_ENGINE = "crispasr/parakeet-tdt-0.6b-v3"
 
 
 @dataclass(frozen=True)
@@ -165,6 +168,9 @@ def normalize_word_rows(
                 "end": round(end, 3),
                 "confidence": row.get("confidence"),
                 "speaker": row.get("speaker"),
+                "timing_source": row.get("timing_source"),
+                "asr_backend": row.get("asr_backend"),
+                "asr_model": row.get("asr_model"),
                 "engine": str(row.get("engine") or engine),
                 "imported_at": now_iso(),
             }
@@ -206,13 +212,14 @@ def init_intelligence(manifest_path: Path) -> Path:
 def doctor_intelligence(manifest_path: Path) -> list[Check]:
     paths = intelligence_paths(manifest_path.parent)
     ffmpeg = find_ffmpeg()
+    crispasr = find_crispasr()
     status = intelligence_status(manifest_path)
     return [
         Check("batch manifest", manifest_path.exists(), str(manifest_path)),
         Check("intelligence workspace", paths.root.exists(), str(paths.root) if paths.root.exists() else "not initialized"),
         Check("word ledger", True, f"{status['words']} word(s) in {status['word_files']} file(s)"),
         Check("ffmpeg", ffmpeg.ok, ffmpeg.detail if not ffmpeg.version else ffmpeg.version),
-        Check("asr backend", True, "optional; MVP supports imported Parakeet/NeMo-compatible word ledgers"),
+        Check("crispasr", True, str(crispasr.path) if crispasr.path else "recommended Parakeet backend not installed; import mode still available"),
     ]
 
 
@@ -244,6 +251,335 @@ def import_words(
     write_jsonl(target, rows)
     write_intelligence_manifest(paths, manifest_path=manifest_path, manifest=manifest)
     return target, len(rows)
+
+
+def parse_time_value(value: object) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    text = str(value).strip()
+    if not text:
+        return None
+    try:
+        return float(text)
+    except ValueError:
+        pass
+    match = re.match(r"^(?:(\d+):)?(\d+):(\d+)(?:[,.](\d+))?$", text)
+    if not match:
+        return None
+    hours = int(match.group(1) or 0)
+    minutes = int(match.group(2))
+    seconds = int(match.group(3))
+    fraction = match.group(4) or "0"
+    return hours * 3600 + minutes * 60 + seconds + float(f"0.{fraction}")
+
+
+def timing_from_entry(entry: dict) -> tuple[float | None, float | None]:
+    start = parse_time_value(
+        entry.get("start")
+        if "start" in entry
+        else entry.get("start_seconds", entry.get("from", entry.get("begin")))
+    )
+    end = parse_time_value(
+        entry.get("end")
+        if "end" in entry
+        else entry.get("end_seconds", entry.get("stop", entry.get("to")))
+    )
+    offsets = entry.get("offsets")
+    if isinstance(offsets, dict):
+        offset_start = parse_time_value(offsets.get("from", offsets.get("start")))
+        offset_end = parse_time_value(offsets.get("to", offsets.get("end")))
+        start = start if start is not None else (offset_start / 1000.0 if offset_start is not None else None)
+        end = end if end is not None else (offset_end / 1000.0 if offset_end is not None else None)
+    timestamps = entry.get("timestamps") or entry.get("timestamp")
+    if isinstance(timestamps, dict):
+        start = start if start is not None else parse_time_value(timestamps.get("from", timestamps.get("start")))
+        end = end if end is not None else parse_time_value(timestamps.get("to", timestamps.get("end")))
+    return start, end
+
+
+def text_words(value: object) -> list[str]:
+    return [match.group(0) for match in RAW_WORD_RE.finditer(str(value or ""))]
+
+
+def split_timed_words(text: object, start: float, end: float, *, timing_source: str) -> list[dict]:
+    words = text_words(text)
+    if not words:
+        return []
+    duration = max(0.001, end - start)
+    slice_seconds = duration / len(words)
+    rows = []
+    for index, word in enumerate(words):
+        word_start = start + index * slice_seconds
+        word_end = end if index == len(words) - 1 else start + (index + 1) * slice_seconds
+        rows.append(
+            {
+                "word": word,
+                "start": round(word_start, 3),
+                "end": round(word_end, 3),
+                "timing_source": timing_source if len(words) == 1 else f"{timing_source}-split-approximate",
+            }
+        )
+    return rows
+
+
+def token_time_seconds(token: dict, key: str) -> float | None:
+    value = token.get(key)
+    if value is None:
+        return None
+    parsed = parse_time_value(value)
+    if parsed is None:
+        return None
+    return parsed / 100.0
+
+
+def token_confidence(values: list[object]) -> float | None:
+    probabilities = [float(value) for value in values if value is not None]
+    if not probabilities:
+        return None
+    return round(mean(probabilities), 4)
+
+
+def words_from_crispasr_tokens(segment: dict) -> list[dict]:
+    tokens = segment.get("tokens")
+    if not isinstance(tokens, list):
+        return []
+    segment_start, segment_end = timing_from_entry(segment)
+    segment_duration = None
+    if segment_start is not None and segment_end is not None and segment_end > segment_start:
+        segment_duration = segment_end - segment_start
+    rows: list[dict] = []
+    current = ""
+    current_start: float | None = None
+    current_end: float | None = None
+    current_probabilities: list[object] = []
+
+    def adjusted_time(value: float | None) -> float | None:
+        if value is None:
+            return None
+        if segment_start and segment_duration is not None and value <= segment_duration + 1.0:
+            return segment_start + value
+        return value
+
+    def flush() -> None:
+        nonlocal current, current_start, current_end, current_probabilities
+        if current and current_start is not None and current_end is not None and current_end > current_start:
+            rows.append(
+                {
+                    "word": current,
+                    "start": round(current_start, 3),
+                    "end": round(current_end, 3),
+                    "confidence": token_confidence(current_probabilities),
+                    "timing_source": "crispasr-token",
+                }
+            )
+        current = ""
+        current_start = None
+        current_end = None
+        current_probabilities = []
+
+    for token in tokens:
+        if not isinstance(token, dict):
+            continue
+        raw_text = str(token.get("text", ""))
+        pieces = text_words(raw_text)
+        if not pieces:
+            flush()
+            continue
+        token_start = adjusted_time(token_time_seconds(token, "t0"))
+        token_end = adjusted_time(token_time_seconds(token, "t1"))
+        if token_start is None or token_end is None or token_end <= token_start:
+            continue
+        if raw_text[:1].isspace():
+            flush()
+        for piece_index, piece in enumerate(pieces):
+            if piece_index > 0:
+                flush()
+            if not current:
+                current_start = token_start
+            current += piece
+            current_end = token_end
+            current_probabilities.append(token.get("p", token.get("confidence")))
+    flush()
+    return rows
+
+
+def crispasr_candidate_words(payload: dict) -> list[tuple[dict, dict | None, bool]]:
+    candidates: list[tuple[dict, dict | None, bool]] = []
+    if isinstance(payload.get("words"), list):
+        candidates.extend((dict(row), None, True) for row in payload["words"])
+    for segment in payload.get("transcription", []):
+        if not isinstance(segment, dict):
+            continue
+        segment_words = segment.get("words")
+        if isinstance(segment_words, list):
+            candidates.extend((dict(row), segment, True) for row in segment_words if isinstance(row, dict))
+            continue
+        candidates.append((segment, None, False))
+    return candidates
+
+
+def crispasr_word_rows(payload: dict) -> list[dict]:
+    rows: list[dict] = []
+    backend = (payload.get("crispasr") or {}).get("backend") if isinstance(payload.get("crispasr"), dict) else None
+    model = (payload.get("crispasr") or {}).get("model") if isinstance(payload.get("crispasr"), dict) else None
+    candidates = crispasr_candidate_words(payload)
+    for segment in payload.get("transcription", []):
+        if not isinstance(segment, dict) or isinstance(segment.get("words"), list):
+            continue
+        token_rows = words_from_crispasr_tokens(segment)
+        for row in token_rows:
+            row["speaker"] = segment.get("speaker")
+            row["asr_backend"] = backend
+            row["asr_model"] = model
+            rows.append(row)
+        if token_rows:
+            candidates = [candidate for candidate in candidates if candidate[0] is not segment]
+
+    for candidate, segment, explicit_word in candidates:
+        text = candidate.get("word", candidate.get("text", candidate.get("token", "")))
+        start, end = timing_from_entry(candidate)
+        if (start is None or end is None) and segment:
+            start, end = timing_from_entry(segment)
+        if start is None or end is None or end <= start:
+            continue
+        confidence = candidate.get("confidence", candidate.get("probability", candidate.get("p")))
+        speaker = candidate.get("speaker") or (segment or {}).get("speaker")
+        source = "crispasr-word" if explicit_word else "crispasr-segment"
+        for row in split_timed_words(text, start, end, timing_source=source):
+            row["confidence"] = confidence
+            row["speaker"] = speaker
+            row["asr_backend"] = backend
+            row["asr_model"] = model
+            rows.append(row)
+    if not rows:
+        raise ValueError("CrispASR JSON did not contain timestamped words")
+    for index, row in enumerate(rows):
+        row["word_index"] = index
+    return rows
+
+
+def import_crispasr_json(
+    manifest_path: Path,
+    json_path: Path,
+    *,
+    video_id: str | None = None,
+    item_id: str | None = None,
+    media_path: str | None = None,
+    engine: str = CRISPASR_ENGINE,
+) -> tuple[Path, int]:
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    paths = intelligence_paths(manifest_path.parent)
+    ensure_intelligence_dirs(paths)
+    payload = json.loads(json_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("CrispASR input must be a JSON object")
+    rows = normalize_word_rows(
+        crispasr_word_rows(payload),
+        manifest_path=manifest_path,
+        manifest=manifest,
+        video_id=video_id,
+        item_id=item_id,
+        media_path=media_path,
+        engine=engine,
+    )
+    target_id = slugify(video_id or item_id or rows[0]["video_id"])
+    transcript_target = paths.transcripts / f"{target_id}.crispasr.json"
+    if json_path.resolve() != transcript_target.resolve():
+        shutil.copyfile(json_path, transcript_target)
+    target = paths.words / f"{target_id}.words.jsonl"
+    write_jsonl(target, rows)
+    write_intelligence_manifest(paths, manifest_path=manifest_path, manifest=manifest)
+    return target, len(rows)
+
+
+def extract_audio(media_path: Path, audio_path: Path) -> CommandResult:
+    ffmpeg = find_ffmpeg()
+    if not ffmpeg.path:
+        raise RuntimeError("ffmpeg not found")
+    audio_path.parent.mkdir(parents=True, exist_ok=True)
+    return run_command(
+        [
+            ffmpeg.path,
+            "-y",
+            "-i",
+            media_path,
+            "-vn",
+            "-ac",
+            "1",
+            "-ar",
+            "16000",
+            "-f",
+            "wav",
+            audio_path,
+        ],
+        timeout=60 * 60,
+    )
+
+
+def transcribe_with_crispasr(
+    manifest_path: Path,
+    media_path: Path,
+    *,
+    video_id: str | None = None,
+    item_id: str | None = None,
+    model: str = "auto",
+    backend: str = "parakeet",
+    threads: int | None = None,
+    vad: bool = True,
+    crispasr_path: Path | None = None,
+    timeout: int = 60 * 60 * 4,
+) -> tuple[Path, Path, Path, int, list[CommandResult]]:
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    paths = intelligence_paths(manifest_path.parent)
+    ensure_intelligence_dirs(paths)
+    tool = find_crispasr()
+    executable = crispasr_path or tool.path
+    if not executable:
+        raise RuntimeError("CrispASR CLI not found. Set CRISPASR_CLI or install it into .local/bin.")
+    target_id = slugify(video_id or item_id or media_path.stem)
+    audio_path = paths.audio / f"{target_id}.wav"
+    transcript_base = paths.transcripts / f"{target_id}.crispasr"
+    transcript_json = transcript_base.with_suffix(".json")
+    results: list[CommandResult] = []
+
+    audio_result = extract_audio(media_path, audio_path)
+    results.append(audio_result)
+    if not audio_result.ok:
+        return audio_path, transcript_json, paths.words / f"{target_id}.words.jsonl", 0, results
+
+    command: list[str | Path] = [
+        executable,
+        "--backend",
+        backend,
+        "-m",
+        model,
+        "-f",
+        audio_path,
+        "-ojf",
+        "-of",
+        transcript_base,
+    ]
+    if threads:
+        command.extend(["-t", str(threads)])
+    if vad:
+        command.append("--vad")
+    asr_result = run_command(command, timeout=timeout)
+    results.append(asr_result)
+    if not asr_result.ok:
+        return audio_path, transcript_json, paths.words / f"{target_id}.words.jsonl", 0, results
+    if not transcript_json.exists() and asr_result.stdout.lstrip().startswith("{"):
+        transcript_json.write_text(asr_result.stdout, encoding="utf-8")
+    word_path, count = import_crispasr_json(
+        manifest_path,
+        transcript_json,
+        video_id=video_id or target_id,
+        item_id=item_id,
+        media_path=str(media_path),
+    )
+    write_intelligence_manifest(paths, manifest_path=manifest_path, manifest=manifest)
+    return audio_path, transcript_json, word_path, count, results
 
 
 def load_all_words(manifest_path: Path) -> list[dict]:

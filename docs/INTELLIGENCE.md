@@ -6,7 +6,7 @@ The module does not download media, operate Mullvad, call `yt-dlp`, rotate relay
 
 ## Product Shape
 
-The durable contract is a timestamped word ledger. ASR engines such as NVIDIA NeMo + Parakeet, WhisperX, or future backends should produce the same shape:
+The durable contract is a timestamped word ledger. ASR engines such as CrispASR + Parakeet, NVIDIA NeMo + Parakeet, or future backends should produce the same shape:
 
 ```json
 {"word":"Agentic","start":312.42,"end":312.79,"confidence":0.92,"speaker":null}
@@ -28,7 +28,8 @@ Slayer normalizes that input into:
   "end": 312.79,
   "confidence": 0.92,
   "speaker": null,
-  "engine": "nvidia/parakeet-tdt-0.6b-v2"
+  "timing_source": "crispasr-word",
+  "engine": "crispasr/parakeet-tdt-0.6b-v3"
 }
 ```
 
@@ -53,6 +54,19 @@ Import timestamped words from JSONL or JSON:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence ingest-words "batches\...\manifest.json" --input ".\words.jsonl" --video-id "abc123" --engine "nvidia/parakeet-tdt-0.6b-v2"
+```
+
+Run the ready-made CrispASR Parakeet backend on local media:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --model auto
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --limit 5
+```
+
+Import existing CrispASR `-ojf` JSON:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence import-crispasr "batches\...\manifest.json" --input ".\transcript.json" --video-id "abc123" --media-path ".\video.mp4"
 ```
 
 Search exact words or phrases:
@@ -99,23 +113,30 @@ batches/<batch>/
 
 ## ASR Backend Strategy
 
-The MVP accepts imported word ledgers so the search and clip system can be verified without a heavy GPU dependency.
+The default ready-made ASR backend is now **CrispASR + Parakeet TDT 0.6B v3**.
 
-The recommended production ASR path is still NVIDIA NeMo + Parakeet:
+CrispASR is a local C++ speech engine that can run Parakeet without adding PyTorch or NeMo to the core Slayer package. Slayer invokes it as an external tool, asks for full JSON output, and imports the resulting timestamped words into the same ledger/search/clip system.
 
-- English default: `nvidia/parakeet-tdt-0.6b-v2`
-- Multilingual option: `nvidia/parakeet-tdt-0.6b-v3`
-- Runtime isolation: WSL2 Ubuntu with NVIDIA CUDA, Docker Desktop with WSL2 GPU backend, or a separate managed Python environment
+Recommended command shape:
 
-Do not add PyTorch, NeMo, or model weights to the core CLI package. They are optional external runtime dependencies.
+```powershell
+crispasr --backend parakeet -m auto -f ".\audio.wav" -ojf -of ".\transcript"
+```
+
+Slayer wraps that with `slayer intelligence transcribe`, which first extracts mono 16 kHz WAV with FFmpeg, then imports the CrispASR JSON.
+
+Do not bundle CrispASR, Parakeet GGUF files, PyTorch, NeMo, or model weights in the core package. They are external runtime dependencies with their own licenses and install steps.
 
 Primary references:
 
+- CrispASR: https://github.com/CrispStrobe/CrispASR
+- CrispASR CLI docs: https://raw.githubusercontent.com/CrispStrobe/CrispASR/main/docs/cli.md
+- Parakeet v3 GGUF for CrispASR: https://huggingface.co/cstr/parakeet-tdt-0.6b-v3-GGUF
 - NVIDIA NeMo ASR timestamps: https://docs.nvidia.com/nemo/speech/nightly/asr/intro.html
 - Parakeet v2 model card: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v2
 - Parakeet v3 model card: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
-- NeMo install docs: https://docs.nvidia.com/nemo/speech/nightly/starthere/install.html
-- Docker Desktop GPU support: https://docs.docker.com/desktop/features/gpu/
+
+NeMo remains the upstream/reference route when an operator wants the official NVIDIA Python/CUDA stack. WhisperX remains a fallback only; it is not the product default.
 
 ## Operating SOP
 

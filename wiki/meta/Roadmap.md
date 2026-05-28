@@ -66,8 +66,9 @@ tags: [roadmap, meta]
 
 - Add an optional `slayer intelligence` module for already-downloaded lawful media. MVP command surface is now in place.
 - Extract local audio with FFmpeg into normalized WAV artifacts.
-- Use NVIDIA NeMo + Parakeet as the first ASR engine for word-level timestamped transcripts.
-- Store transcript output as a structured word ledger plus raw engine output. MVP imports compatible word ledgers now.
+- Use CrispASR + Parakeet TDT v3 GGUF as the preferred ready-made ASR backend for word-level timestamped transcripts.
+- Keep NVIDIA NeMo + Parakeet as the upstream/reference fallback when an operator wants the official Python/CUDA stack.
+- Store transcript output as a structured word ledger plus raw engine output. MVP imports compatible word ledgers and CrispASR JSON now.
 - Implement exact word/phrase search over normalized word tokens, returning video id, media path, start/end, confidence, and surrounding context. MVP complete.
 - Generate reviewable FFmpeg clip plans before rendering any montage. MVP complete.
 - Add optional pyannote.audio diarization to assign speaker segments to word spans.

@@ -47,6 +47,19 @@ NVIDIA Parakeet ASR models
 - Distribution note: this project does not bundle Parakeet model weights. Users
   download and use the models under their own accepted model terms.
 
+CrispASR and Parakeet GGUF
+
+- CrispASR project: https://github.com/CrispStrobe/CrispASR
+- CrispASR license: MIT according to the repository.
+- Parakeet GGUF model files:
+  https://huggingface.co/cstr/parakeet-tdt-0.6b-v3-GGUF
+- Model license: CC BY 4.0 inherited from NVIDIA Parakeet according to the
+  model card.
+- Use in this repository: preferred ready-made local ASR backend for producing
+  timestamped word ledgers.
+- Distribution note: this project does not bundle CrispASR binaries or GGUF
+  model files. Users install them separately and comply with their licenses.
+
 FFmpeg
 
 - Project: https://ffmpeg.org

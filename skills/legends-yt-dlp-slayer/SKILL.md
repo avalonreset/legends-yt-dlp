@@ -74,13 +74,15 @@ Use this only after a lawful local batch has been downloaded and verified. The i
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence init "<manifest.json>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "<manifest.json>" --media "<video.mp4>" --video-id "<video-id>" --model auto
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence import-crispasr "<manifest.json>" --input "<transcript.json>" --video-id "<video-id>" --media-path "<video.mp4>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence ingest-words "<manifest.json>" --input "<words.jsonl>" --video-id "<video-id>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence search "<manifest.json>" "agentic workflow"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips plan "<manifest.json>" --query "agentic workflow"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence vault build "<manifest.json>"
 ```
 
-The stable contract is a timestamped word ledger. Heavy ASR backends such as NVIDIA NeMo + Parakeet should be optional external producers of that ledger, preferably isolated in WSL2, Docker, or a separate Python environment.
+The stable contract is a timestamped word ledger. Prefer the ready-made CrispASR Parakeet backend for local transcription. Heavy ASR stacks such as NVIDIA NeMo + Parakeet remain advanced external producers of that ledger, preferably isolated in WSL2, Docker, or a separate Python environment.
 
 ### Productized Archive SOP
 
