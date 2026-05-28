@@ -138,7 +138,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json" --refresh
 ```
 
-Analyze verified local media after download:
+Analyze verified local media after download when the user asks for transcripts, search, clips, a transcript vault, or when the job clearly calls for post-capture analysis. Plain archive/download jobs do not need transcription by default:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence init "batches\...\manifest.json"
@@ -152,6 +152,8 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence vault b
 ```
 
 `intelligence doctor --require-gpu` is the truth gate for GPU-backed Parakeet. CPU-only CrispASR still runs locally without Codex or Claude token spend, but the project does not label that install GPU-ready unless CrispASR diagnostics report a compiled GPU backend.
+
+Treat `slayer intelligence` as an optional post-capture layer. The normal archive contract ends after run, verify, and ledger review unless the user requested analysis or the operator has a clear reason to propose it.
 
 ## Safety Boundary
 

@@ -128,6 +128,8 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\
 
 Check final item counts, downloaded or archived statuses, warnings, bytes, output paths, info JSON sidecars, and verification status. Preserve the rights evidence file with the batch as part of the audit trail.
 
+This is the stopping point for a plain download/archive request. Do not automatically transcribe every verified batch. Offer or run `slayer intelligence` only when the user asks for transcripts, exact search, clip extraction, a transcript vault, or when the job context clearly needs post-capture analysis.
+
 ## 9. Stop Conditions
 
 Stop and review when any of these occur:

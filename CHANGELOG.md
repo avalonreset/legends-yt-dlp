@@ -34,3 +34,4 @@
 - Made `intelligence transcribe` reject contradictory GPU flags before launching ASR.
 - Added `smoke plan --url` so new validation can use operator-provided authorized smoke sources instead of the legacy built-in fixtures.
 - Added output folder policies so direct multi-link plans can land in one named batch folder while channel/playlist inventory can remain grouped by uploader.
+- Clarified that transcription/intelligence is an optional post-capture workflow, not mandatory for every download.

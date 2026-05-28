@@ -72,6 +72,8 @@ Do not use raw `disconnect` during operator work unless the user explicitly acce
 
 Use this only after a lawful local batch has been downloaded and verified. The intelligence module never downloads media, calls `yt-dlp`, operates Mullvad, rotates relays, or continues through source-side controls.
 
+Do not automatically transcribe every batch. The default archive workflow stops after run, verify, and ledger review. Invoke intelligence when the user asks for transcription, search, clip extraction, transcript vaults, or when the job context clearly calls for analysis and the operator explains that next step.
+
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence init "<manifest.json>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "<manifest.json>" --media "<video.mp4>" --video-id "<video-id>" --model auto

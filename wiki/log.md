@@ -8,6 +8,13 @@ tags: [log, meta]
 
 # Log
 
+## 2026-05-28 - Transcription Policy Clarified
+
+- Clarified product policy: Slayer does not automatically transcribe every ripped video.
+- The default archive workflow stops after run, verify, and ledger review for plain download requests.
+- `slayer intelligence` remains available when the user asks for transcripts, exact search, clip extraction, transcript vaults, or when the operator has a clear analysis reason and explains the proposed next step.
+- Updated README, CLI docs, SOP, walkthrough, skill instructions, command reference, and hot cache.
+
 ## 2026-05-28 - Output Folder Policies Added
 
 - User feedback exposed a product ergonomics gap: mixed ad hoc video links should not be scattered across uploader folders when the user expects one working folder.

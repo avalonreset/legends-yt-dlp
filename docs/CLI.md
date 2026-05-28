@@ -186,6 +186,8 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence vault b
 
 `intelligence` analyzes already-downloaded, verified local media. It does not download media, call `yt-dlp`, operate Mullvad, rotate relays, or continue through source-side blocks.
 
+Do not treat transcription as mandatory for every rip. Use `intelligence` when the user asks for transcripts, exact search, clip extraction, transcript vaults, or when the operator explicitly decides the batch needs post-capture analysis. Otherwise stop after run, verify, and ledger review.
+
 The default ready-made ASR path is CrispASR with Parakeet TDT v3. The generic import path still accepts timestamped word ledgers from JSONL or JSON. Exact search operates over normalized contiguous word tokens, so `agentic` matches `Agentic`, but `agent` does not match `agentic`.
 
 `intelligence doctor --require-gpu` is the release gate for GPU-backed Parakeet. CPU-only CrispASR still runs locally without Codex or Claude token spend, but the suite should not call it GPU-ready unless CrispASR diagnostics report a CUDA, Vulkan, Metal, or similar backend.

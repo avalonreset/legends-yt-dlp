@@ -28,7 +28,7 @@ tags: [hot-cache, meta]
 - Windows GPU build attempts found setup blockers, not application blockers: CUDA builds are blocked by the installed Visual Studio/CUDA host-compiler pairing, and Vulkan builds need the Vulkan SDK installed.
 - New `intelligence doctor --require-gpu` and `intelligence transcribe --gpu-backend ... --require-gpu` gates prevent the product from claiming GPU readiness unless CrispASR diagnostics report CUDA/Vulkan/Metal-style support.
 - Generated-speech and real downloaded-video intelligence smokes already proved transcript import, exact word search, clip planning/rendering, and vault export. Historical NASA evidence exists in the log, but new manual validation should use `smoke plan --url` with an operator-verified source.
-- Standard SOP: consult user, inventory/plan, review ledger, production preflight, dry-run, explicit approval, real run, verify, refresh/review ledger, then optionally run intelligence.
+- Standard SOP: consult user, inventory/plan, review ledger, production preflight, dry-run, explicit approval, real run, verify, refresh/review ledger. Run intelligence only when requested, clearly useful, or explicitly proposed and accepted.
 - Full unit gate after latest hardening: 54 tests pass; compileall, diff check, and vault health pass.
 
 ## Recent Changes

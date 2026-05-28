@@ -131,6 +131,8 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json" --refresh
 ```
 
+For a plain archive/download request, stop there. Move into `slayer intelligence` only when the user asked for transcripts, exact search, clips, a transcript vault, or the job clearly needs analysis.
+
 ## Stop Conditions
 
 Stop and report when the source presents throttles, captchas, login challenges, account controls, HTTP 429 blocks, DRM, paywalls, or access-control signals.

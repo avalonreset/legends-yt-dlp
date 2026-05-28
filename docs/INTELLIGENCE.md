@@ -4,6 +4,8 @@
 
 The module does not download media, operate Mullvad, call `yt-dlp`, rotate relays, or continue through source-side blocks. It works against local batch artifacts after the archive workflow has been verified.
 
+It is not part of every download by default. Use it when the user asks for transcripts, exact search, clip extraction, a transcript vault, or another analysis workflow. If the user only asks to archive or download media, the normal stopping point is `run`, `verify`, and ledger review.
+
 ## Product Shape
 
 The durable contract is a timestamped word ledger. ASR engines such as CrispASR + Parakeet, NVIDIA NeMo + Parakeet, or future backends should produce the same shape:

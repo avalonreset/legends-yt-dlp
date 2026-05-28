@@ -98,3 +98,5 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence vault b
 ```
 
 `intelligence doctor --require-gpu` is the local ASR truth gate. CPU-only CrispASR remains local and token-free, but do not call a setup GPU-ready unless diagnostics report a GPU backend.
+
+Transcription is optional. Do not run it for every download by default; run it when the user asks for transcripts, search, clips, vault output, or when the operator has a clear analysis reason.
