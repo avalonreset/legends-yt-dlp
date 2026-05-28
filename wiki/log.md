@@ -84,6 +84,8 @@ tags: [log, meta]
 - NeMo remains the upstream/reference route, but the product path is now a ready-made local CLI instead of a custom ASR runner.
 - Local backend evidence: cloned CrispASR into ignored `.local`, built `crispasr.exe` with MinGW/Ninja using `_WIN32_WINNT=0x0601`, copied it to `.local/bin`, and confirmed Slayer discovers it.
 - End-to-end intelligence smoke passed on a generated local speech WAV: CrispASR/Parakeet produced 6 token-timed word rows, exact search found `agentic workflow`, clip plan/render succeeded, and vault export wrote the transcript page.
+- Real downloaded-video evidence: planned, preflighted, dry-ran, downloaded, verified, and ledger-refreshed NASA Goddard `Venus in a Minute` through Slayer with Mullvad production posture on. CrispASR/Parakeet produced 153 token-timed word rows, exact search found 5 `venus` hits and 1 `oceans of water` hit, FFmpeg rendered a 5-clip `venus` montage, and vault export wrote the transcript page.
+- The real-video smoke caught a transcript filename bug in `transcribe_with_crispasr`; fixed the wrapper to expect `<video>.crispasr.json` and added regression coverage.
 
 ## 2026-05-28 - Guarded Disconnect Testing Added
 

@@ -2,7 +2,9 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
+from slayer_cli.process import CommandResult
 from slayer_cli.intelligence import (
     build_vault,
     import_crispasr_json,
@@ -12,7 +14,9 @@ from slayer_cli.intelligence import (
     make_clip_plan,
     read_jsonl,
     search_words,
+    transcribe_with_crispasr,
 )
+from slayer_cli.tools import ToolInfo
 
 
 class IntelligenceTests(unittest.TestCase):
@@ -217,6 +221,46 @@ class IntelligenceTests(unittest.TestCase):
             self.assertEqual(imported[1]["word"], "workflow")
             self.assertEqual(imported[1]["start"], 0.72)
             self.assertEqual(imported[1]["end"], 1.36)
+
+    def test_transcribe_with_crispasr_uses_crispasr_json_name(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = self.make_manifest(root)
+            media = root / "downloads" / "fixture.mp4"
+            captured: dict[str, Path] = {}
+
+            def fake_import(manifest_path: Path, json_path: Path, **_: object) -> tuple[Path, int]:
+                captured["json_path"] = json_path
+                return root / "intelligence" / "words" / "vid123.words.jsonl", 3
+
+            with (
+                patch(
+                    "slayer_cli.intelligence.find_crispasr",
+                    return_value=ToolInfo("crispasr", root / "crispasr.exe", "fake", True, "ok"),
+                ),
+                patch(
+                    "slayer_cli.intelligence.extract_audio",
+                    return_value=CommandResult(("ffmpeg",), 0, "", ""),
+                ),
+                patch(
+                    "slayer_cli.intelligence.run_command",
+                    return_value=CommandResult(("crispasr",), 0, "", ""),
+                ),
+                patch("slayer_cli.intelligence.import_crispasr_json", side_effect=fake_import),
+            ):
+                audio, transcript, words, count, results = transcribe_with_crispasr(
+                    manifest,
+                    media,
+                    video_id="vid123",
+                    item_id="vid123",
+                )
+
+            self.assertEqual(audio.name, "vid123.wav")
+            self.assertEqual(transcript.name, "vid123.crispasr.json")
+            self.assertEqual(captured["json_path"].name, "vid123.crispasr.json")
+            self.assertEqual(words.name, "vid123.words.jsonl")
+            self.assertEqual(count, 3)
+            self.assertEqual(len(results), 2)
 
     def test_clip_plan_clamps_padding_and_requires_media_path(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

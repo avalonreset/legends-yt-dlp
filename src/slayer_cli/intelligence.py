@@ -541,7 +541,7 @@ def transcribe_with_crispasr(
     target_id = slugify(video_id or item_id or media_path.stem)
     audio_path = paths.audio / f"{target_id}.wav"
     transcript_base = paths.transcripts / f"{target_id}.crispasr"
-    transcript_json = transcript_base.with_suffix(".json")
+    transcript_json = paths.transcripts / f"{target_id}.crispasr.json"
     results: list[CommandResult] = []
 
     audio_result = extract_audio(media_path, audio_path)

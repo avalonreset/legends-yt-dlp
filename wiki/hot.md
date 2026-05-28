@@ -39,7 +39,8 @@ tags: [hot-cache, meta]
 - `slayer intelligence` now has an MVP command surface for workspace init, doctor/status, CrispASR transcription/import, timestamped word import, exact word/phrase search, clip-plan generation, optional FFmpeg rendering, and Obsidian transcript vault export.
 - Local CrispASR build succeeded in ignored `.local` with MinGW/Ninja and is discoverable at `.local/bin/crispasr.exe`.
 - End-to-end generated speech smoke passed: Parakeet transcript import produced 6 token-timed word rows; exact search, clip plan/render, and transcript vault export all worked.
-- Unit gate: 49 tests pass; compileall passes; package inspection passes; vault health/secret scan are part of the final gate.
+- Real downloaded-video smoke passed on NASA Goddard `Venus in a Minute`: production preflight, dry-run, real download, verify, ledger refresh, CrispASR/Parakeet transcription, exact search, clip montage rendering, and vault export all worked.
+- Unit gate: 50 tests pass; compileall passes; package inspection passes; vault health/secret scan are part of the final gate.
 
 ## Recent Changes
 
@@ -49,6 +50,6 @@ tags: [hot-cache, meta]
 ## Active Threads
 
 - Next release gate is deciding whether to tag/publish `v0.1.0-alpha` with the generated zip after user review.
-- New product track for the next development slice: run CrispASR/Parakeet against a short real downloaded video with clear narration, then package the install helper.
+- New product track for the next development slice: package the CrispASR install/build helper and decide how much of the ignored local backend smoke should become a repeatable documented operator test.
 - Existing older manifests may fail production preflight until regenerated because they lack the newer anonymous-auth and limit policy flags.
 - Next GitHub step is optional: create a first alpha tag after reviewing the pushed hardening commit.

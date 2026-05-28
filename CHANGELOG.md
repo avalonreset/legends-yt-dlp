@@ -28,3 +28,4 @@
 - Added `onboard` first-run guidance command, walkthrough docs, and batch intake/rights evidence examples.
 - Added `slayer intelligence` MVP for post-download word-ledger import, exact phrase search, FFmpeg clip planning/rendering, and Obsidian transcript vault export.
 - Added CrispASR/Parakeet as the preferred ready-made transcription backend with `intelligence transcribe` and `import-crispasr`.
+- Fixed CrispASR transcript artifact naming after a real downloaded-video smoke test and added regression coverage.
