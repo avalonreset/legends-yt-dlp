@@ -1,6 +1,6 @@
 ---
 name: legends-yt-dlp-slayer
-description: Use when the user wants Codex to operate Legends YT-DLP Slayer: lawful yt-dlp batch archiving, Mullvad VPN preflight/control, large download catalogs, dry-runs, resumable queue execution, or troubleshooting the Slayer/Printing Press CLI.
+description: Use when the user wants Codex to operate Legends YT-DLP Slayer: yt-dlp source capture, Mullvad VPN lifecycle control, large download catalogs, dry-runs, resumable queue execution, or troubleshooting the Slayer/Printing Press CLI.
 ---
 
 # Legends YT-DLP Slayer
@@ -55,7 +55,7 @@ Read `references/commands.md` for the full command surface.
 For alpha packaging:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.0-alpha"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.2.0-alpha"
 ```
 
 Inspect `docs/PACKAGING.md`, `docs/LEGAL.md`, `NOTICE`, and `LICENSE` before publishing a release package.
@@ -66,7 +66,7 @@ For VPN fail-closed testing, use only the guarded command:
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect-test --emergency-unlock
 ```
 
-Do not use raw `disconnect` during operator work unless the user explicitly accepts the risk. The guarded test constrains to a US relay by default, checks Lockdown behavior, and reconnects before returning.
+Do not use raw `disconnect` during operator work unless the user explicitly accepts the risk. For normal end-of-work cleanup, use `mullvad shutdown`; it disables Lockdown before disconnecting and verifies Mullvad is no longer connected. The guarded test constrains to a US relay by default, checks Lockdown behavior, and reconnects before returning.
 
 ### Post-Capture Intelligence
 

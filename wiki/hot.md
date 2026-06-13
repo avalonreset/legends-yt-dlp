@@ -3,7 +3,7 @@ type: meta
 title: "Hot Cache"
 status: active
 created: 2026-05-27
-updated: 2026-06-12
+updated: 2026-06-13
 tags: [hot-cache, meta]
 ---
 
@@ -11,11 +11,13 @@ tags: [hot-cache, meta]
 
 ## Last Updated
 
-2026-06-12. NeMo Forced Aligner is now integrated as an optional word-ledger refinement path for delicate clip boundaries.
+2026-06-13. v0.2.0 adds explicit Mullvad end-of-work cleanup: real runs now disable Lockdown, disconnect Mullvad, and verify the disconnected final state by default.
 
 ## Key Recent Facts
 
 - Product boundary remains fixed: Mullvad is for privacy and leak prevention, not relay rotation to bypass throttling, captchas, login challenges, account controls, or blocks. Source-side controls pause and report.
+- Mullvad lifecycle rule: `setup production` turns on the fail-closed posture before capture; terminal real `run --yes` calls shutdown by default unless `--keep-vpn` is passed.
+- New `mullvad shutdown` command disables Lockdown before disconnecting with `--wait`, then verifies that Mullvad is no longer connected.
 - Live Mullvad production posture is working: connected, Lockdown on, split tunneling off, LAN blocked, auto-connect on, Node JS runtime available.
 - Official `yt-dlp.exe` is installed locally at `.local/bin` and reports `2026.03.17`.
 - A real user-provided YouTube video downloaded through Slayer into `C:\Users\rccol\Downloads\seedance20\...jK7ss4TvtcY.mp4`; ffprobe confirmed `1920x1080`, H.264, 30fps, 45.77s, 23,944,375 bytes.
@@ -31,7 +33,7 @@ tags: [hot-cache, meta]
 - New `intelligence doctor --require-gpu` and `intelligence transcribe --gpu-backend ... --require-gpu` gates prevent the product from claiming GPU readiness unless CrispASR diagnostics report CUDA/Vulkan/Metal-style support.
 - Generated-speech and real downloaded-video intelligence smokes already proved transcript import, exact word search, clip planning/rendering, and vault export. Historical NASA evidence exists in the log, but new manual validation should use `smoke plan --url` with an operator-verified source.
 - Standard SOP: consult user, inventory/plan, review ledger, production preflight, dry-run, explicit approval, real run, verify, refresh/review ledger. Run intelligence only when requested, clearly useful, or explicitly proposed and accepted.
-- Full unit gate after latest hardening: 54 tests pass; compileall, diff check, and vault health pass.
+- Full unit gate after latest hardening: 65 tests pass.
 
 ## Recent Changes
 
@@ -40,6 +42,7 @@ tags: [hot-cache, meta]
 - Added CrispASR diagnostics parsing, GPU-required doctor/transcribe flags, docs, and regression tests.
 - Added contradictory GPU flag rejection for `intelligence transcribe` so CPU-forced and GPU-required modes cannot be mixed.
 - Added the NeMo Forced Aligner refinement bridge, docs, wiki runbook, and regression tests.
+- Added default post-run Mullvad shutdown, `run --keep-vpn`, `mullvad shutdown`, docs, and regression tests.
 - Updated README, CLI, and CrispASR/intelligence docs with CPU-vs-GPU truth gates.
 
 ## Active Threads
@@ -47,4 +50,4 @@ tags: [hot-cache, meta]
 - Next technical gate: build or obtain a GPU-enabled CrispASR binary and confirm diagnostics report CUDA or Vulkan before calling the ASR path GPU-ready.
 - Next alignment gate: validate `intelligence align nfa` against a real NeMo/CUDA environment and import a real CTM before describing local NFA runtime as verified.
 - Legacy count-based smoke fixtures still exist for compatibility, but docs/onboarding now steer new validation to `smoke plan --url`.
-- Optional release gate after more review: package/tag `v0.1.0-alpha`.
+- Current release gate: package/tag `v0.2.0` after final docs, classroom card, and release-post assets are ready.

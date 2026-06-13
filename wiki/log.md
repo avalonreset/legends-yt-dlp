@@ -2,11 +2,18 @@
 type: meta
 status: active
 created: 2026-05-27
-updated: 2026-06-12
+updated: 2026-06-13
 tags: [log, meta]
 ---
 
 # Log
+
+## 2026-06-13 - Mullvad Lifecycle Shutdown Added
+
+- Added `mullvad shutdown` to disable Lockdown, disconnect Mullvad with `--wait`, and verify the disconnected final state.
+- Made terminal real `run --yes` batches call Mullvad shutdown by default, with `--keep-vpn` for operators who intentionally want the tunnel and Lockdown left running.
+- Updated README, CLI docs, SOP, Safety, Architecture, packaging metadata, skill instructions, and the Windows Mullvad Integration wiki page for v0.2.0.
+- Verification: full pytest suite passed with 65 tests.
 
 ## 2026-06-12 - NeMo Forced Aligner Refinement Bridge Added
 

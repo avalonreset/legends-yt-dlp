@@ -4,6 +4,13 @@
 
 - No unreleased changes yet.
 
+## 0.2.0 - 2026-06-13
+
+- Added default post-run Mullvad shutdown for real `run --yes` batches: Lockdown mode is disabled, Mullvad disconnects with `--wait`, and the final disconnected state is verified.
+- Added `run --keep-vpn` for operators who intentionally want Mullvad and Lockdown left running after a batch.
+- Added `mullvad shutdown` as a direct command for manually turning Lockdown off, disconnecting Mullvad, and verifying normal network posture.
+- Updated README, CLI, SOP, Safety, Architecture, and Mullvad wiki docs to present Mullvad as an explicit start-and-stop lifecycle feature.
+
 ## 0.1.0 - 2026-06-13
 
 - Created the initial private development vault and repository scaffold.

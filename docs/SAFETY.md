@@ -44,6 +44,8 @@ Production runs require Mullvad to be connected with Lockdown mode enabled. Lock
 
 Production checks also require split tunneling off, LAN sharing blocked, and auto-connect on. These settings do not guarantee anonymity or immunity from platform controls; they reduce accidental leak and misconfiguration risk.
 
+Production posture is not meant to strand the operator after work is done. After a real `run --yes` reaches a terminal state, Slayer disables Lockdown, disconnects Mullvad with `--wait`, and verifies the disconnected final state by default. Use `--keep-vpn` only when more immediate capture work is expected.
+
 ## Account And Cookie Policy
 
 Production batches must use anonymous `yt-dlp` operation by default:

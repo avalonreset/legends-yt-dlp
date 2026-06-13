@@ -10,13 +10,13 @@
 
 Clip faster. Create sharper.
 
-Windows-first creator control plane for repeatable source pulls, local verification, transcripts, search, and clip-building on top of `yt-dlp`.
+Windows-first creator control plane for repeatable source pulls, local verification, transcripts, search, and clip-building on top of `yt-dlp`, with explicit Mullvad VPN lifecycle control.
 
-Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful, but real creator work needs more than a one-off download command. The project wraps the official `yt-dlp` binary with explicit batch plans, optional source notes, local state, conservative defaults, a short use notice before real runs, and a fail-closed Mullvad gate so capture work starts from a known machine posture.
+Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful, but real creator work needs more than a one-off command. The project wraps the official `yt-dlp` binary with explicit batch plans, optional source notes, local state, conservative defaults, a short use notice before real runs, and a fail-closed Mullvad gate so capture work starts from a known machine posture and ends by returning the operator's normal network connection.
 
 ## What It Does
 
-- Detects the official Mullvad CLI installed with the Windows app.
+- Detects and operates the official Mullvad CLI installed with the Windows app.
 - Stores the Mullvad account number locally in an ignored `.env` file.
 - Downloads the official Windows `yt-dlp.exe` release from `yt-dlp/yt-dlp`.
 - Verifies the downloaded binary against upstream `SHA2-256SUMS`.
@@ -26,6 +26,7 @@ Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful, but real creator 
 - Inventories channel and playlist URLs into a reviewable item ledger before downloads.
 - Copies optional rights evidence files into the batch folder.
 - Provides a one-command production setup path for Mullvad safety posture.
+- Automatically enables Mullvad and Lockdown for production posture, then disables Lockdown and disconnects Mullvad after completed real runs by default.
 - Supports custom operator-provided smoke URLs for install validation.
 - Supports bounded smoke jobs with max downloads, height, and filesize limits.
 - Generates stable anonymous-mode `yt-dlp` config files with download archives and conservative retry/sleep settings.
@@ -55,6 +56,7 @@ Working now:
 - Mullvad status/login/connect/lockdown wrappers
 - Mullvad inspect and settings wrappers
 - Mullvad safe recovery for tunnel/network failures
+- Mullvad post-run shutdown that turns Lockdown off, disconnects, and verifies the final state
 - guarded Mullvad disconnect testing that reconnects before returning
 - production posture checks for Mullvad Lockdown, split tunneling, LAN sharing, and auto-connect
 - anonymous yt-dlp auth/cookie policy checks
@@ -73,7 +75,7 @@ Working now:
 - post-capture `intelligence` workspace, CrispASR/Parakeet transcription, word import, search, clip planning, rendering, and vault export
 - Codex skill suite under `skills/legends-yt-dlp-slayer`
 
-Latest release target: `v0.1.0`.
+Latest release target: `v0.2.0`.
 
 ## Quick Start
 
@@ -94,6 +96,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad login
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lockdown on
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad connect
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad recover
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad shutdown
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect-test --emergency-unlock
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --require-connected
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --production
@@ -108,6 +111,8 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\man
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\manifest.json"
 ```
+
+`run --yes` now shuts Mullvad down by default after the batch reaches a terminal state: Lockdown is turned off first, Mullvad disconnects with `--wait`, and the final disconnected state is verified. Use `--keep-vpn` only when the operator intentionally wants Mullvad and Lockdown left running after the batch.
 
 Create a batch:
 
@@ -167,7 +172,7 @@ Allowed:
 - archiving videos you own
 - archiving videos you have permission to download
 - archiving public-domain or appropriately licensed content
-- using Mullvad as a privacy and leak-prevention layer
+- using Mullvad as a privacy and leak-prevention layer while source capture is actively running
 - stopping on throttling, captcha, login, or block signals
 
 Not allowed:
@@ -220,7 +225,7 @@ Production batches are anonymous by default: no browser cookies, no cookie files
 Build a local alpha zip:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.0-alpha"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.2.0-alpha"
 ```
 
 The package excludes `.env`, `.local`, `batches`, `reports`, downloads, caches, cookies, secrets, and git metadata.

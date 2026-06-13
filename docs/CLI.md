@@ -47,11 +47,14 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad login
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lockdown on
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad connect
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad recover
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad shutdown
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect-test --emergency-unlock
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
 ```
 
 `mullvad login` reads `MULLVAD_ACCOUNT_NUMBER` from `.env` and redacts it in output.
+
+`mullvad shutdown` is the normal end-of-work command. It turns Lockdown mode off, disconnects Mullvad with `--wait`, and verifies that Mullvad is no longer connected.
 
 `mullvad disconnect` refuses by default when Lockdown is on, because that can strand the operator without internet access. Use `mullvad disconnect-test` for fail-closed testing; it constrains the relay to `us` by default, disconnects, verifies Lockdown behavior, and reconnects before returning. `--emergency-unlock` disables Lockdown only if recovery fails.
 
@@ -97,7 +100,7 @@ The install command downloads the official Windows standalone executable and ver
 ## Packaging
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.0-alpha"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.2.0-alpha"
 ```
 
 Creates a local alpha zip and `.sha256` file under `dist/`. The package contains source, docs, scripts, tests, skill files, and legal/community files. It excludes local secrets, managed binaries, batches, reports, downloads, cookies, caches, and git metadata.
@@ -233,10 +236,13 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\.
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --dry-run
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --dry-run --show-output
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes --keep-vpn
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes --vpn-recovery-attempts 3
 ```
 
 Real downloads require passing production preflight and an explicit `--yes`. Before invoking `yt-dlp`, the runner prints a legal-use notice reminding operators to download only when they have rights, permission, a license, fair use, or another lawful basis. The runner refuses real downloads with `--no-production` or `--no-require-connected`.
+
+After a real run reaches a terminal state, `run` shuts Mullvad down by default: Lockdown mode off, VPN disconnected with `--wait`, and final state verified. Use `--keep-vpn` only when the operator intentionally wants Mullvad and Lockdown left running after the batch.
 
 Dry-runs suppress raw `yt-dlp` JSON by default and still write a compact run report. Use `--show-output` only when debugging extractor output.
 

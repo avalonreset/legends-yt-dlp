@@ -22,6 +22,7 @@ Mullvad Guard
   - supports login/connect/lockdown wrappers
   - blocks preflight when disconnected
   - can apply the full production posture with setup production
+  - shuts down Lockdown and disconnects Mullvad after terminal real runs by default
 
 yt-dlp Manager
   - downloads official Windows yt-dlp.exe
@@ -79,6 +80,8 @@ operators to the normal inventory/ledger/preflight/run/verify workflow.
 Use the official standalone `yt-dlp.exe` as a managed child-process dependency for Windows. This keeps the app independent from the user's Python environment and matches upstream's recommended Windows binary path.
 
 Use the official Mullvad CLI installed by the Windows app. Do not reverse engineer the GUI.
+
+Production capture starts by enabling a fail-closed Mullvad posture and connecting the VPN. Terminal real runs end by disabling Lockdown first, then disconnecting Mullvad with `--wait`, so the operator is not left in Mullvad Lockdown after the batch stops.
 
 ## State Strategy
 

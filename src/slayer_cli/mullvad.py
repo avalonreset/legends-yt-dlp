@@ -25,6 +25,12 @@ class RecoveryResult:
 
 
 @dataclass(frozen=True)
+class ShutdownResult:
+    ok: bool
+    messages: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class MullvadSetting:
     available: bool
     raw: str
@@ -76,6 +82,13 @@ def connect() -> CommandResult:
 
 def reconnect() -> CommandResult:
     return run_mullvad("reconnect", timeout=120)
+
+
+def disconnect(*, wait: bool = True) -> CommandResult:
+    args = ["disconnect"]
+    if wait:
+        args.append("--wait")
+    return run_mullvad(*args, timeout=120)
 
 
 def set_lockdown(on: bool) -> CommandResult:
@@ -147,6 +160,42 @@ def recover_connection(*, attempts: int = 2, wait_seconds: float = 5.0) -> Recov
         messages.append(f"Mullvad still not connected after recovery attempt {attempt}.")
 
     return RecoveryResult(False, attempts, tuple(messages))
+
+
+def shutdown_connection() -> ShutdownResult:
+    """Leave the operator's machine online after a capture run.
+
+    Production runs intentionally start fail-closed with Lockdown on. When a run is
+    finished, Lockdown must be disabled before disconnecting or the operator can be
+    left without normal network access.
+    """
+    messages: list[str] = []
+
+    lockdown = set_lockdown(False)
+    lockdown_output = "\n".join(part for part in [lockdown.stdout, lockdown.stderr] if part).strip()
+    if lockdown_output:
+        messages.append(lockdown_output)
+    if not lockdown.ok:
+        messages.append("Mullvad shutdown failed before disconnect: could not disable Lockdown mode.")
+        return ShutdownResult(False, tuple(messages))
+
+    disconnected = disconnect(wait=True)
+    disconnect_output = "\n".join(part for part in [disconnected.stdout, disconnected.stderr] if part).strip()
+    if disconnect_output:
+        messages.append(disconnect_output)
+    if not disconnected.ok:
+        messages.append("Mullvad shutdown failed: disconnect command did not complete successfully.")
+        return ShutdownResult(False, tuple(messages))
+
+    current = status(verbose=True)
+    if current.raw or current.error:
+        messages.append(current.raw or current.error or "")
+    if current.available and not current.connected:
+        messages.append("Mullvad shutdown verified: Lockdown is off and VPN is disconnected.")
+        return ShutdownResult(True, tuple(messages))
+
+    messages.append("Mullvad shutdown could not verify a disconnected final state.")
+    return ShutdownResult(False, tuple(messages))
 
 
 def redact_account_in_text(text: str, account_number: str | None) -> str:

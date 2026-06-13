@@ -2,7 +2,7 @@
 type: roadmap
 status: active
 created: 2026-05-27
-updated: 2026-06-12
+updated: 2026-06-13
 tags: [roadmap, meta]
 ---
 
@@ -58,7 +58,7 @@ tags: [roadmap, meta]
 - Keep optional rights evidence files for permission/license proof attached to each batch.
 - Keep the product SOP centered on consult user, inventory, ledger review, preflight, dry-run, approved real run, verify, and final ledger review.
 - Preserve stop-on-source-block behavior: no relay rotation to continue through throttles, captchas, login/account controls, or blocks.
-- Current v0.1.0-alpha packaging choice: source zip plus SHA256 generated under `dist/`.
+- Current v0.2.0 packaging choice: source zip plus SHA256 generated under `dist/`.
 - License/upstream notice posture is now MIT plus `NOTICE`; continue to avoid bundling yt-dlp or Mullvad binaries.
 - Improve public docs with a complete smoke-pack transcript and expected outputs before a wider community announcement.
 

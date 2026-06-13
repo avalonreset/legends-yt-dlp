@@ -51,6 +51,7 @@ from .mullvad import (
     redact_account_in_text,
     run_mullvad,
     set_lockdown,
+    shutdown_connection,
     status,
 )
 from .onboarding import onboarding_json, onboarding_text
@@ -188,6 +189,12 @@ def cmd_mullvad_disconnect(args: argparse.Namespace) -> int:
         print("For fail-closed testing, use: slayer mullvad disconnect-test --emergency-unlock", file=sys.stderr)
         return 2
     return print_mullvad_result(["disconnect"], timeout=120)
+
+
+def cmd_mullvad_shutdown(_: argparse.Namespace) -> int:
+    shutdown = shutdown_connection()
+    print_recovery_messages(shutdown.messages)
+    return 0 if shutdown.ok else 1
 
 
 def cmd_mullvad_reconnect(_: argparse.Namespace) -> int:
@@ -974,27 +981,38 @@ def cmd_run(args: argparse.Namespace) -> int:
             elif category == "network-warning":
                 print("Network warning detected in a successful run. Review the run report before scaling this source.", file=sys.stderr)
             print_run_summary(report)
-            return 0
+            return finalize_run_vpn(args, 0)
         category = classify_run_failure(result)
         if category == "limit-reached":
             report = write_run_report(manifest, dry_run=args.dry_run, result=result, category=category, started=started, ended=ended)
             print("Configured download limit reached.")
             print_run_summary(report)
-            return 0
+            return finalize_run_vpn(args, 0)
         if not args.recover_vpn or category != "transient-network" or attempt >= args.vpn_recovery_attempts:
             if category == "source-block":
                 print("Source-side block/throttle/login signal detected. Pausing without VPN relay/IP switching.", file=sys.stderr)
             report = write_run_report(manifest, dry_run=args.dry_run, result=result, category=category, started=started, ended=ended)
             print_run_summary(report)
-            return result.returncode
+            return finalize_run_vpn(args, result.returncode)
         print(f"Transient network failure detected. Recovering Mullvad before retry {attempt + 1}.", file=sys.stderr)
         recovery = recover_connection(attempts=1, wait_seconds=args.vpn_recovery_wait)
         for message in recovery.messages:
             print(redact_account_in_text(message, env_account()))
         if not recovery.ok:
             print("Mullvad recovery failed. Batch paused.", file=sys.stderr)
-            return result.returncode
-    return result.returncode
+            return finalize_run_vpn(args, result.returncode)
+    return finalize_run_vpn(args, result.returncode)
+
+
+def finalize_run_vpn(args: argparse.Namespace, return_code: int) -> int:
+    if args.dry_run or args.keep_vpn:
+        return return_code
+    shutdown = shutdown_connection()
+    print_recovery_messages(shutdown.messages)
+    if shutdown.ok:
+        return return_code
+    print("Mullvad shutdown failed after the batch stopped. Run slayer mullvad shutdown or inspect manually.", file=sys.stderr)
+    return return_code or 1
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -1037,6 +1055,9 @@ def build_parser() -> argparse.ArgumentParser:
     mv_disconnect = mullvad_sub.add_parser("disconnect", help="Disconnect Mullvad; refuses by default if Lockdown is on")
     mv_disconnect.add_argument("--force", action="store_true", help="Allow disconnect even when Lockdown is on")
     mv_disconnect.set_defaults(func=cmd_mullvad_disconnect)
+
+    mv_shutdown = mullvad_sub.add_parser("shutdown", help="Turn Lockdown off, disconnect Mullvad, and verify normal network posture")
+    mv_shutdown.set_defaults(func=cmd_mullvad_shutdown)
 
     mv_disconnect_test = mullvad_sub.add_parser("disconnect-test", help="Safely test fail-closed disconnect and automatic recovery")
     mv_disconnect_test.add_argument("--attempts", type=int, default=3)
@@ -1380,6 +1401,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--no-recover-vpn", dest="recover_vpn", action="store_false", help="Disable Mullvad recovery")
     run.add_argument("--vpn-recovery-attempts", type=int, default=2)
     run.add_argument("--vpn-recovery-wait", type=float, default=5.0)
+    run.add_argument("--keep-vpn", action="store_true", help="Leave Mullvad and Lockdown running after this real batch run")
     run.set_defaults(func=cmd_run)
 
     return parser

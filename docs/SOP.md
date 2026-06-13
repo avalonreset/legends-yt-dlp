@@ -76,6 +76,8 @@ This sets Mullvad to a conservative Windows production posture:
 - VPN connected or recovered
 - production doctor verified
 
+Production posture is for active capture. After a real batch reaches a terminal state, the default `run --yes` behavior is to turn Lockdown mode off, disconnect Mullvad with `--wait`, and verify the disconnected state.
+
 ## 5. Validate The Install
 
 Create a small authorized smoke batch:
@@ -117,6 +119,8 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\
 
 Before invoking `yt-dlp`, `run --yes` prints a short legal-use notice reminding operators to download only when they have rights, permission, a license, fair use, or another lawful basis, and to follow applicable laws and platform terms.
 
+After `yt-dlp` stops, `run --yes` shuts Mullvad down by default. Use `--keep-vpn` only when the operator intentionally wants to leave the tunnel and Lockdown running for more immediate capture work.
+
 Reruns are expected to be idempotent. Completed video IDs are stored in `archive.txt`; rerunning the same manifest should skip completed IDs instead of duplicating files.
 
 ## 8. Ledger Review
@@ -151,3 +155,11 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect-t
 ```
 
 It verifies fail-closed Lockdown behavior and reconnects before returning. Raw `mullvad disconnect` refuses by default when Lockdown is on.
+
+For normal end-of-work cleanup, use:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad shutdown
+```
+
+That command disables Lockdown before disconnecting, then verifies that Mullvad is no longer connected.
