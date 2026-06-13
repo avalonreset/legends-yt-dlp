@@ -25,14 +25,19 @@ from .envfile import read_env_file, redact
 from .inventory import create_batch_from_inventory
 from .intelligence import (
     CRISPASR_ENGINE,
+    NFA_DEFAULT_MODEL,
     build_vault,
     doctor_intelligence,
+    find_nfa_words_ctm,
     import_crispasr_json,
     import_words as intelligence_import_words,
     init_intelligence,
     intelligence_status,
     make_clip_plan,
+    prepare_nfa_manifest,
+    refine_words_with_nfa_ctm,
     render_clip_plan,
+    run_nfa_alignment,
     search_words,
     transcribe_with_crispasr,
     write_search_results,
@@ -53,6 +58,13 @@ from .paths import PROJECT_ROOT
 from .smoke import SMOKE_VIDEOS, create_custom_smoke_batch, create_smoke_batch
 from .tools import find_ytdlp, install_ytdlp, run_tool
 from .verify import verify_batch
+
+
+LEGAL_USE_NOTICE = (
+    "Legal use notice: only download material when you have the rights, permission, "
+    "a license, a valid fair-use basis, or another lawful basis. Follow all "
+    "applicable laws and platform terms."
+)
 
 
 def print_check(name: str, ok: bool, detail: str) -> None:
@@ -643,6 +655,115 @@ def cmd_intelligence_import_crispasr(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_intelligence_align_nfa(args: argparse.Namespace) -> int:
+    manifest = Path(args.manifest)
+    media_path = Path(args.media) if args.media else None
+    text: str | None = args.text
+    if args.text and args.text_file:
+        print("Use --text or --text-file, not both.", file=sys.stderr)
+        return 2
+    if args.text_file:
+        try:
+            text = Path(args.text_file).read_text(encoding="utf-8")
+        except OSError as exc:
+            print(f"Could not read NFA text file: {exc}", file=sys.stderr)
+            return 1
+
+    if args.import_ctm:
+        try:
+            target, count, backup_path = refine_words_with_nfa_ctm(
+                manifest,
+                Path(args.import_ctm),
+                video_id=args.video_id,
+                item_id=args.item_id,
+                media_path=args.media,
+            )
+        except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
+            print(f"Could not import NFA CTM: {exc}", file=sys.stderr)
+            return 1
+        print(f"Refined word ledger with NFA CTM: {target}")
+        print(f"Words: {count}")
+        if backup_path:
+            print(f"Backup: {backup_path}")
+        return 0
+
+    if not media_path:
+        print("NFA alignment needs --media unless you are using --import-ctm.", file=sys.stderr)
+        return 2
+
+    try:
+        prepared = prepare_nfa_manifest(
+            manifest,
+            media_path,
+            video_id=args.video_id,
+            item_id=args.item_id,
+            text=text,
+            audio_path=Path(args.audio) if args.audio else None,
+            refresh_audio=args.refresh_audio,
+            require_text=not args.align_using_pred_text,
+        )
+    except (OSError, RuntimeError, ValueError, KeyError, json.JSONDecodeError) as exc:
+        print(f"Could not prepare NFA manifest: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"NFA target: {prepared['target_id']}")
+    print(f"Audio: {prepared['audio_path']}")
+    print(f"Manifest: {prepared['manifest_path']}")
+    print(f"Output dir: {prepared['output_dir']}")
+    print(f"Reference words: {prepared['text_word_count']}")
+    if args.prepare_only:
+        return 0
+
+    try:
+        result = run_nfa_alignment(
+            Path(str(prepared["manifest_path"])),
+            Path(str(prepared["output_dir"])),
+            python_executable=args.python,
+            nemo_dir=Path(args.nemo_dir) if args.nemo_dir else None,
+            align_script=Path(args.align_script) if args.align_script else None,
+            pretrained_name=args.pretrained_name,
+            transcribe_device=args.transcribe_device,
+            viterbi_device=args.viterbi_device,
+            batch_size=args.batch_size,
+            align_using_pred_text=args.align_using_pred_text,
+            extra_args=args.nfa_arg or [],
+            timeout=args.timeout,
+        )
+    except (OSError, FileNotFoundError) as exc:
+        print(f"Could not start NeMo Forced Aligner: {exc}", file=sys.stderr)
+        return 1
+    if not result.ok:
+        if result.stdout:
+            print(result.stdout)
+        if result.stderr:
+            print(result.stderr, file=sys.stderr)
+        print(f"NeMo Forced Aligner failed with exit code {result.returncode}", file=sys.stderr)
+        return result.returncode or 1
+
+    try:
+        ctm_path = find_nfa_words_ctm(
+            Path(str(prepared["output_dir"])),
+            target_id=str(prepared["target_id"]),
+            audio_path=Path(str(prepared["audio_path"])),
+        )
+        target, count, backup_path = refine_words_with_nfa_ctm(
+            manifest,
+            ctm_path,
+            video_id=args.video_id,
+            item_id=args.item_id,
+            media_path=args.media,
+        )
+    except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
+        print(f"NFA completed, but CTM import failed: {exc}", file=sys.stderr)
+        return 1
+    print(f"NFA CTM: {ctm_path}")
+    print(f"Refined word ledger: {target}")
+    print(f"Words: {count}")
+    if backup_path:
+        print(f"Backup: {backup_path}")
+    return 0
+
+
 def transcription_targets(args: argparse.Namespace) -> list[dict]:
     targets: list[dict] = []
     if args.media:
@@ -833,6 +954,8 @@ def cmd_run(args: argparse.Namespace) -> int:
     if not args.dry_run and not args.yes:
         print("Refusing real download without --yes. Use --dry-run first.", file=sys.stderr)
         return 2
+    if not args.dry_run:
+        print(LEGAL_USE_NOTICE)
     for attempt in range(0, args.vpn_recovery_attempts + 1):
         started = datetime.now().isoformat(timespec="seconds")
         result = run_batch(manifest, dry_run=args.dry_run)
@@ -1059,10 +1182,10 @@ def build_parser() -> argparse.ArgumentParser:
     ytdlp_version = ytdlp_sub.add_parser("version", help="Show yt-dlp version")
     ytdlp_version.set_defaults(func=cmd_ytdlp_version)
 
-    plan = sub.add_parser("plan", help="Create a rights-aware batch manifest")
+    plan = sub.add_parser("plan", help="Create a batch manifest")
     plan.add_argument("urls", nargs="*", help="Source URL(s) to archive")
     plan.add_argument("--from-file", help="Text file with one source URL per line")
-    plan.add_argument("--rights", required=True, help="Documented rights basis for this batch")
+    plan.add_argument("--rights", help="Optional rights, license, permission, or fair-use note for this batch")
     plan.add_argument("--name", help="Batch name")
     plan.add_argument("--output", help="Output directory override")
     plan.add_argument("--max-height", type=int, help="Limit selected video height, for example 360 for smoke tests")
@@ -1079,7 +1202,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     inventory = sub.add_parser("inventory", help="Inventory a channel, playlist, or URL into a batch item ledger")
     inventory.add_argument("source_url", help="Channel, playlist, or source URL to inventory")
-    inventory.add_argument("--rights", required=True, help="Documented rights basis for this batch")
+    inventory.add_argument("--rights", help="Optional rights, license, permission, or fair-use note for this batch")
     inventory.add_argument("--rights-file", help="Optional local evidence file copied into the batch rights folder")
     inventory.add_argument("--name", help="Batch name")
     inventory.add_argument("--output", help="Output directory override")
@@ -1176,6 +1299,31 @@ def build_parser() -> argparse.ArgumentParser:
     transcribe.add_argument("--no-vad", action="store_true", help="Do not pass --vad to CrispASR")
     transcribe.add_argument("--timeout", type=int, default=60 * 60 * 4, help="Per-file ASR timeout in seconds")
     transcribe.set_defaults(func=cmd_intelligence_transcribe)
+
+    intelligence_align = intelligence_sub.add_parser("align", help="Refine word timings with an external forced aligner")
+    intelligence_align_sub = intelligence_align.add_subparsers(dest="align_command", required=True)
+    align_nfa = intelligence_align_sub.add_parser("nfa", help="Prepare/run NVIDIA NeMo Forced Aligner and import word CTM timings")
+    align_nfa.add_argument("manifest", help="Path to batch manifest.json")
+    align_nfa.add_argument("--media", help="Local media file to align")
+    align_nfa.add_argument("--video-id", help="Video id to refine")
+    align_nfa.add_argument("--item-id", help="Item id to refine")
+    align_nfa.add_argument("--audio", help="Pre-extracted mono 16 kHz WAV; defaults to intelligence/audio/<video_id>.wav")
+    align_nfa.add_argument("--refresh-audio", action="store_true", help="Re-extract alignment audio even if it already exists")
+    align_nfa.add_argument("--text", help="Reference transcript text. Defaults to the existing Slayer word ledger for the target.")
+    align_nfa.add_argument("--text-file", help="UTF-8 reference transcript text file")
+    align_nfa.add_argument("--prepare-only", action="store_true", help="Write the NFA manifest and stop before launching NeMo")
+    align_nfa.add_argument("--import-ctm", help="Import an existing NFA words CTM instead of running NeMo")
+    align_nfa.add_argument("--python", default="python", help="Python executable for the NeMo environment")
+    align_nfa.add_argument("--nemo-dir", help="Path to a NeMo checkout containing tools/nemo_forced_aligner/align.py")
+    align_nfa.add_argument("--align-script", help="Direct path to tools/nemo_forced_aligner/align.py")
+    align_nfa.add_argument("--pretrained-name", default=NFA_DEFAULT_MODEL, help="CTC or hybrid CTC NeMo model name")
+    align_nfa.add_argument("--transcribe-device", default="cuda", help="NeMo transcribe device, for example cuda or cpu")
+    align_nfa.add_argument("--viterbi-device", default="cuda", help="NFA Viterbi device, for example cuda or cpu")
+    align_nfa.add_argument("--batch-size", type=int, default=1, help="NFA batch size")
+    align_nfa.add_argument("--align-using-pred-text", action="store_true", help="Let NFA align ASR-predicted text when no reference text is supplied")
+    align_nfa.add_argument("--nfa-arg", action="append", help="Additional Hydra argument passed through to align.py")
+    align_nfa.add_argument("--timeout", type=int, default=60 * 60 * 6, help="NFA process timeout in seconds")
+    align_nfa.set_defaults(func=cmd_intelligence_align_nfa)
 
     intelligence_search = intelligence_sub.add_parser("search", help="Exact word/phrase search over imported word ledgers")
     intelligence_search.add_argument("manifest", help="Path to batch manifest.json")

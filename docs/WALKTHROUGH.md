@@ -85,14 +85,14 @@ Use a short source the operator has permission to download. The count-based buil
 Ask:
 
 1. What exact channel, playlist, or video URLs should be archived?
-2. Do you own the content, have permission, or have a license/public-domain basis?
-3. Do you have a rights evidence file to attach with `--rights-file`?
+2. Remind the operator to use material only when they have rights, permission, fair use, or another lawful basis.
+3. Do you want to attach an optional rights note or evidence file with `--rights`/`--rights-file`?
 4. Should this start bounded with `--max-items`, `--max-height`, `--max-filesize`, or `--max-downloads`?
 5. Where should outputs go, if not the batch downloads folder?
 6. Should output use one batch folder, uploader folders, or a flat folder?
 7. Do you want inventory-only review before any media download?
 
-Use [examples/batch-intake.md](../examples/batch-intake.md) and [examples/rights-evidence-template.md](../examples/rights-evidence-template.md) to keep this clean. Copy the rights template to a local evidence file and fill it in before attaching it:
+Use [examples/batch-intake.md](../examples/batch-intake.md) and [examples/rights-evidence-template.md](../examples/rights-evidence-template.md) when optional rights context is useful. Copy the rights template to a local evidence file and fill it in before attaching it:
 
 ```powershell
 Copy-Item .\examples\rights-evidence-template.md .\rights-evidence.md
@@ -103,14 +103,14 @@ Copy-Item .\examples\rights-evidence-template.md .\rights-evidence.md
 For a channel or playlist:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "<channel-or-playlist-url>" --rights "<owned or authorized reason>" --rights-file ".\rights-evidence.md" --name "<batch-name>" --max-items 25 --max-height 360 --max-filesize 75M
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "<channel-or-playlist-url>" --rights-file ".\rights-evidence.md" --name "<batch-name>" --max-items 25 --max-height 360 --max-filesize 75M
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json"
 ```
 
 For a hand-curated URL file:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\examples\urls.txt" --rights "<owned or authorized reason>" --rights-file ".\rights-evidence.md" --name "<batch-name>" --max-height 360 --max-filesize 75M --folder-policy batch
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\examples\urls.txt" --rights "optional permission/license/fair-use note" --rights-file ".\rights-evidence.md" --name "<batch-name>" --max-height 360 --max-filesize 75M --folder-policy batch
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json"
 ```
 

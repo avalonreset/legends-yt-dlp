@@ -1,14 +1,18 @@
 # Legends YT-DLP Slayer
 
+![Legends YT-DLP Slayer banner](assets/legends-yt-dlp-slayer-banner.webp)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 ![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)
 ![Windows first](https://img.shields.io/badge/Windows-first-0078D4.svg)
 ![yt-dlp](https://img.shields.io/badge/powered%20by-yt--dlp-lightgrey.svg)
 ![Mullvad guarded](https://img.shields.io/badge/Mullvad-guarded-orange.svg)
 
-Windows-first control plane for lawful, resumable video archiving with `yt-dlp` and a Mullvad VPN preflight gate.
+Clip faster. Create sharper.
 
-Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful but easy to operate carelessly at scale. The project wraps the official `yt-dlp` binary with explicit batch plans, rights-basis checks, local state, conservative defaults, and a fail-closed Mullvad gate so downloads do not start unless the machine is in the expected VPN posture.
+Windows-first creator control plane for repeatable source pulls, local verification, transcripts, search, and clip-building on top of `yt-dlp`.
+
+Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful, but real creator work needs more than a one-off download command. The project wraps the official `yt-dlp` binary with explicit batch plans, optional source notes, local state, conservative defaults, a short use notice before real runs, and a fail-closed Mullvad gate so capture work starts from a known machine posture.
 
 ## What It Does
 
@@ -18,7 +22,7 @@ Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful but easy to operat
 - Verifies the downloaded binary against upstream `SHA2-256SUMS`.
 - Detects `ffmpeg`.
 - Detects a JavaScript runtime for modern YouTube extraction.
-- Creates rights-aware batch manifests.
+- Creates batch manifests with optional rights notes and evidence files.
 - Inventories channel and playlist URLs into a reviewable item ledger before downloads.
 - Copies optional rights evidence files into the batch folder.
 - Provides a one-command production setup path for Mullvad safety posture.
@@ -36,13 +40,13 @@ Legends YT-DLP Slayer exists because raw `yt-dlp` is powerful but easy to operat
 
 ## Why It Exists
 
-Large archive jobs fail in predictable ways: accidental non-VPN traffic, duplicate downloads, broken resumes, messy output paths, unclear rights, and no evidence trail. This project turns those weak points into boring preflight checks and repeatable operator commands.
+Creator projects fail in predictable places: messy source lists, duplicate pulls, broken resumes, unclear output folders, missing transcripts, and clips that are hard to find again. Slayer turns those weak points into a repeatable plan, pull, verify, search, and cut flow.
 
-The goal is not to evade platform controls. The goal is to make legitimate archival work safer, slower, resumable, and auditable.
+The goal is not to evade platform controls. The goal is to make source capture deliberate, resumable, and useful for editing, research, and review.
 
 ## Current Status
 
-Early private alpha.
+Private alpha.
 
 Working now:
 
@@ -69,9 +73,7 @@ Working now:
 - post-capture `intelligence` workspace, CrispASR/Parakeet transcription, word import, search, clip planning, rendering, and vault export
 - Codex skill suite under `skills/legends-yt-dlp-slayer`
 
-Still needs before a release tag:
-
-- review the generated alpha zip and decide whether to publish a first release tag
+Latest release target: `v0.1.0`.
 
 ## Quick Start
 
@@ -110,10 +112,10 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\
 Create a batch:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --name "channel-name"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --name "catalog-name"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --rights-file ".\rights-evidence.md" --name "catalog-name"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --name "catalog-name" --folder-policy batch
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.youtube.com/@CHANNEL" --name "channel-name"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --name "catalog-name"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "optional permission/license/fair-use note" --rights-file ".\rights-evidence.md" --name "catalog-name"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --name "catalog-name" --folder-policy batch
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
 ```
 
@@ -122,7 +124,7 @@ Folder policy controls output layout. `auto` puts direct multi-link plans into o
 For channel or playlist work, inventory first:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --rights-file ".\rights-evidence.md" --name "channel-name"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "https://www.youtube.com/@CHANNEL" --rights-file ".\rights-evidence.md" --name "channel-name"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json"
 ```
 
@@ -146,12 +148,15 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor 
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --media ".\video.mp4" --video-id "VIDEO_ID" --model auto
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence ingest-words "batches\...\manifest.json" --input ".\examples\intelligence-words.jsonl" --video-id "VIDEO_ID"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "VIDEO_ID" --prepare-only
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence search "batches\...\manifest.json" "agentic workflow"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips plan "batches\...\manifest.json" --query "agentic workflow"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence vault build "batches\...\manifest.json"
 ```
 
 `intelligence doctor --require-gpu` is the truth gate for GPU-backed Parakeet. CPU-only CrispASR still runs locally without Codex or Claude token spend, but the project does not label that install GPU-ready unless CrispASR diagnostics report a compiled GPU backend.
+
+`intelligence align nfa` prepares and imports NVIDIA NeMo Forced Aligner word CTM output for delicate clip boundaries. It expects NeMo/PyTorch/model weights in an external operator-managed environment; the core package only writes manifests and refines the word ledger.
 
 Treat `slayer intelligence` as an optional post-capture layer. The normal archive contract ends after run, verify, and ledger review unless the user requested analysis or the operator has a clear reason to propose it.
 
@@ -169,7 +174,7 @@ Not allowed:
 
 - bypassing DRM, paywalls, captchas, login challenges, account controls, or access controls
 - rotating VPN relays to continue through throttles, captchas, login prompts, account controls, or platform blocks
-- automating downloads without a documented rights basis
+- using Slayer for unlawful downloads
 - hiding abusive or copyright-infringing use
 
 See [docs/SAFETY.md](docs/SAFETY.md).

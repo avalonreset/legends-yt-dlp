@@ -7,6 +7,7 @@ from slayer_cli.batch import (
     classify_run_failure,
     classify_success,
     create_batch_from_urls,
+    preflight_batch,
     read_url_file,
     run_status,
     validate_url,
@@ -63,6 +64,29 @@ class BatchTests(unittest.TestCase):
                 self.assertTrue((paths.root / "rights" / rights.name).exists())
                 self.assertTrue((root / "out").is_dir())
                 self.assertTrue((root / "out" / "ledger-rights-fixture").is_dir())
+            finally:
+                import shutil
+
+                shutil.rmtree(paths.root, ignore_errors=True)
+
+    def test_batch_plan_allows_missing_rights_metadata(self) -> None:
+        import tempfile
+        from unittest.mock import patch
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            paths = create_batch_from_urls(
+                urls=["https://www.youtube.com/watch?v=alpha123"],
+                name="no-rights-prompt-fixture",
+                output_dir=str(root / "out"),
+            )
+            try:
+                manifest = json.loads(paths.manifest.read_text(encoding="utf-8"))
+                self.assertIsNone(manifest["rights_basis"])
+
+                with patch("slayer_cli.batch.run_doctor", return_value=[]):
+                    checks = preflight_batch(paths.manifest, require_connected=False, production=False)
+                self.assertNotIn("rights basis", [check.name for check in checks])
             finally:
                 import shutil
 

@@ -16,6 +16,25 @@ $ZipPath = Join-Path $OutputDir "$PackageName.zip"
 $HashPath = "$ZipPath.sha256"
 $StageRoot = Join-Path ([System.IO.Path]::GetTempPath()) "$PackageName-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
 $Stage = Join-Path $StageRoot $PackageName
+$PackageExcludes = @(
+    ".env",
+    ".local/*",
+    "assets/banner-concepts/*",
+    "batches/*",
+    "dist/*",
+    "downloads/*",
+    "reports/*",
+    "rights-evidence/*",
+    "work/*",
+    "*.cookie",
+    "*.cookies",
+    "*.mp4",
+    "*.mov",
+    "*.mkv",
+    "*.webm",
+    "*.mp3",
+    "*.wav"
+)
 
 function Assert-InsidePath {
     param(
@@ -27,6 +46,17 @@ function Assert-InsidePath {
     if (-not $ResolvedPath.StartsWith($ResolvedParent, [System.StringComparison]::OrdinalIgnoreCase)) {
         throw "Refusing path outside expected parent: $ResolvedPath"
     }
+}
+
+function Test-PackageExcluded {
+    param([string]$Path)
+    $Normalized = $Path -replace "\\", "/"
+    foreach ($Pattern in $PackageExcludes) {
+        if ($Normalized -like $Pattern) {
+            return $true
+        }
+    }
+    return $false
 }
 
 try {
@@ -41,7 +71,7 @@ try {
         }
 
         foreach ($File in $Files) {
-            if ($File -like "dist/*") {
+            if (Test-PackageExcluded -Path $File) {
                 continue
             }
             $Source = Join-Path $Root $File

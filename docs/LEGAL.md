@@ -31,8 +31,9 @@ The safety boundary is part of the product:
 - no DRM, paywall, captcha, login, account-control, or access-control bypasses
 - no relay or account rotation to continue through source-side throttles or blocks
 - no production browser cookies or account auth
-- documented rights basis required for batches
+- a legal-use notice before real downloads
+- optional rights notes and evidence files for batches
 
 ## Operator Responsibility
 
-The item ledger and rights evidence folder are audit aids. They do not grant permission by themselves. Operators remain responsible for confirming that every planned or inventoried item fits the documented rights basis before a real download.
+The item ledger and optional rights evidence folder are local context aids. They do not grant permission by themselves. Operators remain responsible for downloading and using material only when they have rights, permission, a license, fair use, or another lawful basis.

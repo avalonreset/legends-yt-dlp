@@ -105,12 +105,12 @@ Creates a local alpha zip and `.sha256` file under `dist/`. The package contains
 ## Batch Planning
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --name "channel-name"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://example.com/a" "https://example.com/b" --rights "owned or authorized" --name "multi-url"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --name "url-file"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --rights-file ".\rights-evidence.md" --name "url-file"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --name "url-file" --folder-policy batch
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.youtube.com/watch?v=..." --rights "owned or authorized" --name "smoke" --max-downloads 1 --max-height 360 --max-filesize 50M
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.youtube.com/@CHANNEL" --name "channel-name"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://example.com/a" "https://example.com/b" --name "multi-url"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --name "url-file"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "optional permission/license/fair-use note" --rights-file ".\rights-evidence.md" --name "url-file"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --name "url-file" --folder-policy batch
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "https://www.youtube.com/watch?v=..." --name "smoke" --max-downloads 1 --max-height 360 --max-filesize 50M
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
 ```
 
@@ -122,7 +122,7 @@ The plan command creates:
 - download archive path
 - output and temp folders
 - optional limits for smoke jobs and bounded runs
-- optional copied rights evidence under the batch `rights` folder
+- optional rights note and copied rights evidence under the batch `rights` folder
 
 Generated batch folders are ignored by git.
 
@@ -138,19 +138,19 @@ Use `batch` for mixed ad hoc links when the user wants one working folder. Use `
 ## Inventory
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --rights-file ".\rights-evidence.md" --name "channel-name"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "https://www.youtube.com/playlist?list=..." --rights "owned or authorized" --name "playlist-name" --max-items 50
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --name "channel-name" --folder-policy by-uploader
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "https://www.youtube.com/@CHANNEL" --rights-file ".\rights-evidence.md" --name "channel-name"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "https://www.youtube.com/playlist?list=..." --name "playlist-name" --max-items 50
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "https://www.youtube.com/@CHANNEL" --name "channel-name" --folder-policy by-uploader
 ```
 
 `inventory` expands a channel, playlist, or source URL into a batch without downloading media. It runs production doctor first unless `--no-production` is used for diagnostics. It creates `manifest.json`, `urls.txt`, `yt-dlp.conf`, and `items.jsonl`.
 
-Use `--rights-file` to copy permission notes, license evidence, client approval, or other rights proof into the batch `rights` folder. Stop if the user cannot provide a clear rights basis or evidence when the job requires one.
+Use optional `--rights` and `--rights-file` values to keep permission notes, license evidence, client approval, fair-use notes, or other context with the batch when useful. These fields are metadata, not a pre-download gate.
 
 Useful inventory limits:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "<channel-or-playlist>" --rights "owned or authorized" --name "review" --max-items 25 --live-status not_live
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "<channel-or-playlist>" --name "review" --max-items 25 --live-status not_live
 ```
 
 Review `items.jsonl` before any real run. If inventory produces source-side throttling, captcha, login, account-control, or block signals, stop and report instead of changing relays to continue.
@@ -178,6 +178,9 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcr
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --limit 5
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence import-crispasr "batches\...\manifest.json" --input ".\transcript.json" --video-id "abc123" --media-path ".\video.mp4"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence ingest-words "batches\...\manifest.json" --input ".\words.jsonl" --video-id "abc123"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --prepare-only
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --python "C:\path\to\nemo-env\python.exe" --nemo-dir "C:\path\to\NeMo"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --import-ctm ".\output\ctm\words\abc123.ctm" --video-id "abc123"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence search "batches\...\manifest.json" "agentic workflow"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips plan "batches\...\manifest.json" --query "agentic workflow"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips render "batches\...\intelligence\clips\agentic-workflow\clip-plan.json" --yes
@@ -193,6 +196,8 @@ The default ready-made ASR path is CrispASR with Parakeet TDT v3. The generic im
 `intelligence doctor --require-gpu` is the release gate for GPU-backed Parakeet. CPU-only CrispASR still runs locally without Codex or Claude token spend, but the suite should not call it GPU-ready unless CrispASR diagnostics report a CUDA, Vulkan, Metal, or similar backend.
 
 `intelligence transcribe` rejects contradictory GPU flags before work starts; `--require-gpu` cannot be combined with `--no-gpu` or `--gpu-backend cpu`.
+
+`intelligence align nfa` is the optional NVIDIA NeMo Forced Aligner refinement path. It writes NFA manifests under `intelligence\alignments\nfa\`, expects an external NeMo/PyTorch environment, and imports NFA word CTM output back into the existing word ledger only when the CTM word sequence matches the current transcript.
 
 Clip planning writes reviewable JSON before media rendering. Rendering requires an explicit `--yes` and local `ffmpeg`.
 
@@ -231,7 +236,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\man
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes --vpn-recovery-attempts 3
 ```
 
-Real downloads require passing production preflight and an explicit `--yes`. The runner refuses real downloads with `--no-production` or `--no-require-connected`.
+Real downloads require passing production preflight and an explicit `--yes`. Before invoking `yt-dlp`, the runner prints a legal-use notice reminding operators to download only when they have rights, permission, a license, fair use, or another lawful basis. The runner refuses real downloads with `--no-production` or `--no-require-connected`.
 
 Dry-runs suppress raw `yt-dlp` JSON by default and still write a compact run report. Use `--show-output` only when debugging extractor output.
 

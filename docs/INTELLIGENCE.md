@@ -77,6 +77,19 @@ Import existing CrispASR `-ojf` JSON:
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence import-crispasr "batches\...\manifest.json" --input ".\transcript.json" --video-id "abc123" --media-path ".\video.mp4"
 ```
 
+Prepare a NVIDIA NeMo Forced Aligner manifest from an existing word ledger:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --prepare-only
+```
+
+Run NFA through an external NeMo environment and import the resulting word CTM:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --python "C:\path\to\nemo-env\python.exe" --nemo-dir "C:\path\to\NeMo"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --import-ctm ".\output\ctm\words\abc123.ctm" --video-id "abc123"
+```
+
 Search exact words or phrases:
 
 ```powershell
@@ -112,6 +125,8 @@ batches/<batch>/
     transcripts/
     words/<video_id>.words.jsonl
     searches/<query>.matches.jsonl
+    alignments/nfa/<video_id>/<video_id>.manifest.jsonl
+    alignments/nfa/<video_id>/output/ctm/words/*.ctm
     clips/<query>/clip-plan.json
     clips/<query>/concat.txt
     clips/<query>/<query>-montage.mp4
@@ -146,14 +161,29 @@ Primary references:
 
 NeMo remains the upstream/reference route when an operator wants the official NVIDIA Python/CUDA stack. WhisperX remains a fallback only; it is not the product default.
 
+## NeMo Forced Aligner Refinement
+
+NVIDIA NeMo Forced Aligner is the precision re-timing layer for high-stakes clip boundaries. It does not replace the default CrispASR/Parakeet path. Slayer prepares an NFA manifest from the existing word ledger, runs `tools/nemo_forced_aligner/align.py` when an external NeMo environment is available, and imports NFA `ctm/words/*.ctm` output back into the same `words/<video_id>.words.jsonl` ledger.
+
+The CTM import is strict by design: the CTM word sequence must match the existing ledger word sequence before Slayer replaces timings. If the word count or normalized word order differs, the import fails so an operator can review the transcript instead of silently shifting clip boundaries to the wrong words. Before replacement, Slayer writes a `*.words.pre-nfa.jsonl` backup beside the current ledger.
+
+Operational constraints:
+
+- Keep NeMo, PyTorch, CUDA, and model weights outside the core package.
+- Use `--prepare-only` first when setting up a new environment; it writes the absolute-audio-path manifest NFA expects.
+- Use a CTC or hybrid CTC/Transducer model in CTC mode. Pure Transducer models are not supported by NFA.
+- Default command options target `stt_en_fastconformer_hybrid_large_pc` with CUDA for both transcription and Viterbi alignment; override `--pretrained-name`, `--transcribe-device`, and `--viterbi-device` when needed.
+- After NFA import, rerun normal `search`, `clips plan`, and `clips render`; those commands automatically use the refined word ledger.
+
 ## Operating SOP
 
 1. Run the normal Slayer archive workflow: inventory, ledger review, preflight, dry-run, approved real run, verify, ledger refresh.
 2. Import or generate a word ledger for verified local media.
-3. Search exact words or phrases.
-4. Review matches and clip spans.
-5. Generate a clip plan.
-6. Render only after reviewing the plan and passing `--yes`.
-7. Build the transcript vault for Codex/Claude/Gemini-assisted analysis.
+3. For delicate boundaries, run `intelligence align nfa ... --prepare-only`, run/import the NFA CTM, then confirm the word ledger is refined.
+4. Search exact words or phrases.
+5. Review matches and clip spans.
+6. Generate a clip plan.
+7. Render only after reviewing the plan and passing `--yes`.
+8. Build the transcript vault for Codex/Claude/Gemini-assisted analysis.
 
-No ASR system can find a word it failed to transcribe. For critical searches, compare two engines or add a future forced-alignment review pass.
+No ASR system can find a word it failed to transcribe. For critical searches, compare two engines or run the NFA refinement pass before final clipping.

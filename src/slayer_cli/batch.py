@@ -142,14 +142,14 @@ def make_batch_paths(name: str) -> BatchPaths:
     )
 
 
-def create_batch(*, url: str, rights_basis: str, name: str | None = None, output_dir: str | None = None) -> BatchPaths:
+def create_batch(*, url: str, rights_basis: str | None = None, name: str | None = None, output_dir: str | None = None) -> BatchPaths:
     return create_batch_from_urls(urls=[url], rights_basis=rights_basis, name=name, output_dir=output_dir)
 
 
 def create_batch_from_urls(
     *,
     urls: list[str],
-    rights_basis: str,
+    rights_basis: str | None = None,
     name: str | None = None,
     output_dir: str | None = None,
     max_height: int | None = None,
@@ -164,8 +164,6 @@ def create_batch_from_urls(
     invalid = [url for url in urls if not validate_url(url)]
     if invalid:
         raise ValueError(f"Invalid URL: {invalid[0]}")
-    if not rights_basis.strip():
-        raise ValueError("A rights basis is required")
     if max_height is not None and max_height <= 0:
         raise ValueError("--max-height must be greater than 0")
     if max_downloads is not None and max_downloads <= 0:
@@ -202,7 +200,7 @@ def create_batch_from_urls(
         "source_url": urls[0],
         "source_urls": urls,
         "url_count": len(urls),
-        "rights_basis": rights_basis,
+        "rights_basis": rights_basis.strip() if rights_basis else None,
         "status": "planned",
         "paths": {
             "urls": str(paths.urls),
@@ -394,7 +392,6 @@ def preflight_batch(path: Path, *, require_connected: bool = True, production: b
     checks = [
         Check("manifest", True, str(path)),
         Check("source url", validate_url(manifest.get("source_url", "")), manifest.get("source_url", "<missing>")),
-        Check("rights basis", bool(manifest.get("rights_basis", "").strip()), "present" if manifest.get("rights_basis") else "missing"),
     ]
     if production:
         for label, key in [

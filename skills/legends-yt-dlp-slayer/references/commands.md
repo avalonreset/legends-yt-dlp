@@ -64,11 +64,11 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp version
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL>" --rights "<basis>" --name "<name>"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL1>" "<URL2>" --rights "<basis>" --name "<name>"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --rights "<basis>" --name "<name>"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --rights "<basis>" --name "<name>" --folder-policy batch
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "<channel-or-playlist-url>" --rights "<basis>" --rights-file ".\rights-evidence.md" --name "<name>" --max-items 25
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL>" --name "<name>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL1>" "<URL2>" --name "<name>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --name "<name>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --name "<name>" --folder-policy batch
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "<channel-or-playlist-url>" --rights-file ".\rights-evidence.md" --name "<name>" --max-items 25
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "<manifest.json>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --url "<authorized-video-url>" --name "first-smoke"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "<manifest.json>"
@@ -79,7 +79,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "<manifest.js
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "<manifest.json>" --refresh
 ```
 
-`run` defaults to safe VPN recovery. It can reconnect Mullvad and retry after transient tunnel/network failures. It must not continue through source-side block signals.
+`run --yes` prints a legal-use notice before invoking `yt-dlp`. It defaults to safe VPN recovery and can reconnect Mullvad and retry after transient tunnel/network failures. It must not continue through source-side block signals.
 
 Folder policy: `auto` puts direct multi-link plans into one named batch folder and keeps inventoried channel/playlist work grouped by uploader. Use `batch` for one folder per request, `by-uploader` for source/channel organization, and `flat` only when the selected output folder already represents the job.
 
@@ -91,6 +91,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor 
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor "<manifest.json>" --require-gpu
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "<manifest.json>" --all --model auto
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "<manifest.json>" --all --model auto --gpu-backend cuda --require-gpu
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "<manifest.json>" --media "<video.mp4>" --video-id "<video-id>" --prepare-only
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence search "<manifest.json>" "agentic workflow"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips plan "<manifest.json>" --query "agentic workflow"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips render "<clip-plan.json>" --yes
@@ -98,5 +99,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence vault b
 ```
 
 `intelligence doctor --require-gpu` is the local ASR truth gate. CPU-only CrispASR remains local and token-free, but do not call a setup GPU-ready unless diagnostics report a GPU backend.
+
+`intelligence align nfa` is the optional NeMo Forced Aligner refinement path for delicate clip boundaries. It expects an external NeMo environment and imports word CTM output only when it matches the current word ledger sequence.
 
 Transcription is optional. Do not run it for every download by default; run it when the user asks for transcripts, search, clips, vault output, or when the operator has a clear analysis reason.

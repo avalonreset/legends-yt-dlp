@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes yet.
+
+## 0.1.0 - 2026-06-13
+
 - Created the initial private development vault and repository scaffold.
 - Added the first Python CLI control plane.
 - Added Mullvad CLI detection and wrappers.
@@ -28,6 +32,7 @@
 - Added `onboard` first-run guidance command, walkthrough docs, and batch intake/rights evidence examples.
 - Added `slayer intelligence` MVP for post-download word-ledger import, exact phrase search, FFmpeg clip planning/rendering, and Obsidian transcript vault export.
 - Added CrispASR/Parakeet as the preferred ready-made transcription backend with `intelligence transcribe` and `import-crispasr`.
+- Added `intelligence align nfa` for NVIDIA NeMo Forced Aligner manifest prep, word CTM import, and strict word-ledger timing refinement.
 - Fixed CrispASR transcript artifact naming after a real downloaded-video smoke test and added regression coverage.
 - Hardened `verify` to count ledger-scoped media/info artifacts so broad output folders such as `Downloads` do not inflate batch verification.
 - Added CrispASR diagnostics parsing plus GPU-required doctor/transcribe gates for honest CPU-vs-GPU Parakeet operation.
@@ -35,3 +40,5 @@
 - Added `smoke plan --url` so new validation can use operator-provided authorized smoke sources instead of the legacy built-in fixtures.
 - Added output folder policies so direct multi-link plans can land in one named batch folder while channel/playlist inventory can remain grouped by uploader.
 - Clarified that transcription/intelligence is an optional post-capture workflow, not mandatory for every download.
+- Added the WebP README banner and updated the public-facing project positioning around creator source capture and clip-building.
+- Hardened alpha packaging so local work folders, release experiments, and media artifacts stay out of distribution zips.

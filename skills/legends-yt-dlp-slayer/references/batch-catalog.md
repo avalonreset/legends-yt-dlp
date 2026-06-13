@@ -6,7 +6,7 @@ Large archives should be organized as batches, not ad hoc commands.
 
 Each batch folder contains:
 
-- `manifest.json`: rights basis, source URLs, status, paths, policy flags.
+- `manifest.json`: optional rights note, source URLs, status, paths, policy flags.
 - `urls.txt`: one URL per line for yt-dlp.
 - `yt-dlp.conf`: generated conservative downloader config.
 - `archive.txt`: yt-dlp download archive for idempotent resumes.
@@ -17,7 +17,7 @@ Generated batches live under ignored `batches/`.
 
 ## Planning Rules
 
-- Require a rights basis for every batch.
+- Keep rights notes/evidence optional; the real-run legal-use notice is the default legal reminder.
 - Prefer one channel/playlist/source collection per batch.
 - For very large jobs, split by source, date range, or logical collection.
 - Keep YouTube execution sequential by default.
@@ -46,4 +46,3 @@ Classify errors before action:
 - Captcha, login challenge, explicit block, repeated rate limit: pause and report.
 
 Do not change relay/IP to keep going through source-side block signals.
-

@@ -10,23 +10,21 @@ Start with the guided local readiness check:
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard
 ```
 
-Before creating or running a batch, confirm:
+Before creating or running a batch:
 
-- the user owns the videos, has permission, or has a license/public-domain basis
+- remind the user to use downloaded material only when they have rights, permission, a license, a valid fair-use basis, or another lawful basis
 - the exact channel, playlist, or video URLs to inventory
-- whether the job needs a rights evidence file
+- whether the job would benefit from an optional rights note or evidence file
 - desired limits such as maximum items, height, filesize, or download count
 - where outputs should go, if the default batch output folder is not enough
 - whether outputs should use one batch folder, uploader folders, or a flat folder
-
-If the rights basis is unclear, stop before inventory or planning.
 
 ## 2. Inventory Source URLs
 
 For channel or playlist work, use inventory before downloads:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --rights-file ".\rights-evidence.md" --name "client-or-project-name"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "https://www.youtube.com/@CHANNEL" --rights-file ".\rights-evidence.md" --name "client-or-project-name"
 ```
 
 For a hand-curated URL list, create a URL file with one authorized URL per line:
@@ -39,10 +37,10 @@ https://www.youtube.com/watch?v=...
 Then plan it:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "owned or authorized" --rights-file ".\rights-evidence.md" --name "client-or-project-name"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\urls.txt" --rights "optional permission/license/fair-use note" --rights-file ".\rights-evidence.md" --name "client-or-project-name"
 ```
 
-The batch folder contains the manifest, URL list, `yt-dlp.conf`, copied rights evidence when provided, and `items.jsonl`.
+The batch folder contains the manifest, URL list, `yt-dlp.conf`, copied rights evidence when provided, and `items.jsonl`. `--rights` and `--rights-file` are optional metadata fields, not hard gates.
 
 Use folder policy deliberately:
 
@@ -58,7 +56,7 @@ Use folder policy deliberately:
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json"
 ```
 
-Review the source URL, item count, titles, statuses, limits, and rights evidence with the user. Do not continue to a run if the inventory includes unexpected items, unclear rights, or source-side block signals.
+Review the source URL, item count, titles, statuses, limits, and any optional rights evidence with the user. Do not continue to a run if the inventory includes unexpected items or source-side block signals.
 
 ## 4. Set Production Posture
 
@@ -117,6 +115,8 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\man
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\manifest.json"
 ```
 
+Before invoking `yt-dlp`, `run --yes` prints a short legal-use notice reminding operators to download only when they have rights, permission, a license, fair use, or another lawful basis, and to follow applicable laws and platform terms.
+
 Reruns are expected to be idempotent. Completed video IDs are stored in `archive.txt`; rerunning the same manifest should skip completed IDs instead of duplicating files.
 
 ## 8. Ledger Review
@@ -126,7 +126,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json" --status downloaded --limit 50
 ```
 
-Check final item counts, downloaded or archived statuses, warnings, bytes, output paths, info JSON sidecars, and verification status. Preserve the rights evidence file with the batch as part of the audit trail.
+Check final item counts, downloaded or archived statuses, warnings, bytes, output paths, info JSON sidecars, and verification status. Preserve optional rights evidence files with the batch when the operator supplied them.
 
 This is the stopping point for a plain download/archive request. Do not automatically transcribe every verified batch. Offer or run `slayer intelligence` only when the user asks for transcripts, exact search, clip extraction, a transcript vault, or when the job context clearly needs post-capture analysis.
 
@@ -139,7 +139,6 @@ Stop and review when any of these occur:
 - production doctor fails
 - Mullvad recovery fails
 - media probe fails
-- rights basis is unclear
 
 Do not rotate relays or accounts to continue through source-side throttles, captchas, login/account controls, or blocks. Relay/location controls are manual operator controls for connectivity posture, not a bypass mechanism.
 

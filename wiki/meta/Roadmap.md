@@ -2,7 +2,7 @@
 type: roadmap
 status: active
 created: 2026-05-27
-updated: 2026-05-28
+updated: 2026-06-12
 tags: [roadmap, meta]
 ---
 
@@ -72,6 +72,6 @@ tags: [roadmap, meta]
 - Implement exact word/phrase search over normalized word tokens, returning video id, media path, start/end, confidence, and surrounding context. MVP complete.
 - Generate reviewable FFmpeg clip plans before rendering any montage. MVP complete.
 - Add optional pyannote.audio diarization to assign speaker segments to word spans.
-- Add optional NeMo Forced Aligner refinement for compatible CTC/hybrid CTC models.
+- Optional NeMo Forced Aligner refinement bridge is implemented for compatible CTC/hybrid CTC models; next gate is real-environment NFA validation.
 - Build Obsidian transcript vault pages per video and per search/montage. Per-video MVP complete.
 - Keep this module separate from download execution and preserve source-side stop conditions.

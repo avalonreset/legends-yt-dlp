@@ -16,9 +16,12 @@ __pycache__/
 batches/
 reports/
 downloads/
+work/
 cache/
 dist/
 secrets/
 cookies/
+rights-evidence/
+assets/banner-concepts/
 *.cookies.txt
 *.netrc

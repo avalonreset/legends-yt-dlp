@@ -22,7 +22,7 @@ If the command fails, fix setup before planning or running downloads.
 
 ## Safety Boundary
 
-Allowed: lawful archiving with a documented rights basis, Mullvad privacy checks, conservative pacing, resumable batches, and operator-reviewed retries.
+Allowed: lawful archiving, Mullvad privacy checks, conservative pacing, resumable batches, optional rights metadata, and operator-reviewed retries.
 
 Disallowed: bypassing DRM, paywalls, login challenges, captchas, access controls, account controls, throttling, bans, or IP blocks. Do not automatically rotate Mullvad relays/IPs to keep downloading through source-side blocks.
 
@@ -79,12 +79,14 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence init "<
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "<manifest.json>" --media "<video.mp4>" --video-id "<video-id>" --model auto
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence import-crispasr "<manifest.json>" --input "<transcript.json>" --video-id "<video-id>" --media-path "<video.mp4>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence ingest-words "<manifest.json>" --input "<words.jsonl>" --video-id "<video-id>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "<manifest.json>" --media "<video.mp4>" --video-id "<video-id>" --prepare-only
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence search "<manifest.json>" "agentic workflow"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips plan "<manifest.json>" --query "agentic workflow"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence vault build "<manifest.json>"
 ```
 
 The stable contract is a timestamped word ledger. Prefer the ready-made CrispASR Parakeet backend for local transcription. Heavy ASR stacks such as NVIDIA NeMo + Parakeet remain advanced external producers of that ledger, preferably isolated in WSL2, Docker, or a separate Python environment.
+Use `intelligence align nfa` when the user needs tighter word-boundary timing; it prepares/imports NVIDIA NeMo Forced Aligner CTM output but still keeps NeMo/PyTorch/model weights outside the core package.
 
 Use `intelligence doctor --require-gpu` before describing a local ASR setup as GPU-ready. CPU-only CrispASR still runs locally and token-free, but `--require-gpu` must not be mixed with `--no-gpu` or `--gpu-backend cpu`.
 
@@ -92,7 +94,7 @@ Use `intelligence doctor --require-gpu` before describing a local ASR setup as G
 
 Use this sequence for real channel, playlist, or larger URL-set work:
 
-1. Consult the user for scope, authorized source URLs, rights basis, rights evidence file, output location, and limits.
+1. Consult the user for scope, source URLs, optional rights notes/evidence, output location, and limits. Remind them to use material only when they have rights, permission, a license, fair use, or another lawful basis.
    Also choose folder policy: mixed ad hoc links usually belong in one batch folder; channel, playlist, or multi-source archive work usually belongs in uploader/source folders.
 2. Inventory channel or playlist URLs before downloading.
 3. Create or review the item ledger.
@@ -111,25 +113,25 @@ The safety boundary is firm: do not use relay rotation, account switching, login
 For one or more explicit URLs:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL>" --rights "<owned or authorized reason>" --name "<batch-name>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL>" --name "<batch-name>"
 ```
 
 For many URLs, create a text file with one URL per line and run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --rights "<owned or authorized reason>" --name "<batch-name>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --name "<batch-name>"
 ```
 
 Attach rights evidence when available:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --rights "<owned or authorized reason>" --rights-file "<rights-evidence.md>" --name "<batch-name>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --rights "optional permission/license/fair-use note" --rights-file "<rights-evidence.md>" --name "<batch-name>"
 ```
 
 For mixed hand-curated links, keep the user's working set together:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --rights "<owned or authorized reason>" --name "<batch-name>" --folder-policy batch
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --name "<batch-name>" --folder-policy batch
 ```
 
 Folder policies are `auto`, `batch`, `by-uploader`, and `flat`. Use `batch` for one folder per request. Use `by-uploader` for channel, playlist, or multi-source archive work.
@@ -139,7 +141,7 @@ Folder policies are `auto`, `batch`, `by-uploader`, and `flat`. Use `batch` for 
 For channel or playlist work, inventory first:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "<channel-or-playlist-url>" --rights "<owned or authorized reason>" --rights-file "<rights-evidence.md>" --name "<batch-name>"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "<channel-or-playlist-url>" --rights-file "<rights-evidence.md>" --name "<batch-name>"
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "<manifest.json>"
 ```
 
@@ -148,7 +150,7 @@ Inventory creates `items.jsonl` for operator review without downloading media. U
 For smoke tests or bounded jobs, add limits:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL>" --rights "<owned or authorized reason>" --name "<batch-name>" --max-downloads 1 --max-height 360 --max-filesize 50M
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL>" --name "<batch-name>" --max-downloads 1 --max-height 360 --max-filesize 50M
 ```
 
 Read `references/batch-catalog.md` before planning large archives.
@@ -173,7 +175,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "<manifest
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --dry-run
 ```
 
-Only after the user explicitly approves a real download:
+Only after the user explicitly approves a real download. The CLI prints a legal-use notice before invoking `yt-dlp`:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --yes

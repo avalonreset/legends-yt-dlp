@@ -2,7 +2,7 @@
 type: research
 status: developing
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-06-12
 tags: [research, transcription, asr, forced-alignment, diarization, clips, ffmpeg, product]
 ---
 
@@ -102,6 +102,16 @@ Sources:
 **Timestamp granularity:** Token, word, and segment CTM. NFA docs state CTM lines include utterance id, channel id, start time in seconds, duration in seconds, and text.
 
 **Tradeoff:** NFA currently supports CTC or hybrid CTC/Transducer in CTC mode, not pure Transducer models. That means Parakeet TDT direct timestamps remain the default, while NFA is the alignment refinery when we select a compatible CTC model.
+
+**Implementation update 2026-06-12:** Slayer now has the refinement bridge in code. `slayer intelligence align nfa` prepares absolute-path NFA manifests under `intelligence/alignments/nfa/<video_id>/`, can launch an external NeMo `tools/nemo_forced_aligner/align.py`, and imports `ctm/words/*.ctm` back into `intelligence/words/<video_id>.words.jsonl`. Import is strict: the CTM word count and normalized word order must match the existing ledger before timings are replaced. Successful imports create a `*.words.pre-nfa.jsonl` backup.
+
+Current command shape:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --prepare-only
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --python "C:\path\to\nemo-env\python.exe" --nemo-dir "C:\path\to\NeMo"
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --import-ctm ".\output\ctm\words\abc123.ctm" --video-id "abc123"
+```
 
 Sources:
 
@@ -229,6 +239,8 @@ Suggested files per batch:
 - `intelligence/audio/<video_id>.wav`
 - `intelligence/transcripts/<video_id>.json`
 - `intelligence/words/<video_id>.jsonl`
+- `intelligence/alignments/nfa/<video_id>/<video_id>.manifest.jsonl`
+- `intelligence/alignments/nfa/<video_id>/output/ctm/words/*.ctm`
 - `intelligence/speakers/<video_id>.rttm` or `.json`
 - `intelligence/index/slayer-intelligence.sqlite`
 - `intelligence/clips/<query_slug>/clip-plan.json`
@@ -266,25 +278,23 @@ Critical limitation: no ASR engine can find a word it failed to transcribe. For 
 
 ## Proposed Commands
 
-Initial command surface:
+Implemented command surface:
 
 ```powershell
-slayer intelligence init --batch .\runs\batch-20260528\manifest.json
-slayer intelligence transcribe --batch .\runs\batch-20260528 --engine crispasr --model auto
-slayer intelligence index --batch .\runs\batch-20260528
-slayer intelligence search --batch .\runs\batch-20260528 --query "agentic"
-slayer intelligence clips plan --batch .\runs\batch-20260528 --query "agentic" --pad-start 0.50 --pad-end 0.75
-slayer intelligence clips render --plan .\runs\batch-20260528\intelligence\clips\agentic\clip-plan.json
-slayer intelligence vault build --batch .\runs\batch-20260528 --out .\runs\batch-20260528\intelligence\vault
+slayer intelligence init ".\runs\batch-20260528\manifest.json"
+slayer intelligence transcribe ".\runs\batch-20260528\manifest.json" --media ".\video.mp4" --video-id "abc123" --model auto
+slayer intelligence search ".\runs\batch-20260528\manifest.json" "agentic"
+slayer intelligence clips plan ".\runs\batch-20260528\manifest.json" --query "agentic" --pad-before 0.50 --pad-after 0.75
+slayer intelligence clips render ".\runs\batch-20260528\intelligence\clips\agentic\clip-plan.json" --yes
+slayer intelligence vault build ".\runs\batch-20260528\manifest.json"
 ```
 
 Advanced options:
 
 ```powershell
-slayer intelligence transcribe --engine parakeet-v3 --language auto --device cuda
-slayer intelligence align --engine nemo-forced-aligner --model stt_en_fastconformer_hybrid_large_pc
+slayer intelligence transcribe ".\runs\batch-20260528\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
+slayer intelligence align nfa ".\runs\batch-20260528\manifest.json" --media ".\video.mp4" --video-id "abc123" --pretrained-name stt_en_fastconformer_hybrid_large_pc
 slayer intelligence diarize --engine pyannote-community --hf-token-env HF_TOKEN
-slayer intelligence clips render --mode reencode --resolution source --normalize-audio
 ```
 
 ## Implementation Plan
@@ -303,7 +313,7 @@ Phase 2:
 
 1. Add SQLite FTS5 plus exact token table.
 2. Add pyannote speaker labeling as optional.
-3. Add NeMo Forced Aligner refinery for compatible models.
+3. Validate the implemented NeMo Forced Aligner bridge against a real NeMo/CUDA environment.
 4. Add search hit QA: confidence thresholds, padding previews, and low-confidence review.
 5. Add a small lawful sample-media test fixture so CI can validate parsing/search/clip-plan logic without relying on live YouTube.
 

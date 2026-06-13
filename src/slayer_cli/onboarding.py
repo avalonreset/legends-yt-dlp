@@ -79,8 +79,8 @@ def operator_interview_lines() -> list[str]:
     return [
         "Ask the user these before a real batch:",
         "1. What exact channel, playlist, or video URLs should be archived?",
-        "2. Do you own the content, have permission, or have a license/public-domain basis?",
-        "3. Do you have a rights evidence file to attach with --rights-file?",
+        "2. Remind them to use material only when they have rights, permission, fair use, or another lawful basis.",
+        "3. Do they want to attach an optional rights note or evidence file with --rights/--rights-file?",
         "4. Should this start bounded with --max-items, --max-height, --max-filesize, or --max-downloads?",
         "5. Where should outputs go, if not the batch downloads folder?",
         "6. Should outputs use one batch folder, uploader folders, or a flat folder?",
@@ -92,8 +92,8 @@ def first_batch_lines() -> list[str]:
     return [
         "Normal first batch flow:",
         command_line(
-            'inventory "<channel-or-playlist-url>" --rights "<owned or authorized reason>" '
-            '--rights-file ".\\rights-evidence.md" --name "<batch-name>" --max-items 25'
+            'inventory "<channel-or-playlist-url>" --rights-file ".\\rights-evidence.md" '
+            '--name "<batch-name>" --max-items 25'
         ),
         command_line('ledger "batches\\...\\manifest.json"'),
         command_line('preflight "batches\\...\\manifest.json"'),

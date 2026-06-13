@@ -3,7 +3,7 @@ type: meta
 title: "Hot Cache"
 status: active
 created: 2026-05-27
-updated: 2026-05-28
+updated: 2026-06-12
 tags: [hot-cache, meta]
 ---
 
@@ -11,7 +11,7 @@ tags: [hot-cache, meta]
 
 ## Last Updated
 
-2026-05-28. Real user download, ledger-scoped verification, and Parakeet/CrispASR GPU truth-gating are the latest hardening slice.
+2026-06-12. NeMo Forced Aligner is now integrated as an optional word-ledger refinement path for delicate clip boundaries.
 
 ## Key Recent Facts
 
@@ -24,6 +24,8 @@ tags: [hot-cache, meta]
 - Folder policy now exists: `auto` puts direct multi-link plans into one named batch folder, keeps inventoried channel/playlist work grouped by uploader, and still allows explicit `batch`, `by-uploader`, or `flat`.
 - The user-provided X status batch was flattened after download into `C:\Users\rccol\Downloads\x-status-videos-20260528`; ledger paths and manifest output were updated, and verify passes with 8 media files plus 8 info JSON sidecars.
 - CrispASR/Parakeet is still the preferred ready-made ASR path. It runs locally without Codex/Claude token spend.
+- `intelligence align nfa` now prepares NVIDIA NeMo Forced Aligner manifests, runs an external NeMo `align.py` when available, and imports NFA word CTM output into the existing word ledger.
+- NFA import is strict: word count and normalized word sequence must match the existing ledger, or refinement fails for manual review. Successful imports create a `*.words.pre-nfa.jsonl` backup.
 - Current local CrispASR binary is CPU-only: diagnostics report `ggml backends: cpu`. The machine has an RTX 4090, but this build is not GPU-enabled.
 - Windows GPU build attempts found setup blockers, not application blockers: CUDA builds are blocked by the installed Visual Studio/CUDA host-compiler pairing, and Vulkan builds need the Vulkan SDK installed.
 - New `intelligence doctor --require-gpu` and `intelligence transcribe --gpu-backend ... --require-gpu` gates prevent the product from claiming GPU readiness unless CrispASR diagnostics report CUDA/Vulkan/Metal-style support.
@@ -37,10 +39,12 @@ tags: [hot-cache, meta]
 - Added output folder policies to batch planning and inventory.
 - Added CrispASR diagnostics parsing, GPU-required doctor/transcribe flags, docs, and regression tests.
 - Added contradictory GPU flag rejection for `intelligence transcribe` so CPU-forced and GPU-required modes cannot be mixed.
+- Added the NeMo Forced Aligner refinement bridge, docs, wiki runbook, and regression tests.
 - Updated README, CLI, and CrispASR/intelligence docs with CPU-vs-GPU truth gates.
 
 ## Active Threads
 
 - Next technical gate: build or obtain a GPU-enabled CrispASR binary and confirm diagnostics report CUDA or Vulkan before calling the ASR path GPU-ready.
+- Next alignment gate: validate `intelligence align nfa` against a real NeMo/CUDA environment and import a real CTM before describing local NFA runtime as verified.
 - Legacy count-based smoke fixtures still exist for compatibility, but docs/onboarding now steer new validation to `smoke plan --url`.
 - Optional release gate after more review: package/tag `v0.1.0-alpha`.

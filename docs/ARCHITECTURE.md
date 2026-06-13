@@ -13,7 +13,7 @@ CLI Control Plane
 
 Policy Checks
   - require source URL
-  - require rights basis
+  - print legal-use notice before real downloads
   - reject unsafe run states
 
 Mullvad Guard
@@ -100,11 +100,14 @@ Post-capture intelligence state is also file-based under each batch:
 - `intelligence/manifest.json`
 - `intelligence/words/*.words.jsonl`
 - `intelligence/searches/*.matches.jsonl`
+- `intelligence/alignments/nfa/*/*.manifest.jsonl`
+- `intelligence/alignments/nfa/*/output/ctm/words/*.ctm`
 - `intelligence/clips/*/clip-plan.json`
 - `intelligence/vault/*.md`
 
 The core intelligence contract is the word ledger, not plain transcript text. External ASR backends such as CrispASR + Parakeet or NVIDIA NeMo + Parakeet can produce that ledger without becoming core package dependencies.
 The default ready-made producer is CrispASR with the Parakeet backend, discovered via `CRISPASR_CLI`, `.local/bin`, or `PATH`.
+NVIDIA NeMo Forced Aligner is an optional refinement path: Slayer prepares manifests and imports word CTM output into the same ledger, but the NeMo/PyTorch runtime stays external.
 
 ## Skill Packaging
 

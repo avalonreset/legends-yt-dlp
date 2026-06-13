@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "legends-yt-dlp-slayer"
 version = "0.1.0"
-description = "Windows-first, rights-aware yt-dlp orchestration CLI with Mullvad VPN preflight controls."
+description = "Windows-first yt-dlp orchestration CLI for source capture, verification, and creator clip workflows with Mullvad preflight controls."
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [

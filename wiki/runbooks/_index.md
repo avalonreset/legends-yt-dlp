@@ -2,7 +2,7 @@
 type: index
 status: active
 created: 2026-05-27
-updated: 2026-05-28
+updated: 2026-06-12
 tags: [runbooks, index]
 ---
 
@@ -15,3 +15,4 @@ tags: [runbooks, index]
 - [[CLI Operator Commands]]
 - [[Mullvad Control Surface]]
 - [[Standard Operating Procedure]]
+- [[NeMo Forced Aligner Refinement]]

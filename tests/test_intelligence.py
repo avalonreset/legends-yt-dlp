@@ -12,8 +12,12 @@ from slayer_cli.intelligence import (
     init_intelligence,
     intelligence_paths,
     make_clip_plan,
+    parse_nfa_words_ctm,
+    prepare_nfa_manifest,
     parse_crispasr_diagnostics,
     read_jsonl,
+    refine_words_with_nfa_ctm,
+    run_nfa_alignment,
     search_words,
     transcribe_with_crispasr,
 )
@@ -117,6 +121,121 @@ class IntelligenceTests(unittest.TestCase):
 
             with self.assertRaisesRegex(ValueError, "after start"):
                 import_words(manifest, payload, video_id="vid123")
+
+    def test_prepare_nfa_manifest_uses_existing_word_ledger_text(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = self.make_manifest(root)
+            words = self.write_words(root)
+            media = root / "downloads" / "fixture.mp4"
+            import_words(manifest, words, video_id="vid123")
+
+            def fake_extract(media_path: Path, audio_path: Path) -> CommandResult:
+                audio_path.parent.mkdir(parents=True, exist_ok=True)
+                audio_path.write_bytes(b"wav")
+                return CommandResult(("ffmpeg",), 0, "", "")
+
+            with patch("slayer_cli.intelligence.extract_audio", side_effect=fake_extract):
+                prepared = prepare_nfa_manifest(manifest, media, video_id="vid123")
+
+            nfa_manifest = Path(str(prepared["manifest_path"]))
+            rows = read_jsonl(nfa_manifest)
+            self.assertEqual(prepared["target_id"], "vid123")
+            self.assertTrue(Path(str(prepared["audio_path"])).is_absolute())
+            self.assertEqual(rows[0]["text"], "This agentic workflow matters")
+            self.assertEqual(rows[0]["audio_filepath"], str(Path(str(prepared["audio_path"])).resolve()))
+
+    def test_refine_words_with_nfa_ctm_updates_existing_ledger_and_backs_up(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = self.make_manifest(root)
+            words = self.write_words(root)
+            import_words(manifest, words, video_id="vid123")
+            ctm = root / "vid123.ctm"
+            ctm.write_text(
+                "\n".join(
+                    [
+                        "vid123 1 0.050 0.210 This",
+                        "vid123 1 0.940 0.500 agentic",
+                        "vid123 1 1.470 0.390 workflow",
+                        "vid123 1 2.140 0.320 matters",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            target, count, backup_path = refine_words_with_nfa_ctm(manifest, ctm, video_id="vid123")
+            imported = read_jsonl(target)
+            matches = search_words(manifest, "agentic workflow", pad_start=0.1, pad_end=0.2)
+
+            self.assertEqual(count, 4)
+            self.assertIsNotNone(backup_path)
+            self.assertTrue(backup_path and backup_path.exists())
+            self.assertEqual(imported[0]["start"], 0.05)
+            self.assertEqual(imported[1]["end"], 1.44)
+            self.assertEqual(imported[1]["timing_source"], "nfa-word-ctm")
+            self.assertEqual(imported[1]["alignment_engine"], "nvidia/nemo-forced-aligner")
+            self.assertEqual(matches[0]["start"], 0.94)
+            self.assertEqual(matches[0]["end"], 1.86)
+
+    def test_refine_words_with_nfa_ctm_rejects_word_sequence_mismatch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = self.make_manifest(root)
+            words = self.write_words(root)
+            import_words(manifest, words, video_id="vid123")
+            ctm = root / "vid123.ctm"
+            ctm.write_text(
+                "\n".join(
+                    [
+                        "vid123 1 0.050 0.210 This",
+                        "vid123 1 0.940 0.500 other",
+                        "vid123 1 1.470 0.390 workflow",
+                        "vid123 1 2.140 0.320 matters",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "word sequence mismatch"):
+                refine_words_with_nfa_ctm(manifest, ctm, video_id="vid123")
+
+    def test_parse_nfa_words_ctm_and_run_command_shape(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ctm = root / "words.ctm"
+            ctm.write_text("utt 1 1.250 0.500 crazy\nutt 1 1.900 0.250 wild\n", encoding="utf-8")
+            align_script = root / "align.py"
+            align_script.write_text("# fake\n", encoding="utf-8")
+            captured: list[tuple[str, ...]] = []
+
+            def fake_run_command(args: object, **_: object) -> CommandResult:
+                command = tuple(str(arg) for arg in args)  # type: ignore[union-attr]
+                captured.append(command)
+                return CommandResult(command, 0, "", "")
+
+            rows = parse_nfa_words_ctm(ctm)
+            with patch("slayer_cli.intelligence.run_command", side_effect=fake_run_command):
+                result = run_nfa_alignment(
+                    root / "manifest.jsonl",
+                    root / "out",
+                    python_executable="python-nemo",
+                    align_script=align_script,
+                    pretrained_name="stt_en_fastconformer_hybrid_large_pc",
+                    transcribe_device="cpu",
+                    viterbi_device="cpu",
+                    extra_args=["minimum_timestamp_duration=0.02"],
+                )
+
+            self.assertEqual(rows[0]["word"], "crazy")
+            self.assertEqual(rows[0]["end"], 1.75)
+            self.assertTrue(result.ok)
+            self.assertEqual(captured[0][0], "python-nemo")
+            self.assertIn("pretrained_name=stt_en_fastconformer_hybrid_large_pc", captured[0])
+            self.assertIn("save_output_file_formats=['ctm','ass']", captured[0])
+            self.assertIn("minimum_timestamp_duration=0.02", captured[0])
 
     def test_import_crispasr_json_accepts_full_word_output(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -2,7 +2,7 @@
 type: meta
 status: active
 created: 2026-05-27
-updated: 2026-05-28
+updated: 2026-06-12
 tags: [index, meta]
 ---
 
@@ -61,6 +61,7 @@ tags: [index, meta]
 - [[Blocked or Throttled SOP]]
 - [[CLI Operator Commands]]
 - [[Mullvad Control Surface]]
+- [[NeMo Forced Aligner Refinement]]
 
 ## Compliance
 
@@ -75,6 +76,7 @@ tags: [index, meta]
 - [[Mullvad CLI Notes 2026-05-27]]
 - [[yt-dlp Operational Notes 2026-05-27]]
 - [[yt-dlp Deep Research 2026-05-27]]
+- [[Local Transcription and Clip Extraction Stack 2026-05-28]]
 - [[Mullvad Pricing]]
 - [[Mullvad CLI Guide]]
 - [[yt-dlp GitHub README]]

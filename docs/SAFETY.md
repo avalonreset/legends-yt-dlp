@@ -1,6 +1,6 @@
 # Safety and Use Policy
 
-This project is for lawful, rights-aware archiving only.
+This project is for lawful archiving only.
 
 ## Allowed Use
 
@@ -8,7 +8,7 @@ This project is for lawful, rights-aware archiving only.
 - Downloading videos where the creator or rights holder gave permission.
 - Downloading public-domain content.
 - Downloading content under a license that permits local archival use.
-- Creating a local preservation copy when you have a documented lawful basis.
+- Creating a local preservation copy when you have a lawful basis.
 - Using Mullvad VPN as a privacy and leak-prevention layer.
 
 ## Disallowed Use
@@ -23,7 +23,6 @@ This project is for lawful, rights-aware archiving only.
 
 The runner should pause or refuse to continue when it sees:
 
-- missing rights basis
 - Mullvad disconnected or ambiguous
 - captcha or bot challenge
 - sign-in challenge
@@ -33,9 +32,11 @@ The runner should pause or refuse to continue when it sees:
 
 Inventory uses the same boundary. If channel or playlist inventory returns source-side warning signals, the tool should pause before creating a batch.
 
-## Planning Evidence
+## Legal-Use Notice
 
-Large jobs should start with a documented rights basis, optional copied rights evidence, and a reviewable item ledger. The ledger is an audit aid, not permission by itself: operators must still verify that each planned or inventoried item fits the stated rights basis before a real run.
+Before real downloads, Slayer prints a legal-use notice reminding operators to download only when they have rights, permission, a license, fair use, or another lawful basis, and to follow applicable laws and platform terms.
+
+Optional `--rights` and `--rights-file` values can keep permission notes, license evidence, client approval, fair-use notes, or other context with a batch when useful. They are metadata, not mandatory preflight gates.
 
 ## Production VPN Posture
 

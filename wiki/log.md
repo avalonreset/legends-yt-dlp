@@ -2,11 +2,19 @@
 type: meta
 status: active
 created: 2026-05-27
-updated: 2026-05-28
+updated: 2026-06-12
 tags: [log, meta]
 ---
 
 # Log
+
+## 2026-06-12 - NeMo Forced Aligner Refinement Bridge Added
+
+- Added `slayer intelligence align nfa` for NVIDIA NeMo Forced Aligner manifest preparation, external `align.py` execution, and word CTM import.
+- Added `intelligence/alignments/nfa/<video_id>/` as the durable artifact root for NFA manifests and CTM/ASS output.
+- NFA CTM import now updates the existing word ledger only when word count and normalized word order match; successful imports back up the prior ledger to `*.words.pre-nfa.jsonl`.
+- Added regression coverage for NFA manifest prep, CTM parsing, command construction, safe timing replacement, and mismatch rejection.
+- Updated README, CLI docs, architecture notes, intelligence docs, roadmap, research note, hot cache, and the new [[NeMo Forced Aligner Refinement]] runbook.
 
 ## 2026-05-28 - Transcription Policy Clarified
 

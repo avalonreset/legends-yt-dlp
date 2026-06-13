@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 from dataclasses import dataclass
@@ -19,6 +20,8 @@ INTELLIGENCE_SCHEMA_VERSION = 1
 WORD_RE = re.compile(r"[a-z0-9]+(?:'[a-z0-9]+)?")
 RAW_WORD_RE = re.compile(r"[A-Za-z0-9]+(?:'[A-Za-z0-9]+)?")
 CRISPASR_ENGINE = "crispasr/parakeet-tdt-0.6b-v3"
+NFA_ENGINE = "nvidia/nemo-forced-aligner"
+NFA_DEFAULT_MODEL = "stt_en_fastconformer_hybrid_large_pc"
 GPU_BACKEND_NAMES = {"cuda", "vulkan", "metal", "kompute", "opencl", "sycl"}
 
 
@@ -30,6 +33,7 @@ class IntelligencePaths:
     words: Path
     searches: Path
     clips: Path
+    alignments: Path
     vault: Path
     manifest: Path
 
@@ -75,13 +79,23 @@ def intelligence_paths(batch_root: Path) -> IntelligencePaths:
         words=root / "words",
         searches=root / "searches",
         clips=root / "clips",
+        alignments=root / "alignments",
         vault=root / "vault",
         manifest=root / "manifest.json",
     )
 
 
 def ensure_intelligence_dirs(paths: IntelligencePaths) -> None:
-    for path in [paths.root, paths.audio, paths.transcripts, paths.words, paths.searches, paths.clips, paths.vault]:
+    for path in [
+        paths.root,
+        paths.audio,
+        paths.transcripts,
+        paths.words,
+        paths.searches,
+        paths.clips,
+        paths.alignments,
+        paths.vault,
+    ]:
         path.mkdir(parents=True, exist_ok=True)
 
 
@@ -219,6 +233,7 @@ def write_intelligence_manifest(paths: IntelligencePaths, *, manifest_path: Path
             "words": str(paths.words),
             "searches": str(paths.searches),
             "clips": str(paths.clips),
+            "alignments": str(paths.alignments),
             "vault": str(paths.vault),
         },
         "policy": {
@@ -714,6 +729,288 @@ def load_all_words(manifest_path: Path) -> list[dict]:
     for path in sorted(paths.words.glob("*.words.jsonl")):
         rows.extend(read_jsonl(path))
     return rows
+
+
+def media_paths_match(left: str | None, right: str | None) -> bool:
+    if not left or not right:
+        return False
+    if str(left) == str(right):
+        return True
+    try:
+        return Path(left).resolve() == Path(right).resolve()
+    except OSError:
+        return False
+
+
+def word_row_matches_target(
+    row: dict,
+    *,
+    video_id: str | None = None,
+    item_id: str | None = None,
+    media_path: str | Path | None = None,
+) -> bool:
+    if video_id and str(row.get("video_id", "")) == str(video_id):
+        return True
+    if item_id and str(row.get("item_id", "")) == str(item_id):
+        return True
+    if media_path and media_paths_match(str(row.get("media_path", "")), str(media_path)):
+        return True
+    return False
+
+
+def target_id_for_media(media_path: Path | None, *, video_id: str | None = None, item_id: str | None = None) -> str:
+    return slugify(video_id or item_id or (media_path.stem if media_path else "nfa-target"))
+
+
+def target_word_file(paths: IntelligencePaths, target_id: str) -> Path:
+    return paths.words / f"{target_id}.words.jsonl"
+
+
+def read_target_word_rows(
+    manifest_path: Path,
+    *,
+    video_id: str | None = None,
+    item_id: str | None = None,
+    media_path: str | Path | None = None,
+) -> tuple[Path | None, list[dict]]:
+    paths = intelligence_paths(manifest_path.parent)
+    target_id = target_id_for_media(Path(media_path) if media_path else None, video_id=video_id, item_id=item_id)
+    preferred = target_word_file(paths, target_id)
+    if preferred.exists():
+        return preferred, read_jsonl(preferred)
+    for path in sorted(paths.words.glob("*.words.jsonl")):
+        rows = read_jsonl(path)
+        if any(word_row_matches_target(row, video_id=video_id, item_id=item_id, media_path=media_path) for row in rows):
+            return path, rows
+    return None, []
+
+
+def reference_text_from_word_rows(rows: Iterable[dict]) -> str:
+    return " ".join(str(row.get("word", "")).strip() for row in rows if str(row.get("word", "")).strip())
+
+
+def prepare_nfa_manifest(
+    manifest_path: Path,
+    media_path: Path,
+    *,
+    video_id: str | None = None,
+    item_id: str | None = None,
+    text: str | None = None,
+    audio_path: Path | None = None,
+    refresh_audio: bool = False,
+    require_text: bool = True,
+) -> dict:
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    paths = intelligence_paths(manifest_path.parent)
+    ensure_intelligence_dirs(paths)
+    if not media_path.exists():
+        raise FileNotFoundError(f"media file not found: {media_path}")
+    target_id = target_id_for_media(media_path, video_id=video_id, item_id=item_id)
+    selected_audio_path = audio_path or paths.audio / f"{target_id}.wav"
+    if refresh_audio or not selected_audio_path.exists():
+        audio_result = extract_audio(media_path, selected_audio_path)
+        if not audio_result.ok:
+            detail = audio_result.stderr or audio_result.stdout or f"ffmpeg exited {audio_result.returncode}"
+            raise RuntimeError(f"Could not extract NFA audio: {detail}")
+
+    reference_text = (text or "").strip()
+    if not reference_text:
+        _, rows = read_target_word_rows(manifest_path, video_id=video_id, item_id=item_id, media_path=media_path)
+        reference_text = reference_text_from_word_rows(rows)
+    if require_text and not reference_text:
+        raise ValueError("NFA alignment needs reference text. Import/transcribe words first, or pass --text/--text-file.")
+
+    align_root = paths.alignments / "nfa" / target_id
+    output_dir = align_root / "output"
+    align_root.mkdir(parents=True, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    align_manifest = align_root / f"{target_id}.manifest.jsonl"
+    row = {"audio_filepath": str(selected_audio_path.resolve())}
+    if reference_text:
+        row["text"] = reference_text
+    write_jsonl(align_manifest, [row])
+    write_intelligence_manifest(paths, manifest_path=manifest_path, manifest=manifest)
+    return {
+        "target_id": target_id,
+        "audio_path": selected_audio_path,
+        "manifest_path": align_manifest,
+        "output_dir": output_dir,
+        "text_word_count": len(text_words(reference_text)),
+    }
+
+
+def resolve_nfa_align_script(*, nemo_dir: Path | None = None, align_script: Path | None = None) -> Path:
+    candidates: list[Path] = []
+    if align_script:
+        candidates.append(align_script)
+    env_align_script = os.environ.get("NFA_ALIGN_PY")
+    if env_align_script:
+        candidates.append(Path(env_align_script))
+    if nemo_dir:
+        candidates.append(nemo_dir / "tools" / "nemo_forced_aligner" / "align.py")
+    env_nemo_dir = os.environ.get("NEMO_DIR")
+    if env_nemo_dir:
+        candidates.append(Path(env_nemo_dir) / "tools" / "nemo_forced_aligner" / "align.py")
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    raise FileNotFoundError("NeMo Forced Aligner align.py not found. Pass --align-script, set NFA_ALIGN_PY, or set NEMO_DIR.")
+
+
+def run_nfa_alignment(
+    alignment_manifest_path: Path,
+    output_dir: Path,
+    *,
+    python_executable: str | Path = "python",
+    nemo_dir: Path | None = None,
+    align_script: Path | None = None,
+    pretrained_name: str = NFA_DEFAULT_MODEL,
+    transcribe_device: str = "cuda",
+    viterbi_device: str = "cuda",
+    batch_size: int = 1,
+    align_using_pred_text: bool = False,
+    extra_args: Iterable[str] = (),
+    timeout: int = 60 * 60 * 6,
+) -> CommandResult:
+    script = resolve_nfa_align_script(nemo_dir=nemo_dir, align_script=align_script)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    command: list[str | Path] = [
+        python_executable,
+        script,
+        f"pretrained_name={pretrained_name}",
+        f"manifest_filepath={alignment_manifest_path}",
+        f"output_dir={output_dir}",
+        "save_output_file_formats=['ctm','ass']",
+        f"transcribe_device={transcribe_device}",
+        f"viterbi_device={viterbi_device}",
+        f"batch_size={batch_size}",
+    ]
+    if align_using_pred_text:
+        command.append("align_using_pred_text=true")
+    command.extend(extra_args)
+    return run_command(command, timeout=timeout)
+
+
+def parse_nfa_words_ctm(ctm_path: Path) -> list[dict]:
+    rows: list[dict] = []
+    for line_no, raw_line in enumerate(ctm_path.read_text(encoding="utf-8").splitlines(), start=1):
+        line = raw_line.strip()
+        if not line:
+            continue
+        parts = line.split(maxsplit=4)
+        if len(parts) < 5:
+            raise ValueError(f"Invalid CTM line {line_no}: expected 5 fields")
+        try:
+            start = float(parts[2])
+            duration = float(parts[3])
+        except ValueError as exc:
+            raise ValueError(f"Invalid CTM timing at line {line_no}") from exc
+        if duration <= 0:
+            continue
+        word = parts[4].strip()
+        if not normalize_word(word):
+            continue
+        rows.append(
+            {
+                "word": word,
+                "start": round(start, 3),
+                "end": round(start + duration, 3),
+                "timing_source": "nfa-word-ctm",
+                "alignment_word_index": len(rows),
+            }
+        )
+    if not rows:
+        raise ValueError(f"No word rows found in NFA CTM: {ctm_path}")
+    return rows
+
+
+def find_nfa_words_ctm(output_dir: Path, *, target_id: str | None = None, audio_path: Path | None = None) -> Path:
+    words_dir = output_dir / "ctm" / "words"
+    candidates: list[Path] = []
+    for stem in [target_id, audio_path.stem if audio_path else None]:
+        if stem:
+            candidates.append(words_dir / f"{stem}.ctm")
+    candidates.extend(sorted(words_dir.glob("*.ctm")) if words_dir.exists() else [])
+    seen: set[Path] = set()
+    for candidate in candidates:
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        if candidate.exists():
+            return candidate
+    raise FileNotFoundError(f"NFA word CTM not found under {words_dir}")
+
+
+def refine_words_with_nfa_ctm(
+    manifest_path: Path,
+    ctm_path: Path,
+    *,
+    video_id: str | None = None,
+    item_id: str | None = None,
+    media_path: str | Path | None = None,
+    engine: str = NFA_ENGINE,
+    backup: bool = True,
+) -> tuple[Path, int, Path | None]:
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    paths = intelligence_paths(manifest_path.parent)
+    ensure_intelligence_dirs(paths)
+    ctm_rows = parse_nfa_words_ctm(ctm_path)
+    media = Path(media_path) if media_path else None
+    target_id = target_id_for_media(media, video_id=video_id, item_id=item_id)
+    current_path, current_rows = read_target_word_rows(
+        manifest_path,
+        video_id=video_id,
+        item_id=item_id,
+        media_path=media_path,
+    )
+    target = current_path or target_word_file(paths, target_id)
+    backup_path: Path | None = None
+    if current_rows:
+        if len(current_rows) != len(ctm_rows):
+            raise ValueError(
+                f"NFA word count mismatch for {target_id}: existing ledger has {len(current_rows)}, CTM has {len(ctm_rows)}"
+            )
+        mismatches = [
+            (index, normalize_word(existing.get("word")), normalize_word(aligned.get("word")))
+            for index, (existing, aligned) in enumerate(zip(current_rows, ctm_rows), start=1)
+            if normalize_word(existing.get("word")) != normalize_word(aligned.get("word"))
+        ]
+        if mismatches:
+            first = mismatches[0]
+            raise ValueError(
+                f"NFA word sequence mismatch at word {first[0]}: existing={first[1]!r}, ctm={first[2]!r}"
+            )
+        if backup and target.exists():
+            backup_path = target.with_suffix(".pre-nfa.jsonl")
+            shutil.copyfile(target, backup_path)
+        refined_rows: list[dict] = []
+        for existing, aligned in zip(current_rows, ctm_rows):
+            refined = dict(existing)
+            refined["start"] = aligned["start"]
+            refined["end"] = aligned["end"]
+            refined["timing_source"] = "nfa-word-ctm"
+            refined["alignment_engine"] = engine
+            refined["alignment_ctm"] = str(ctm_path)
+            refined["alignment_word"] = aligned["word"]
+            refined["aligned_at"] = now_iso()
+            refined_rows.append(refined)
+    else:
+        refined_rows = normalize_word_rows(
+            ctm_rows,
+            manifest_path=manifest_path,
+            manifest=manifest,
+            video_id=video_id or target_id,
+            item_id=item_id,
+            media_path=str(media_path or ""),
+            engine=engine,
+        )
+        for row in refined_rows:
+            row["alignment_engine"] = engine
+            row["alignment_ctm"] = str(ctm_path)
+            row["aligned_at"] = now_iso()
+    write_jsonl(target, refined_rows)
+    write_intelligence_manifest(paths, manifest_path=manifest_path, manifest=manifest)
+    return target, len(refined_rows), backup_path
 
 
 def group_words(rows: Iterable[dict]) -> list[list[dict]]:

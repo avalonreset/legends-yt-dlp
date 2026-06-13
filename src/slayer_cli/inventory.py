@@ -73,7 +73,7 @@ def inventory_items(result: InventoryResult, *, live_statuses: set[str] | None =
 def create_batch_from_inventory(
     *,
     source_url: str,
-    rights_basis: str,
+    rights_basis: str | None = None,
     name: str | None = None,
     output_dir: str | None = None,
     max_height: int | None = None,
