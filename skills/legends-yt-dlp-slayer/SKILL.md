@@ -45,6 +45,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 setup production
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp version
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp update
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
 ```
 
@@ -55,7 +56,7 @@ Read `references/commands.md` for the full command surface.
 For alpha packaging:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.2.0-alpha"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.2.1-alpha"
 ```
 
 Inspect `docs/PACKAGING.md`, `docs/LEGAL.md`, `NOTICE`, and `LICENSE` before publishing a release package.

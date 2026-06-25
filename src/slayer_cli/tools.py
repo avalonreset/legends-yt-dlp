@@ -5,6 +5,7 @@ import os
 import shutil
 import urllib.request
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
 from .paths import LOCAL_BIN_DIR, LOCAL_DIR
@@ -13,6 +14,7 @@ from .process import CommandResult, run_command
 
 YTDLP_STABLE_EXE_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"
 YTDLP_STABLE_SHA256_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/SHA2-256SUMS"
+YTDLP_STALE_AFTER_DAYS = 90
 
 
 @dataclass(frozen=True)
@@ -53,6 +55,41 @@ def version_for(path: Path, *args: str) -> str | None:
     return output.splitlines()[0].strip() if output else None
 
 
+def parse_ytdlp_release_date(version: str | None) -> date | None:
+    if not version:
+        return None
+    token = version.strip().split()[0]
+    if token.startswith("stable@"):
+        token = token.removeprefix("stable@")
+    parts = token.split(".")
+    if len(parts) != 3:
+        return None
+    try:
+        year, month, day = (int(part) for part in parts)
+        return date(year, month, day)
+    except ValueError:
+        return None
+
+
+def ytdlp_age_days(version: str | None, *, today: date | None = None) -> int | None:
+    release_date = parse_ytdlp_release_date(version)
+    if release_date is None:
+        return None
+    current = today or date.today()
+    return (current - release_date).days
+
+
+def ytdlp_stale_detail(path: Path, version: str | None, *, today: date | None = None) -> str | None:
+    age_days = ytdlp_age_days(version, today=today)
+    if age_days is None or age_days <= YTDLP_STALE_AFTER_DAYS:
+        return None
+    version_detail = f" ({version})" if version else ""
+    return (
+        f"{path}{version_detail} is {age_days} days old; refresh with: "
+        "powershell -ExecutionPolicy Bypass -File scripts\\slayer.ps1 yt-dlp update"
+    )
+
+
 def find_mullvad() -> ToolInfo:
     candidates = [
         Path(r"C:\Program Files\Mullvad VPN\resources\mullvad.exe"),
@@ -72,6 +109,9 @@ def find_ytdlp() -> ToolInfo:
     if not path:
         return ToolInfo("yt-dlp", None, None, False, "yt-dlp not found")
     version = version_for(path, "--version")
+    stale_detail = ytdlp_stale_detail(path, version)
+    if stale_detail:
+        return ToolInfo("yt-dlp", path, version, False, stale_detail)
     return ToolInfo("yt-dlp", path, version, True, "yt-dlp found")
 
 

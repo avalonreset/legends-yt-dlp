@@ -2,7 +2,7 @@
 type: research
 status: summarized
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-06-24
 source_urls:
   - "https://github.com/yt-dlp/yt-dlp"
   - "https://github.com/yt-dlp/yt-dlp/releases/tag/2026.03.17"
@@ -18,8 +18,8 @@ The official project for this app is `yt-dlp/yt-dlp` on GitHub. It is the mainta
 
 ## Current Release
 
-- Latest stable observed on 2026-05-27: `2026.03.17`.
-- PyPI lists the corresponding package version as `2026.3.17`.
+- Latest stable observed on 2026-06-24 during the v0.2.1 freshness-gate update: `2026.06.09`.
+- The earlier 2026-05-27 observation was `2026.03.17`; by 2026-06-24 that build was old enough to trigger yt-dlp's stale-version warning and failed current TikTok extraction.
 - The official README marks `yt-dlp.exe` as the recommended Windows standalone x64 binary.
 
 ## Installation Decision
@@ -30,6 +30,7 @@ Use official GitHub release binaries for the Windows MVP:
 - Download `SHA2-256SUMS`.
 - Verify the executable hash.
 - Store the binary in ignored local project tooling at `.local/bin/yt-dlp.exe`.
+- Treat managed builds older than 90 days as stale in readiness checks and refresh them before real batches.
 
 ## Wrapper Guidance
 
@@ -62,4 +63,3 @@ Avoid defaulting to proxy, geo, impersonation, or bypass-style options. Those be
 - [[yt-dlp]]
 - [[YT DLP Runner]]
 - [[Batch Archive SOP]]
-

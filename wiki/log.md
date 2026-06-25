@@ -2,11 +2,20 @@
 type: meta
 status: active
 created: 2026-05-27
-updated: 2026-06-13
+updated: 2026-06-24
 tags: [log, meta]
 ---
 
 # Log
+
+## 2026-06-24 - yt-dlp Freshness Gate Added
+
+- Updated the local managed `yt-dlp.exe` from `2026.03.17` to upstream stable `2026.06.09` after TikTok extraction failed on the older build.
+- Added a 90-day freshness gate for managed `yt-dlp` builds so `doctor`, onboarding, inventory, preflight, and production setup fail stale local installs before real batches.
+- Added `slayer yt-dlp update` as the explicit refresh command; it reuses the official upstream executable download and `SHA2-256SUMS` verification path.
+- Bumped release/package metadata to `0.2.1` / `0.2.1-alpha`.
+- Verification: 69 unit tests passed, compileall passed, vault health passed, `git diff --check` passed, secret scan found no matches, and package audit was clean.
+- Package artifact generated under `dist/`; use the `.sha256` sidecar as the release hash source of truth.
 
 ## 2026-06-13 - Mullvad Lifecycle Shutdown Added
 

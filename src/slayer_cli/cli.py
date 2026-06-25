@@ -369,6 +369,8 @@ def cmd_ytdlp_version(_: argparse.Namespace) -> int:
     if not info.path:
         print("yt-dlp not found. Run: python -m slayer_cli yt-dlp install", file=sys.stderr)
         return 1
+    if not info.ok:
+        print(f"WARNING: {info.detail}", file=sys.stderr)
     result = run_tool(info.path, "--version")
     print(result.stdout or result.stderr)
     return result.returncode
@@ -1199,6 +1201,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     ytdlp_install = ytdlp_sub.add_parser("install", help="Download official stable Windows yt-dlp.exe")
     ytdlp_install.set_defaults(func=cmd_ytdlp_install)
+
+    ytdlp_update = ytdlp_sub.add_parser("update", help="Refresh the managed official stable Windows yt-dlp.exe")
+    ytdlp_update.set_defaults(func=cmd_ytdlp_install)
 
     ytdlp_version = ytdlp_sub.add_parser("version", help="Show yt-dlp version")
     ytdlp_version.set_defaults(func=cmd_ytdlp_version)

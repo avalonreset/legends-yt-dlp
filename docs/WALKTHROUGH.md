@@ -38,6 +38,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp install
 ```
 
 The installer downloads `yt-dlp.exe` from the official upstream GitHub release and verifies it against upstream `SHA2-256SUMS`.
+For an existing checkout, use `yt-dlp update` to refresh the managed local binary. Doctor and preflight fail managed builds older than 90 days so stale extractors are fixed before a real batch.
 
 ## 3. Configure The Local Account File
 

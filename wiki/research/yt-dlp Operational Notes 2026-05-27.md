@@ -2,7 +2,7 @@
 type: research
 status: summarized
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-06-24
 source_url: "https://github.com/yt-dlp/yt-dlp"
 tags: [research, yt-dlp]
 ---
@@ -23,9 +23,10 @@ Source: [[yt-dlp GitHub README]]
 - Use generated configs and process execution rather than constructing huge one-line commands.
 - Keep app-level state separate from yt-dlp's download archive.
 - For the Windows MVP, prefer the official standalone `yt-dlp.exe` release and verify it against upstream checksums.
+- Fail readiness checks for managed `yt-dlp` builds older than 90 days and refresh with `slayer yt-dlp update`.
 
 ## Current Local Install
 
-- Version: `2026.03.17`
+- Version: `2026.06.09`
 - Path: `.local/bin/yt-dlp.exe`
-- SHA256: `3db811b366b2da47337d2fcfdfe5bbd9a258dad3f350c54974f005df115a1545`
+- SHA256: recorded in `.local/bin/SHA2-256SUMS` after each managed install/update; `.local` stays ignored and is not packaged.

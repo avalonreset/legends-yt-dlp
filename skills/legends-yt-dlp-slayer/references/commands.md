@@ -57,8 +57,11 @@ Do not use relay selection as an automatic response to source-side blocks.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp install
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp update
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp version
 ```
+
+`install` and `update` both fetch the current official upstream Windows executable and verify it against `SHA2-256SUMS`. Doctor and preflight fail managed `yt-dlp` builds older than 90 days.
 
 ## Catalog and Batches
 

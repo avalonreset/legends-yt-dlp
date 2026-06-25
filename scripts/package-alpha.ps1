@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "0.2.0-alpha",
+    [string]$Version = "0.2.1-alpha",
     [string]$OutputDir = ""
 )
 
@@ -65,7 +65,7 @@ try {
 
     Push-Location $Root
     try {
-        $Files = git ls-files --cached --others --exclude-standard
+        $Files = git ls-files --cached
         if (-not $Files) {
             throw "No packageable files found"
         }
@@ -91,8 +91,8 @@ try {
             "Commit: $Commit",
             "Created: $(Get-Date -Format o)",
             "",
-            "This alpha package contains source, docs, scripts, tests, skill files, and legal/community files.",
-            "It intentionally excludes local secrets, .local binaries, batches, reports, downloads, caches, cookies, and git metadata.",
+            "This alpha package contains tracked source, docs, scripts, tests, skill files, and legal/community files.",
+            "It intentionally excludes untracked local experiments, local secrets, .local binaries, batches, reports, downloads, caches, cookies, and git metadata.",
             "",
             "Install check:",
             "powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp install",

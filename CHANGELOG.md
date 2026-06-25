@@ -4,6 +4,13 @@
 
 - No unreleased changes yet.
 
+## 0.2.1 - 2026-06-24
+
+- Added a `yt-dlp` freshness gate: managed builds older than 90 days now fail readiness checks and point operators to refresh the local binary.
+- Added `slayer yt-dlp update` as an explicit alias for refreshing the official upstream Windows executable with checksum verification.
+- Updated the local managed `yt-dlp.exe` to upstream stable `2026.06.09` after TikTok extractor failure on the stale `2026.03.17` build.
+- Updated release docs and packaging defaults for the `0.2.1-alpha` package.
+
 ## 0.2.0 - 2026-06-13
 
 - Added default post-run Mullvad shutdown for real `run --yes` batches: Lockdown mode is disabled, Mullvad disconnects with `--wait`, and the final disconnected state is verified.

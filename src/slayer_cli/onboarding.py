@@ -32,8 +32,10 @@ def next_setup_steps(checks: list[Check], *, require_connected: bool = True) -> 
     if not by_name.get(".env account", Check(".env account", False, "")).ok:
         steps.append("Copy .env.example to .env and set MULLVAD_ACCOUNT_NUMBER.")
         steps.append(f"Create or recover a Mullvad account: {MULLVAD_ACCOUNT_URL}")
-    if not by_name.get("yt-dlp", Check("yt-dlp", False, "")).ok:
-        steps.append(command_line("yt-dlp install"))
+    ytdlp_check = by_name.get("yt-dlp", Check("yt-dlp", False, ""))
+    if not ytdlp_check.ok:
+        command = "yt-dlp update" if "days old" in ytdlp_check.detail else "yt-dlp install"
+        steps.append(command_line(command))
     if not by_name.get("ffmpeg", Check("ffmpeg", False, "")).ok:
         steps.append("Install ffmpeg and make ffmpeg/ffprobe available on PATH.")
     if not by_name.get("yt-dlp JS runtime", Check("yt-dlp JS runtime", True, "")).ok:

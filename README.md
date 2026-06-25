@@ -62,7 +62,7 @@ Working now:
 - anonymous yt-dlp auth/cookie policy checks
 - JavaScript runtime detection/configuration for YouTube extraction
 - bounded batch limits for smoke tests and controlled archive jobs
-- official `yt-dlp.exe` install and version check
+- official `yt-dlp.exe` install, update, checksum verification, and 90-day freshness check
 - custom smoke-pack planning
 - batch `plan`
 - channel/playlist `inventory`
@@ -75,7 +75,7 @@ Working now:
 - post-capture `intelligence` workspace, CrispASR/Parakeet transcription, word import, search, clip planning, rendering, and vault export
 - Codex skill suite under `skills/legends-yt-dlp-slayer`
 
-Latest release target: `v0.2.0`.
+Latest release target: `v0.2.1`.
 
 ## Quick Start
 
@@ -84,6 +84,7 @@ From the project root:
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 setup production
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp update
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp version
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad status --verbose
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
@@ -225,7 +226,7 @@ Production batches are anonymous by default: no browser cookies, no cookie files
 Build a local alpha zip:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.2.0-alpha"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.2.1-alpha"
 ```
 
 The package excludes `.env`, `.local`, `batches`, `reports`, downloads, caches, cookies, secrets, and git metadata.

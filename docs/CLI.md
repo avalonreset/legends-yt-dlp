@@ -92,15 +92,16 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad raw --timeou
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp install
+powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp update
 powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp version
 ```
 
-The install command downloads the official Windows standalone executable and verifies it against upstream checksums.
+The install and update commands download the official Windows standalone executable and verify it against upstream checksums. Readiness checks fail managed `yt-dlp` builds older than 90 days so extractor breakage is caught before a real batch.
 
 ## Packaging
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.2.0-alpha"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.2.1-alpha"
 ```
 
 Creates a local alpha zip and `.sha256` file under `dist/`. The package contains source, docs, scripts, tests, skill files, and legal/community files. It excludes local secrets, managed binaries, batches, reports, downloads, cookies, caches, and git metadata.
