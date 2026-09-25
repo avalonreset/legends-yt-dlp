@@ -41,7 +41,7 @@ Current live evidence includes historical bundled smoke tests and a user-provide
 ## Stop Conditions
 
 - source-side throttle, captcha, login challenge, block, or HTTP 429
-- production doctor failure
+- VPN production doctor failure (in `--with-vpn` mode)
 - preflight failure
 - verify failure
 - Mullvad recovery failure

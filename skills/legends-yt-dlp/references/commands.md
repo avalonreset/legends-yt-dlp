@@ -16,7 +16,7 @@ powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 setup produc
 
 Use `onboard` first in a fresh checkout. It prints readiness, missing setup steps, user interview prompts, and the next safe commands without mutating local state.
 
-Use `doctor --production` before real work. It requires connected Mullvad, Lockdown on, split tunneling off, LAN sharing blocked, and auto-connect on.
+Use `doctor` before real work. For VPN-guarded runs, use `doctor --production` (connected Mullvad, Lockdown on, split tunneling off, LAN sharing blocked, auto-connect on) and pass `--with-vpn` to `plan`, `preflight`, and `run`.
 
 ## Mullvad
 

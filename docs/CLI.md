@@ -28,7 +28,7 @@ powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard --st
 
 `onboard` prints first-run readiness, missing setup steps, the operator interview checklist, and the next safe workflow. It does not mutate local state or start downloads.
 
-Use `--strict` when an automation should fail until production readiness passes. Use `--basic` to skip production posture checks and inspect only basic dependencies.
+Use `--strict` when an automation should fail until readiness passes. `onboard` inspects basic dependencies by default; add `--with-vpn` to include Mullvad production posture checks.
 
 ## Setup
 
@@ -37,7 +37,7 @@ powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 setup produc
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 setup production --relay-location us
 ```
 
-`setup production` applies the expected Mullvad posture, connects or recovers the VPN, and runs production doctor.
+`setup production` applies the expected Mullvad posture, connects or recovers the VPN, and runs VPN production doctor. Only needed for `--with-vpn` runs.
 
 ## Mullvad
 
@@ -147,7 +147,7 @@ powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 inventory "h
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 inventory "https://www.youtube.com/@CHANNEL" --name "channel-name" --folder-policy by-uploader
 ```
 
-`inventory` expands a channel, playlist, or source URL into a batch without downloading media. It runs production doctor first unless `--no-production` is used for diagnostics. It creates `manifest.json`, `urls.txt`, `yt-dlp.conf`, and `items.jsonl`.
+`inventory` expands a channel, playlist, or source URL into a batch without downloading media. It runs VPN production doctor first only with `--with-vpn`. It creates `manifest.json`, `urls.txt`, `yt-dlp.conf`, and `items.jsonl`.
 
 Use optional `--rights` and `--rights-file` values to keep permission notes, license evidence, client approval, fair-use notes, or other context with the batch when useful. These fields are metadata, not a pre-download gate.
 
@@ -222,13 +222,10 @@ Creates a bounded validation batch with conservative defaults. Prefer `--url` wi
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 preflight "batches\...\manifest.json"
 ```
 
-Default preflight requires production posture and anonymous `yt-dlp` auth policy: Mullvad connected, a JavaScript runtime available, Lockdown on, split tunneling off, LAN sharing blocked, auto-connect on, no browser cookies, no cookie files, no account auth, and ignored user-level `yt-dlp` config.
-
-For local harness testing only:
+Default preflight checks the manifest, paths, anonymous `yt-dlp` auth policy (no browser cookies, no cookie files, no account auth, ignored user-level config), and tool readiness. With `--with-vpn` it additionally requires Mullvad connected, Lockdown on, split tunneling off, LAN sharing blocked, and auto-connect on.
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 preflight "batches\...\manifest.json" --no-require-connected
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 preflight "batches\...\manifest.json" --no-production
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 preflight "batches\...\manifest.json" --with-vpn
 ```
 
 ## Run
@@ -237,17 +234,19 @@ powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 preflight "b
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --dry-run
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --dry-run --show-output
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --yes
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --yes --keep-vpn
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --yes --with-vpn
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --yes --bulk
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --yes --with-vpn --keep-vpn
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --yes --vpn-recovery-attempts 3
 ```
 
-Real downloads require passing production preflight and an explicit `--yes`. Before invoking `yt-dlp`, the runner prints a legal-use notice reminding operators to download only when they have rights, permission, a license, fair use, or another lawful basis. The runner refuses real downloads with `--no-production` or `--no-require-connected`.
+Real downloads require passing preflight and an explicit `--yes`. Before invoking `yt-dlp`, the runner prints a legal-use notice reminding operators to download only when they have rights, permission, a license, fair use, or another lawful basis. Batches over 50 URLs additionally require `--bulk`; batches of 11-50 print a pacing notice.
 
-After a real run reaches a terminal state, `run` shuts Mullvad down by default: Lockdown mode off, VPN disconnected with `--wait`, and final state verified. Use `--keep-vpn` only when the operator intentionally wants Mullvad and Lockdown left running after the batch.
+In `--with-vpn` mode, after a real run reaches a terminal state, `run` shuts Mullvad down: Lockdown mode off, VPN disconnected with `--wait`, and final state verified. Use `--keep-vpn` only when the operator intentionally wants Mullvad and Lockdown left running after the batch.
 
 Dry-runs suppress raw `yt-dlp` JSON by default and still write a compact run report. Use `--show-output` only when debugging extractor output.
 
-`run` defaults to safe VPN recovery for Mullvad/tunnel/network failures. Use `--no-recover-vpn` for diagnostics.
+`run --with-vpn` defaults to safe VPN recovery for Mullvad/tunnel/network failures. Use `--no-recover-vpn` for diagnostics.
 
 Do not use relay/location commands as an automatic response to source-side throttling or block signals.
 

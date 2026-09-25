@@ -12,7 +12,7 @@ Before any real run:
 - Batch preflight passes.
 - A JavaScript runtime is available for YouTube extraction.
 - Generated `yt-dlp` config uses anonymous mode: `--ignore-config`, `--no-cookies`, and `--no-cookies-from-browser`.
-- No browser cookies, cookie files, username/password auth, `.netrc`, or account credentials are used for production batches.
+- No browser cookies, cookie files, username/password auth, `.netrc`, or account credentials are used for any batch.
 - The CLI prints a legal-use notice reminding operators to download only when they have rights, permission, a license, fair use, or another lawful basis.
 - User explicitly approves a real run.
 

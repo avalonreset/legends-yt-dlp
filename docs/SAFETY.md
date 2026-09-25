@@ -23,7 +23,7 @@ This project is for lawful archiving only.
 
 The runner should pause or refuse to continue when it sees:
 
-- Mullvad disconnected or ambiguous
+- Mullvad disconnected or ambiguous (in `--with-vpn` mode)
 - captcha or bot challenge
 - sign-in challenge
 - explicit platform block
@@ -32,23 +32,37 @@ The runner should pause or refuse to continue when it sees:
 
 Inventory uses the same boundary. If channel or playlist inventory returns source-side warning signals, the tool should pause before creating a batch.
 
+## Pacing And Bulk Pulls
+
+Every run writes a conservative `yt-dlp` config: sleeps between requests,
+15-45 second pacing between items, limited retries, and a download archive so
+reruns skip completed IDs. On top of that:
+
+- 1-10 URLs: frictionless everyday pulls.
+- 11-50 URLs: the runner prints a pacing notice. Keep it modest.
+- Over 50 URLs: the runner refuses unless the operator passes `--bulk` to
+  acknowledge a large pull.
+
+These are speed bumps, not walls. They exist so bulk ripping is always a
+deliberate choice, never an accident.
+
 ## Legal-Use Notice
 
 Before real downloads, Legends YT-DLP prints a legal-use notice reminding operators to download only when they have rights, permission, a license, fair use, or another lawful basis, and to follow applicable laws and platform terms.
 
 Optional `--rights` and `--rights-file` values can keep permission notes, license evidence, client approval, fair-use notes, or other context with a batch when useful. They are metadata, not mandatory preflight gates.
 
-## Production VPN Posture
+## VPN Posture (Opt-In)
 
-Production runs require Mullvad to be connected with Lockdown mode enabled. Lockdown is mandatory because a reconnect, manual disconnect, daemon issue, or tunnel failure must not fall back to the native network path.
+`--with-vpn` runs require Mullvad to be connected with Lockdown mode enabled. Lockdown is mandatory in that mode because a reconnect, manual disconnect, daemon issue, or tunnel failure must not fall back to the native network path. Default runs require no VPN at all.
 
-Production checks also require split tunneling off, LAN sharing blocked, and auto-connect on. These settings do not guarantee anonymity or immunity from platform controls; they reduce accidental leak and misconfiguration risk.
+VPN checks also require split tunneling off, LAN sharing blocked, and auto-connect on. These settings do not guarantee anonymity or immunity from platform controls; they reduce accidental leak and misconfiguration risk.
 
-Production posture is not meant to strand the operator after work is done. After a real `run --yes` reaches a terminal state, Legends YT-DLP disables Lockdown, disconnects Mullvad with `--wait`, and verifies the disconnected final state by default. Use `--keep-vpn` only when more immediate capture work is expected.
+VPN posture is not meant to strand the operator after work is done. After a real `run --yes --with-vpn` reaches a terminal state, Legends YT-DLP disables Lockdown, disconnects Mullvad with `--wait`, and verifies the disconnected final state. Use `--keep-vpn` only when more immediate capture work is expected.
 
 ## Account And Cookie Policy
 
-Production batches must use anonymous `yt-dlp` operation by default:
+All batches must use anonymous `yt-dlp` operation by default:
 
 - no browser cookies
 - no cookie files
@@ -61,7 +75,7 @@ Production batches must use anonymous `yt-dlp` operation by default:
 
 ## Automatic Recovery
 
-The app may automatically reconnect Mullvad and retry for tunnel, daemon, DNS, or transient network failures. It may resume the batch because `yt-dlp` download archives skip completed items.
+In `--with-vpn` mode, the app may automatically reconnect Mullvad and retry for tunnel, daemon, DNS, or transient network failures. It may resume the batch because `yt-dlp` download archives skip completed items.
 
 The app must not rotate relays or IPs to keep downloading through source-side throttling, login challenges, captchas, account controls, or explicit blocks.
 

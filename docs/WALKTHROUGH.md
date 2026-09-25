@@ -25,13 +25,7 @@ powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard --st
 
 ## 2. Install External Tools
 
-Install Mullvad VPN from Mullvad:
-
-```text
-https://mullvad.net/en/download/vpn/windows
-```
-
-Then let Legends YT-DLP install the official upstream `yt-dlp.exe` locally:
+Let Legends YT-DLP install the official upstream `yt-dlp.exe` locally:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp install
@@ -40,9 +34,10 @@ powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp insta
 The installer downloads `yt-dlp.exe` from the official upstream GitHub release and verifies it against upstream `SHA2-256SUMS`.
 For an existing checkout, use `yt-dlp update` to refresh the managed local binary. Doctor and preflight fail managed builds older than 90 days so stale extractors are fixed before a real batch.
 
-## 3. Configure The Local Account File
+## 3. Configure The Local Account File (VPN Runs Only)
 
-Create `.env` from `.env.example`:
+Skip this section unless you want VPN-guarded runs. Create `.env` from
+`.env.example`:
 
 ```powershell
 Copy-Item .env.example .env
@@ -56,7 +51,11 @@ MULLVAD_ACCOUNT_NUMBER=<your account number>
 
 Never commit `.env`.
 
-## 4. Set Production Posture
+## 4. Set VPN Posture (Optional)
+
+Mullvad is optional. Skip this section for everyday pulls. For guarded runs,
+install Mullvad VPN for Windows (`https://mullvad.net/en/download/vpn/windows`),
+set `MULLVAD_ACCOUNT_NUMBER` in `.env`, then:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad login
@@ -64,7 +63,7 @@ powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 setup produc
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor --production
 ```
 
-Production posture requires Mullvad connected, Lockdown on, split tunneling off, LAN sharing blocked, auto-connect on, anonymous `yt-dlp`, and no browser cookies or account auth.
+VPN posture requires Mullvad connected, Lockdown on, split tunneling off, LAN sharing blocked, and auto-connect on. Anonymous `yt-dlp` (no browser cookies or account auth) applies to every run regardless. Pass `--with-vpn` to `plan`, `preflight`, and `run` to require this posture.
 
 ## 5. Validate With A Smoke Run
 

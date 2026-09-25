@@ -20,9 +20,9 @@ Mullvad Guard
   - locates the official Mullvad CLI
   - checks status
   - supports login/connect/lockdown wrappers
-  - blocks preflight when disconnected
-  - can apply the full production posture with setup production
-  - shuts down Lockdown and disconnects Mullvad after terminal real runs by default
+  - blocks preflight when disconnected in `--with-vpn` mode
+  - can apply the full VPN posture with setup production
+  - in `--with-vpn` mode, shuts down Lockdown and disconnects Mullvad after terminal real runs
 
 yt-dlp Manager
   - downloads official Windows yt-dlp.exe
@@ -81,7 +81,7 @@ Use the official standalone `yt-dlp.exe` as a managed child-process dependency f
 
 Use the official Mullvad CLI installed by the Windows app. Do not reverse engineer the GUI.
 
-Production capture starts by enabling a fail-closed Mullvad posture and connecting the VPN. Terminal real runs end by disabling Lockdown first, then disconnecting Mullvad with `--wait`, so the operator is not left in Mullvad Lockdown after the batch stops.
+VPN-guarded capture (`--with-vpn`) starts by enabling a fail-closed Mullvad posture and connecting the VPN. Terminal real runs end by disabling Lockdown first, then disconnecting Mullvad with `--wait`, so the operator is not left in Mullvad Lockdown after the batch stops. Default runs touch no Mullvad state.
 
 ## State Strategy
 

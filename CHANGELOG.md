@@ -1,8 +1,21 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 - 2026-09-24
 
-- No unreleased changes yet.
+- Rebrand: `legends-yt-dlp-slayer` becomes `legends-yt-dlp`. Package moves to
+  `legends_ytdlp`, skill slug to `legends-yt-dlp`, primary command to
+  `legends-yt-dlp` (`slayer` kept as a deprecated alias). Repo moves to
+  `avalonreset/legends-yt-dlp`.
+- Mullvad is now opt-in: default runs require no VPN and touch no Mullvad
+  state. `--with-vpn` on `plan`, `preflight`, `inventory`, `onboard`, and `run`
+  enables the fail-closed posture (require connected, recover, shutdown after).
+  Anonymous-auth config checks stay always-on. `--no-production` and
+  `--no-require-connected` are removed.
+- Bulk guardrails: batches over 50 URLs require `--bulk` acknowledgement at
+  run; batches of 11-50 print a pacing notice. Planning is always frictionless.
+- Docs: new Transcription Routes (in-module CrispASR plus handoffs to
+  `legends-ambient-intelligence` and `hyperyap`) and Empire Vault Map.
+- Markdown-first agent routing statement in README and skill.
 
 ## 0.2.1 - 2026-06-24
 

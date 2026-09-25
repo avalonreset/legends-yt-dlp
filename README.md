@@ -6,18 +6,18 @@
 ![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)
 ![Windows first](https://img.shields.io/badge/Windows-first-0078D4.svg)
 ![yt-dlp](https://img.shields.io/badge/powered%20by-yt--dlp-lightgrey.svg)
-![Mullvad guarded](https://img.shields.io/badge/Mullvad-guarded-orange.svg)
+![Mullvad optional](https://img.shields.io/badge/Mullvad-optional-orange.svg)
 
 Clip faster. Create sharper.
 
-Windows-first creator control plane for repeatable source pulls, local verification, transcripts, search, and clip-building on top of `yt-dlp`, with explicit Mullvad VPN lifecycle control.
+Windows-first creator control plane for repeatable source pulls, local verification, transcripts, search, and clip-building on top of `yt-dlp`, with optional Mullvad VPN guardrails.
 
-Legends YT-DLP exists because raw `yt-dlp` is powerful, but real creator work needs more than a one-off command. The project wraps the official `yt-dlp` binary with explicit batch plans, optional source notes, local state, conservative defaults, a short use notice before real runs, and a fail-closed Mullvad gate so capture work starts from a known machine posture and ends by returning the operator's normal network connection.
+Legends YT-DLP exists because raw `yt-dlp` is powerful, but real creator work needs more than a one-off command. The project wraps the official `yt-dlp` binary with explicit batch plans, optional source notes, local state, conservative defaults, a short use notice before real runs, default pacing between pulls, and an opt-in Mullvad VPN mode for guarded runs. Ripping a video from time to time is frictionless; bulk pulls slow down and ask for acknowledgement.
 
 ## What It Does
 
-- Detects and operates the official Mullvad CLI installed with the Windows app.
-- Stores the Mullvad account number locally in an ignored `.env` file.
+- Supports the official Mullvad CLI as an opt-in guarded-run layer (`--with-vpn`); nothing requires Mullvad by default.
+- Stores the Mullvad account number locally in an ignored `.env` file (only needed for VPN-guarded runs).
 - Downloads the official Windows `yt-dlp.exe` release from `yt-dlp/yt-dlp`.
 - Verifies the downloaded binary against upstream `SHA2-256SUMS`.
 - Detects `ffmpeg`.
@@ -25,13 +25,14 @@ Legends YT-DLP exists because raw `yt-dlp` is powerful, but real creator work ne
 - Creates batch manifests with optional rights notes and evidence files.
 - Inventories channel and playlist URLs into a reviewable item ledger before downloads.
 - Copies optional rights evidence files into the batch folder.
-- Provides a one-command production setup path for Mullvad safety posture.
-- Automatically enables Mullvad and Lockdown for production posture, then disables Lockdown and disconnects Mullvad after completed real runs by default.
+- Provides a one-command setup path for Mullvad safety posture (`setup production`).
+- In `--with-vpn` mode, requires Mullvad connected with Lockdown on, recovers the tunnel on network failures, then disables Lockdown and disconnects after completed real runs.
 - Supports custom operator-provided smoke URLs for install validation.
 - Supports bounded smoke jobs with max downloads, height, and filesize limits.
 - Generates stable anonymous-mode `yt-dlp` config files with download archives and conservative retry/sleep settings.
-- Blocks real runs until production preflight passes.
+- Blocks real runs until preflight passes.
 - Requires an explicit `--yes` flag for real downloads.
+- Paces pulls by default and requires `--bulk` acknowledgement for batches over 50 URLs.
 - Verifies completed batches with archive, report, info JSON, media count, and ffprobe checks.
 - Runs the ready-made CrispASR Parakeet backend against verified local media.
 - Imports timestamped word ledgers for verified local media.
@@ -47,7 +48,7 @@ The goal is not to evade platform controls. The goal is to make source capture d
 
 ## Current Status
 
-Private alpha.
+Public beta.
 
 Working now:
 
@@ -58,7 +59,7 @@ Working now:
 - Mullvad safe recovery for tunnel/network failures
 - Mullvad post-run shutdown that turns Lockdown off, disconnects, and verifies the final state
 - guarded Mullvad disconnect testing that reconnects before returning
-- production posture checks for Mullvad Lockdown, split tunneling, LAN sharing, and auto-connect
+- VPN posture checks for Mullvad Lockdown, split tunneling, LAN sharing, and auto-connect (`--with-vpn`)
 - anonymous yt-dlp auth/cookie policy checks
 - JavaScript runtime detection/configuration for YouTube extraction
 - bounded batch limits for smoke tests and controlled archive jobs
@@ -75,7 +76,7 @@ Working now:
 - post-capture `intelligence` workspace, CrispASR/Parakeet transcription, word import, search, clip planning, rendering, and vault export
 - Codex skill suite under `skills/legends-yt-dlp`
 
-Latest release target: `v0.2.1`.
+Latest release: `v0.3.0`.
 
 ## Quick Start
 
@@ -83,16 +84,20 @@ From the project root:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 setup production
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp update
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp version
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad status --verbose
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad inspect
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor
 ```
 
-After the Mullvad account is active:
+Optional: VPN-guarded runs with Mullvad. Nothing above needs it. When you want
+guarded runs, set up Mullvad once, then pass `--with-vpn` to `plan`,
+`preflight`, and `run`:
 
 ```powershell
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard --with-vpn
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 setup production
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad status --verbose
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad inspect
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad login
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad lockdown on
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad connect
@@ -113,7 +118,7 @@ powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 verify "batches\...\manifest.json"
 ```
 
-`run --yes` now shuts Mullvad down by default after the batch reaches a terminal state: Lockdown is turned off first, Mullvad disconnects with `--wait`, and the final disconnected state is verified. Use `--keep-vpn` only when the operator intentionally wants Mullvad and Lockdown left running after the batch.
+In `--with-vpn` mode, `run --yes` shuts Mullvad down after the batch reaches a terminal state: Lockdown is turned off first, Mullvad disconnects with `--wait`, and the final disconnected state is verified. Use `--keep-vpn` only when the operator intentionally wants Mullvad and Lockdown left running after the batch.
 
 Create a batch:
 
@@ -175,6 +180,7 @@ Allowed:
 - archiving public-domain or appropriately licensed content
 - using Mullvad as a privacy and leak-prevention layer while source capture is actively running
 - stopping on throttling, captcha, login, or block signals
+- keeping pulls modest; batches over 50 URLs require explicit `--bulk` acknowledgement
 
 Not allowed:
 
@@ -191,7 +197,7 @@ See [docs/SAFETY.md](docs/SAFETY.md).
 Operator command
   -> CLI control plane
   -> Policy checks
-  -> Mullvad guard
+  -> Optional Mullvad guard
   -> yt-dlp runner
   -> Batch state and reports
 ```
@@ -200,6 +206,29 @@ The project uses `yt-dlp` as an external child-process dependency rather than re
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+## Agent Routing
+
+Legends YT-DLP is markdown-first: an agent reads `skills/legends-yt-dlp/SKILL.md`
+and the docs below to operate the CLI. No skill installation is required to
+start; `cto-legends` routes capture goals here and hands over this README plus
+the skill. Human operators use the same commands through `scripts/legends-yt-dlp.ps1`.
+
+## Transcription Routes
+
+Capture and transcription are separate concerns. This module transcribes its own
+verified media through an external CrispASR executable (Parakeet-capable, never
+bundled). For heavier transcription work, route outward instead of bulking up:
+continuous background audio and voice sketchpads belong to
+`legends-ambient-intelligence`, and live typing belongs to `hyperyap`.
+See [docs/TRANSCRIPTION.md](docs/TRANSCRIPTION.md).
+
+## Empire Vault
+
+`intelligence vault build` exports Obsidian-compatible transcript pages that
+slot into a Legends Empire vault as cited evidence. See
+[docs/VAULT-MAP.md](docs/VAULT-MAP.md) for the page layout and the Empire-side
+mapping.
+
 ## Documentation
 
 - [CLI Commands](docs/CLI.md)
@@ -207,6 +236,8 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - [Standard Operating Procedure](docs/SOP.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Post-Capture Intelligence](docs/INTELLIGENCE.md)
+- [Transcription Routes](docs/TRANSCRIPTION.md)
+- [Empire Vault Map](docs/VAULT-MAP.md)
 - [Safety and Use Policy](docs/SAFETY.md)
 - [Legal and Attribution Notes](docs/LEGAL.md)
 - [Alpha Packaging](docs/PACKAGING.md)
@@ -219,14 +250,14 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 Never commit Mullvad account numbers, cookies, account tokens, or batch outputs.
 
-Production batches are anonymous by default: no browser cookies, no cookie files, no username/password auth, no `.netrc`, and no inherited user-level `yt-dlp` config.
+All batches are anonymous by default: no browser cookies, no cookie files, no username/password auth, no `.netrc`, and no inherited user-level `yt-dlp` config.
 
 ## Packaging
 
 Build a local alpha zip:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.2.1-alpha"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.3.0"
 ```
 
 The package excludes `.env`, `.local`, `batches`, `reports`, downloads, caches, cookies, secrets, and git metadata.

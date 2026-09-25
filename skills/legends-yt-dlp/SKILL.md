@@ -14,9 +14,10 @@ Operate the local Legends YT-DLP CLI as the deterministic runtime. The skill is 
 3. Run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor --require-connected
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor --production
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor
 ```
+
+For VPN-guarded runs, add `doctor --production` and pass `--with-vpn` to `plan`, `preflight`, and `run`. Mullvad is optional; nothing requires it by default.
 
 If the command fails, fix setup before planning or running downloads.
 
@@ -26,11 +27,11 @@ Allowed: lawful archiving, Mullvad privacy checks, conservative pacing, resumabl
 
 Disallowed: bypassing DRM, paywalls, login challenges, captchas, access controls, account controls, throttling, bans, or IP blocks. Do not automatically rotate Mullvad relays/IPs to keep downloading through source-side blocks.
 
-Production mode is mandatory for real downloads. It requires Mullvad connected, a JavaScript runtime for YouTube extraction, Lockdown mode on, split tunneling off, LAN sharing blocked, auto-connect on, and anonymous `yt-dlp` operation with no browser cookies, cookie files, username/password auth, `.netrc`, or inherited user config.
+Real downloads require passing preflight plus explicit `--yes`. Anonymous `yt-dlp` operation (no browser cookies, cookie files, username/password auth, `.netrc`, or inherited user config) applies to every run. Mullvad posture (connected, Lockdown on, split tunneling off, LAN sharing blocked, auto-connect on) applies only with `--with-vpn`. Batches over 50 URLs require `--bulk` acknowledgement; batches of 11-50 print a pacing notice.
 
 If the user asks for automatic IP switching on download errors, implement only this safe policy:
 
-- tunnel/VPN/network failure: reconnect Mullvad, rerun preflight, retry within limits.
+- tunnel/VPN/network failure in `--with-vpn` mode: reconnect Mullvad, rerun preflight, retry within limits.
 - item-level transient failure: retry using yt-dlp retry settings.
 - source-side throttle, captcha, login challenge, explicit block, or repeated rate limit: pause the batch and report. Do not switch relays to continue.
 
@@ -42,7 +43,6 @@ For the detailed policy, read `references/safety-and-errors.md`.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 setup production
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad inspect
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp version
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp update
@@ -56,7 +56,7 @@ Read `references/commands.md` for the full command surface.
 For alpha packaging:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.2.1-alpha"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.3.0"
 ```
 
 Inspect `docs/PACKAGING.md`, `docs/LEGAL.md`, `NOTICE`, and `LICENSE` before publishing a release package.
@@ -99,7 +99,7 @@ Use this sequence for real channel, playlist, or larger URL-set work:
    Also choose folder policy: mixed ad hoc links usually belong in one batch folder; channel, playlist, or multi-source archive work usually belongs in uploader/source folders.
 2. Inventory channel or playlist URLs before downloading.
 3. Create or review the item ledger.
-4. Run production preflight.
+4. Run preflight (add `--with-vpn` for guarded runs).
 5. Dry-run.
 6. Ask for explicit approval before a real run.
 7. Run with `--yes`.
@@ -183,7 +183,7 @@ powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "<manife
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 verify "<manifest.json>"
 ```
 
-`run` defaults to safe VPN recovery. It may reconnect Mullvad and retry for tunnel/network failures. Use `--no-recover-vpn` only for diagnostics.
+`run --with-vpn` defaults to safe VPN recovery. It may reconnect Mullvad and retry for tunnel/network failures. Use `--no-recover-vpn` only for diagnostics.
 
 Dry-runs suppress raw yt-dlp JSON by default. Use `--show-output` only when debugging.
 
@@ -193,12 +193,26 @@ Default to one active YouTube batch at a time. Do not parallelize YouTube downlo
 
 If the user asks about parallelism, read `references/batch-catalog.md`.
 
+## Transcription Routes
+
+Capture first; transcribe only verified local media when asked. In-module
+transcription runs an external CrispASR executable (never bundled). For
+continuous background audio or voice sketchpads, hand off to
+`legends-ambient-intelligence`; for live typing, hand off to `hyperyap`.
+Read `docs/TRANSCRIPTION.md`.
+
+## Empire Vault
+
+`intelligence vault build` exports Obsidian-compatible transcript pages.
+Map them into Empire per `docs/VAULT-MAP.md`: cite by `video_id`, keep the
+batch manifest as rights provenance, never vault binaries.
+
 ## Reporting Back
 
 Report:
 
 - what command was run
-- whether Mullvad was connected
+- whether the run used `--with-vpn` (and whether Mullvad was connected)
 - batch manifest path
 - URL count
 - rights evidence path, if attached

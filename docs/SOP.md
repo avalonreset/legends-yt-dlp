@@ -58,13 +58,13 @@ powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 ledger "batc
 
 Review the source URL, item count, titles, statuses, limits, and any optional rights evidence with the user. Do not continue to a run if the inventory includes unexpected items or source-side block signals.
 
-## 4. Set Production Posture
+## 4. Set VPN Posture (Optional)
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 setup production
 ```
 
-This sets Mullvad to a conservative Windows production posture:
+This sets Mullvad to a conservative Windows VPN posture:
 
 - relay constraint defaults to `us`
 - Lockdown mode on
@@ -74,9 +74,9 @@ This sets Mullvad to a conservative Windows production posture:
 - quantum-resistant tunnel on
 - IPv6 off
 - VPN connected or recovered
-- production doctor verified
+- VPN production doctor verified
 
-Production posture is for active capture. After a real batch reaches a terminal state, the default `run --yes` behavior is to turn Lockdown mode off, disconnect Mullvad with `--wait`, and verify the disconnected state.
+VPN posture is for guarded capture. Pass `--with-vpn` to `plan`, `preflight`, and `run` to require it. After a real batch reaches a terminal state, `run --yes --with-vpn` turns Lockdown mode off, disconnects Mullvad with `--wait`, and verifies the disconnected state. Without `--with-vpn`, no Mullvad state is touched.
 
 ## 5. Validate The Install
 
@@ -119,7 +119,7 @@ powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 verify "batc
 
 Before invoking `yt-dlp`, `run --yes` prints a short legal-use notice reminding operators to download only when they have rights, permission, a license, fair use, or another lawful basis, and to follow applicable laws and platform terms.
 
-After `yt-dlp` stops, `run --yes` shuts Mullvad down by default. Use `--keep-vpn` only when the operator intentionally wants to leave the tunnel and Lockdown running for more immediate capture work.
+After `yt-dlp` stops, `run --yes --with-vpn` shuts Mullvad down. Use `--keep-vpn` only when the operator intentionally wants to leave the tunnel and Lockdown running for more immediate capture work.
 
 Reruns are expected to be idempotent. Completed video IDs are stored in `archive.txt`; rerunning the same manifest should skip completed IDs instead of duplicating files.
 
@@ -140,7 +140,7 @@ Stop and review when any of these occur:
 
 - source-side throttle, captcha, login challenge, account-control, block, or HTTP 429
 - `verify` fails
-- production doctor fails
+- VPN production doctor fails (in `--with-vpn` mode)
 - Mullvad recovery fails
 - media probe fails
 
