@@ -2,7 +2,6 @@ $ErrorActionPreference = "Stop"
 
 $Root = Split-Path -Parent $PSScriptRoot
 $Required = @(
-    "CODEX.md",
     "README.md",
     "wiki/index.md",
     "wiki/log.md",

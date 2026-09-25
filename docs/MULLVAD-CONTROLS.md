@@ -1,6 +1,6 @@
 # Mullvad Controls
 
-The skill operates Mullvad through the official Windows CLI, usually found at:
+This recipe operates Mullvad through the official Windows CLI, usually found at:
 
 ```text
 C:\Program Files\Mullvad VPN\resources\mullvad.exe

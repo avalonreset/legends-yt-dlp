@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "legends-yt-dlp"
-version = "0.3.1"
+version = "0.1.0"
 description = "Windows-first yt-dlp orchestration CLI for source capture, verification, and creator clip workflows with optional Mullvad VPN controls."
 readme = "README.md"
 requires-python = ">=3.10"

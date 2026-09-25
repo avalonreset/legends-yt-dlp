@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The skill helps Codex operate a powerful downloader safely. It must not convert privacy tooling into evasion tooling.
+This policy helps an operator run a powerful downloader safely. It must not convert privacy tooling into evasion tooling.
 
 ## Required Gates
 

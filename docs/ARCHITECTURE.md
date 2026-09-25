@@ -53,8 +53,8 @@ Post-Capture Intelligence
   - writes FFmpeg clip plans and optional rendered montages
   - exports Obsidian-compatible transcript pages
 
-Codex Skill Suite
-  - guides Codex through setup, planning, preflight, dry-run, and guarded real runs
+Operator Recipe
+  - guides an operator through setup, planning, preflight, dry-run, and guarded real runs
   - keeps safety/error policy in context
   - routes to detailed references only when needed
 ```
@@ -112,11 +112,12 @@ The core intelligence contract is the word ledger, not plain transcript text. Ex
 The default ready-made producer is CrispASR with the Parakeet backend, discovered via `CRISPASR_CLI`, `.local/bin`, or `PATH`.
 NVIDIA NeMo Forced Aligner is an optional refinement path: Legends YT-DLP prepares manifests and imports word CTM output into the same ledger, but the NeMo/PyTorch runtime stays external.
 
-## Skill Packaging
+## Router Recipe
 
-The Codex-first package lives under `skills/legends-yt-dlp/`.
+There is no per-module skill package. The `cto-legends` router loads the recipe
+from `docs/OPERATOR-ROUTING.md` plus this README and the docs below.
 
-The skill does not replace the CLI. It tells Codex how to operate the CLI safely, when to load reference material, and when to stop instead of continuing.
+The recipe does not replace the CLI. It tells an operator how to run the CLI safely, when to load reference material, and when to stop instead of continuing.
 
 ## Packaging Strategy
 

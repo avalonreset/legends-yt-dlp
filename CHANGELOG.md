@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0 - 2026-09-25
+
+- Router-native reset generation: de-skillified to the single `cto-legends` router skill (vendored pinned copy at `skills/cto-legends/SKILL.md`, router commit `6975dcb`).
+- Operator recipe moved to `docs/OPERATOR-ROUTING.md` plus command, batch, Mullvad, and safety references under `docs/` with no skill frontmatter. Per-module skill dir, Codex shim, and agent metadata removed.
+- Authoritative version: `pyproject.toml` reads `0.1.0`.
+
 ## 0.3.1 - 2026-09-24
 
 - New `yt-dlp check`: compares the managed binary against upstream stable

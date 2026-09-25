@@ -1,11 +1,8 @@
----
-name: legends-yt-dlp
-description: Use when the user wants Codex to operate Legends YT-DLP: yt-dlp source capture, Mullvad VPN lifecycle control, large download catalogs, dry-runs, resumable queue execution, or troubleshooting the Legends YT-DLP/Printing Press CLI.
----
+# Legends YT-DLP operator routing (router-loaded recipe)
 
-# Legends YT-DLP
+Part of the `cto-legends` ecosystem. Loaded by the router on demand; this file carries no skill registration.
 
-Operate the local Legends YT-DLP CLI as the deterministic runtime. The skill is the operator brain; the CLI is the control plane.
+Operate the local Legends YT-DLP CLI as the deterministic runtime. This recipe is the operator brain; the CLI is the control plane.
 
 ## Start Here
 
@@ -35,7 +32,7 @@ If the user asks for automatic IP switching on download errors, implement only t
 - item-level transient failure: retry using yt-dlp retry settings.
 - source-side throttle, captcha, login challenge, explicit block, or repeated rate limit: pause the batch and report. Do not switch relays to continue.
 
-For the detailed policy, read `references/safety-and-errors.md`.
+For the detailed policy, read `docs/SAFETY-AND-ERRORS.md`.
 
 ## Core Workflows
 
@@ -51,12 +48,12 @@ powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 catalog
 
 Use `onboard` first in a new checkout or after unpacking an alpha zip. It prints readiness, missing setup steps, the user interview checklist, and the next safe commands without mutating local state.
 
-Read `references/commands.md` for the full command surface.
+Read `docs/COMMANDS.md` for the full command surface.
 
 For alpha packaging:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.3.0"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.0"
 ```
 
 Inspect `docs/PACKAGING.md`, `docs/LEGAL.md`, `NOTICE`, and `LICENSE` before publishing a release package.
@@ -154,7 +151,7 @@ For smoke tests or bounded jobs, add limits:
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 plan "<URL>" --name "<batch-name>" --max-downloads 1 --max-height 360 --max-filesize 50M
 ```
 
-Read `references/batch-catalog.md` before planning large archives.
+Read `docs/BATCH-CATALOG.md` before planning large archives.
 
 ### Validate The Install
 
@@ -191,7 +188,7 @@ Dry-runs suppress raw yt-dlp JSON by default. Use `--show-output` only when debu
 
 Default to one active YouTube batch at a time. Do not parallelize YouTube downloads by default. Large archives should be systematic through cataloging, download archives, resume support, and pacing, not aggressive concurrency.
 
-If the user asks about parallelism, read `references/batch-catalog.md`.
+If the user asks about parallelism, read `docs/BATCH-CATALOG.md`.
 
 ## Transcription Routes
 

@@ -102,10 +102,10 @@ The install and update commands download the official Windows standalone executa
 ## Packaging
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.2.1-alpha"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.0"
 ```
 
-Creates a local alpha zip and `.sha256` file under `dist/`. The package contains source, docs, scripts, tests, skill files, and legal/community files. It excludes local secrets, managed binaries, batches, reports, downloads, cookies, caches, and git metadata.
+Creates a local alpha zip and `.sha256` file under `dist/`. The package contains source, docs, scripts, tests, the router skill file, and legal/community files. It excludes local secrets, managed binaries, batches, reports, downloads, cookies, caches, and git metadata.
 
 ## Batch Planning
 

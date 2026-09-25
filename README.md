@@ -74,9 +74,8 @@ Working now:
 - guarded `run`
 - batch `verify`
 - post-capture `intelligence` workspace, CrispASR/Parakeet transcription, word import, search, clip planning, rendering, and vault export
-- Codex skill suite under `skills/legends-yt-dlp`
 
-Latest release: `v0.3.1`.
+Latest release: `v0.1.0`.
 
 ## Quick Start
 
@@ -206,12 +205,19 @@ The project uses `yt-dlp` as an external child-process dependency rather than re
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+## Agent setup (via `cto-legends`)
+
+Part of the [CTO Legends](https://github.com/avalonreset/cto-legends) ecosystem. `cto-legends` is the only registered skill; this repo vendors a pinned copy at `skills/cto-legends/SKILL.md`.
+
+Install with `cto-legends install legends-yt-dlp`, then follow the module recipe the router loads. Do not register this module as its own skill.
+
 ## Agent Routing
 
-Legends YT-DLP is markdown-first: an agent reads `skills/legends-yt-dlp/SKILL.md`
-and the docs below to operate the CLI. No skill installation is required to
-start; `cto-legends` routes capture goals here and hands over this README plus
-the skill. Human operators use the same commands through `scripts/legends-yt-dlp.ps1`.
+Legends YT-DLP is markdown-first: an agent reads this README plus
+`docs/OPERATOR-ROUTING.md` and the docs below to operate the CLI. No skill
+installation is required to start; `cto-legends` routes capture goals here and
+hands over this README plus the recipe. Human operators use the same commands
+through `scripts/legends-yt-dlp.ps1`.
 
 ## Transcription Routes
 
@@ -242,7 +248,7 @@ mapping.
 - [Legal and Attribution Notes](docs/LEGAL.md)
 - [Alpha Packaging](docs/PACKAGING.md)
 - [Changelog](CHANGELOG.md)
-- [Codex Skill Suite](skills/legends-yt-dlp/SKILL.md)
+- [Operator Routing](docs/OPERATOR-ROUTING.md)
 
 ## Local Secrets
 
@@ -257,7 +263,7 @@ All batches are anonymous by default: no browser cookies, no cookie files, no us
 Build a local alpha zip:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.3.0"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.0"
 ```
 
 The package excludes `.env`, `.local`, `batches`, `reports`, downloads, caches, cookies, secrets, and git metadata.

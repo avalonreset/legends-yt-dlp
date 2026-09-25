@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "0.2.1-alpha",
+    [string]$Version = "0.1.0",
     [string]$OutputDir = ""
 )
 
@@ -91,7 +91,7 @@ try {
             "Commit: $Commit",
             "Created: $(Get-Date -Format o)",
             "",
-            "This alpha package contains tracked source, docs, scripts, tests, skill files, and legal/community files.",
+            "This alpha package contains tracked source, docs, scripts, tests, the router skill file, and legal/community files.",
             "It intentionally excludes untracked local experiments, local secrets, .local binaries, batches, reports, downloads, caches, cookies, and git metadata.",
             "",
             "Install check:",
