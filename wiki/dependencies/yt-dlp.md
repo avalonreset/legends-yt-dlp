@@ -9,7 +9,7 @@ tags: [dependency, yt-dlp]
 
 # yt-dlp
 
-yt-dlp is the downloader engine. The Slayer app should call it as a child process and manage configuration, state, policy, and reporting around it.
+yt-dlp is the downloader engine. The Legends YT-DLP app should call it as a child process and manage configuration, state, policy, and reporting around it.
 
 ## Required Capabilities
 

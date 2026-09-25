@@ -11,7 +11,7 @@ tags: [runbook, sop, operator]
 ## Production Setup
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 setup production
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 setup production
 ```
 
 This applies the expected Mullvad posture and verifies `doctor --production`.
@@ -19,11 +19,11 @@ This applies the expected Mullvad posture and verifies `doctor --production`.
 ## Install Validation
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --url "<authorized-video-url>" --name first-smoke
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\...\manifest.json"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --dry-run
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 smoke plan --url "<authorized-video-url>" --name first-smoke
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 preflight "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --dry-run
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --yes
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 verify "batches\...\manifest.json"
 ```
 
 Current live evidence includes historical bundled smoke tests and a user-provided 1080p single-video download. Future manual validation should use operator-provided authorized smoke URLs.

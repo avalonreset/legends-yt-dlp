@@ -16,7 +16,7 @@ def check_by_name(checks: list[Check]) -> dict[str, Check]:
 
 
 def command_line(command: str) -> str:
-    return f"powershell -ExecutionPolicy Bypass -File scripts\\slayer.ps1 {command}"
+    return f"powershell -ExecutionPolicy Bypass -File scripts\\legends-yt-dlp.ps1 {command}"
 
 
 def readiness_summary(checks: list[Check], *, require_connected: bool = True) -> str:
@@ -123,7 +123,7 @@ def onboarding_payload(checks: list[Check], *, require_connected: bool = True) -
 def onboarding_text(checks: list[Check], *, require_connected: bool = True) -> str:
     payload = onboarding_payload(checks, require_connected=require_connected)
     lines = [
-        "Legends YT-DLP Slayer Onboarding",
+        "Legends YT-DLP Onboarding",
         f"Status: {payload['status']}",
         "",
         "Readiness checks:",

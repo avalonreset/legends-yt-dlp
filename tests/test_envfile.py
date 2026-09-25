@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 
-from slayer_cli.envfile import read_env_file, redact
+from legends_ytdlp.envfile import read_env_file, redact
 
 
 class EnvFileTests(unittest.TestCase):

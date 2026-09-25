@@ -1,8 +1,8 @@
 import json
 import unittest
 
-from slayer_cli.doctor import Check
-from slayer_cli.onboarding import next_setup_steps, onboarding_json, onboarding_text, readiness_summary
+from legends_ytdlp.doctor import Check
+from legends_ytdlp.onboarding import next_setup_steps, onboarding_json, onboarding_text, readiness_summary
 
 
 class OnboardingTests(unittest.TestCase):

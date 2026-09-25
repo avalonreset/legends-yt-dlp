@@ -8,8 +8,8 @@ powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.2
 
 The script writes:
 
-- `dist/legends-yt-dlp-slayer-0.2.1-alpha.zip`
-- `dist/legends-yt-dlp-slayer-0.2.1-alpha.zip.sha256`
+- `dist/legends-yt-dlp-0.2.1-alpha.zip`
+- `dist/legends-yt-dlp-0.2.1-alpha.zip.sha256`
 
 The package includes tracked source, docs, scripts, tests, skill files, and legal/community files. It excludes ignored local runtime state:
 
@@ -26,7 +26,7 @@ The package includes tracked source, docs, scripts, tests, skill files, and lega
 After unpacking, the first command for a user should be:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard
 ```
 
 ## Release Checklist
@@ -48,8 +48,8 @@ powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.2
 Then inspect the package:
 
 ```powershell
-tar -tf dist\legends-yt-dlp-slayer-0.2.1-alpha.zip
-Get-Content dist\legends-yt-dlp-slayer-0.2.1-alpha.zip.sha256
+tar -tf dist\legends-yt-dlp-0.2.1-alpha.zip
+Get-Content dist\legends-yt-dlp-0.2.1-alpha.zip.sha256
 ```
 
 Do not publish a package that contains account numbers, cookies, downloaded media, local `yt-dlp.exe` binaries, batch outputs, client rights evidence, or untracked local experiment files.

@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Legends YT-DLP Slayer is currently a private alpha. Security fixes target the
+Legends YT-DLP is currently a private alpha. Security fixes target the
 `main` branch until tagged releases begin.
 
 ## Reporting A Vulnerability

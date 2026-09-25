@@ -9,7 +9,7 @@ C:\Program Files\Mullvad VPN\resources\mullvad.exe
 Use the project launcher instead of calling the binary directly:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad inspect
 ```
 
 ## Proven Good Posture

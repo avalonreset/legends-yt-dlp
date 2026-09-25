@@ -1,3 +1,0 @@
-"""Legends YT-DLP Slayer CLI package."""
-
-__version__ = "0.2.0"

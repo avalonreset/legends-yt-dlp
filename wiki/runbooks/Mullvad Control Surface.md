@@ -30,28 +30,28 @@ C:\Program Files\Mullvad VPN\resources\mullvad.exe
 ## Wrapped Commands
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad recover
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect-test --emergency-unlock
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad account get
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad account devices
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad version
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad auto-connect get
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad auto-connect set on
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lan get
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad lan set block
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad relay get
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad relay update
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad relay location us
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad dns get
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad dns default
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad tunnel get
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad tunnel quantum-resistant on
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad tunnel ipv6 off
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad split-tunnel get
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad split-tunnel set off
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad anti-censorship get
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad api-access get
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad inspect
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad recover
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad disconnect-test --emergency-unlock
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad account get
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad account devices
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad version
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad auto-connect get
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad auto-connect set on
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad lan get
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad lan set block
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad relay get
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad relay update
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad relay location us
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad dns get
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad dns default
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad tunnel get
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad tunnel quantum-resistant on
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad tunnel ipv6 off
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad split-tunnel get
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad split-tunnel set off
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad anti-censorship get
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad api-access get
 ```
 
 ## Raw Passthrough
@@ -59,7 +59,7 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad api-access g
 Raw passthrough exists for any installed Mullvad CLI command not yet wrapped:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad raw --timeout 120 relay list
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad raw --timeout 120 relay list
 ```
 
 The wrapper redacts the Mullvad account number in command output.
@@ -71,7 +71,7 @@ Raw disconnect can strand the operator when Lockdown is on. The wrapped `mullvad
 Use this for controlled fail-closed testing:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect-test --emergency-unlock
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad disconnect-test --emergency-unlock
 ```
 
 The guarded test sets a US relay constraint by default, enables Lockdown, verifies the blocked disconnected state, and reconnects before returning. `--emergency-unlock` disables Lockdown only if recovery fails, restoring operator connectivity at the cost of native-IP exposure.

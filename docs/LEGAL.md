@@ -6,7 +6,7 @@
 
 ## Project License
 
-Legends YT-DLP Slayer is released under the MIT License. The code in this repository is an original wrapper/control plane and does not copy yt-dlp or Mullvad VPN source code.
+Legends YT-DLP is released under the MIT License. The code in this repository is an original wrapper/control plane and does not copy yt-dlp or Mullvad VPN source code.
 
 ## Third-Party Tools
 

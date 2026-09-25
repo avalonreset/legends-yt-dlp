@@ -10,7 +10,7 @@ tags: [product, assessment, roadmap, release]
 
 ## Current Read
 
-Legends YT-DLP Slayer has moved from proof-of-concept into a credible private alpha. The core loop is real: production posture, curated smoke validation, anonymous yt-dlp batch execution, compact reports, artifact verification, idempotent reruns, and a fail-closed VPN posture have all been implemented and tested on Windows.
+Legends YT-DLP has moved from proof-of-concept into a credible private alpha. The core loop is real: production posture, curated smoke validation, anonymous yt-dlp batch execution, compact reports, artifact verification, idempotent reruns, and a fail-closed VPN posture have all been implemented and tested on Windows.
 
 The product is not yet a polished community release. It is strong enough for supervised operator use, but it still needs release packaging, clearer first-run ergonomics, richer per-item state, and a better public-facing product story before it should be handed to normal users.
 

@@ -10,7 +10,7 @@ tags: [runbook, windows, setup]
 
 ## Goal
 
-Prepare a Windows machine to run Legends YT-DLP Slayer safely.
+Prepare a Windows machine to run Legends YT-DLP safely.
 
 ## Prerequisites
 
@@ -27,7 +27,7 @@ Prepare a Windows machine to run Legends YT-DLP Slayer safely.
 3. Confirm `mullvad` is available from PowerShell or Command Prompt.
 4. Install or locate yt-dlp.
 5. Install or locate ffmpeg.
-6. Run the future `slayer doctor` command.
+6. Run the future `legends-yt-dlp doctor` command.
 7. Fix all failed checks before running any batch.
 
 ## Verification

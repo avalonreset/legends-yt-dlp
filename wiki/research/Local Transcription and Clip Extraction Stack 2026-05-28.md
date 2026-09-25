@@ -10,7 +10,7 @@ tags: [research, transcription, asr, forced-alignment, diarization, clips, ffmpe
 
 ## Scope
 
-This research track covers a lawful post-download video intelligence module for Legends YT-DLP Slayer. It does not change the download safety boundary: Mullvad is for privacy and leak prevention, not bypassing source-side throttling, captchas, login challenges, account controls, or blocks.
+This research track covers a lawful post-download video intelligence module for Legends YT-DLP. It does not change the download safety boundary: Mullvad is for privacy and leak prevention, not bypassing source-side throttling, captchas, login challenges, account controls, or blocks.
 
 The target workflow is:
 
@@ -108,9 +108,9 @@ Sources:
 Current command shape:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --prepare-only
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --python "C:\path\to\nemo-env\python.exe" --nemo-dir "C:\path\to\NeMo"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --import-ctm ".\output\ctm\words\abc123.ctm" --video-id "abc123"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --prepare-only
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --python "C:\path\to\nemo-env\python.exe" --nemo-dir "C:\path\to\NeMo"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence align nfa "batches\...\manifest.json" --import-ctm ".\output\ctm\words\abc123.ctm" --video-id "abc123"
 ```
 
 Sources:

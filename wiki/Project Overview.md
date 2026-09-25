@@ -8,7 +8,7 @@ tags: [overview, project]
 
 # Project Overview
 
-Legends YT-DLP Slayer is a planned Windows-first archive orchestrator for people who need reliable, resumable video preservation workflows and do not want downloads to run outside a VPN privacy boundary.
+Legends YT-DLP is a planned Windows-first archive orchestrator for people who need reliable, resumable video preservation workflows and do not want downloads to run outside a VPN privacy boundary.
 
 The core product is not a downloader. yt-dlp already solves that. The product is the control plane around yt-dlp: preflight checks, Mullvad VPN state verification, lawful-use policy gates, batch planning, queue state, logs, reports, and operator-friendly recovery.
 

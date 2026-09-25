@@ -4,8 +4,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from slayer_cli.batch import REPORTS_DIR
-from slayer_cli.verify import summarize_batch, verify_batch
+from legends_ytdlp.batch import REPORTS_DIR
+from legends_ytdlp.verify import summarize_batch, verify_batch
 
 
 class VerifyTests(unittest.TestCase):

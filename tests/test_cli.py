@@ -7,10 +7,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from slayer_cli.cli import LEGAL_USE_NOTICE, cmd_run
-from slayer_cli.doctor import Check
-from slayer_cli.mullvad import ShutdownResult
-from slayer_cli.process import CommandResult
+from legends_ytdlp.cli import LEGAL_USE_NOTICE, cmd_run
+from legends_ytdlp.doctor import Check
+from legends_ytdlp.mullvad import ShutdownResult
+from legends_ytdlp.process import CommandResult
 
 
 class CliTests(unittest.TestCase):
@@ -35,11 +35,11 @@ class CliTests(unittest.TestCase):
             )
             stdout = io.StringIO()
             with (
-                patch("slayer_cli.cli.preflight_batch", return_value=[Check("manifest", True, str(manifest))]),
-                patch("slayer_cli.cli.preflight_ok", return_value=True),
-                patch("slayer_cli.cli.run_batch", return_value=CommandResult(("yt-dlp",), 0, "", "")),
-                patch("slayer_cli.cli.write_run_report", return_value=report),
-                patch("slayer_cli.cli.shutdown_connection", return_value=ShutdownResult(True, ("Mullvad shutdown verified.",))) as shutdown,
+                patch("legends_ytdlp.cli.preflight_batch", return_value=[Check("manifest", True, str(manifest))]),
+                patch("legends_ytdlp.cli.preflight_ok", return_value=True),
+                patch("legends_ytdlp.cli.run_batch", return_value=CommandResult(("yt-dlp",), 0, "", "")),
+                patch("legends_ytdlp.cli.write_run_report", return_value=report),
+                patch("legends_ytdlp.cli.shutdown_connection", return_value=ShutdownResult(True, ("Mullvad shutdown verified.",))) as shutdown,
                 contextlib.redirect_stdout(stdout),
             ):
                 self.assertEqual(cmd_run(args), 0)
@@ -68,11 +68,11 @@ class CliTests(unittest.TestCase):
                 keep_vpn=True,
             )
             with (
-                patch("slayer_cli.cli.preflight_batch", return_value=[Check("manifest", True, str(manifest))]),
-                patch("slayer_cli.cli.preflight_ok", return_value=True),
-                patch("slayer_cli.cli.run_batch", return_value=CommandResult(("yt-dlp",), 0, "", "")),
-                patch("slayer_cli.cli.write_run_report", return_value=report),
-                patch("slayer_cli.cli.shutdown_connection") as shutdown,
+                patch("legends_ytdlp.cli.preflight_batch", return_value=[Check("manifest", True, str(manifest))]),
+                patch("legends_ytdlp.cli.preflight_ok", return_value=True),
+                patch("legends_ytdlp.cli.run_batch", return_value=CommandResult(("yt-dlp",), 0, "", "")),
+                patch("legends_ytdlp.cli.write_run_report", return_value=report),
+                patch("legends_ytdlp.cli.shutdown_connection") as shutdown,
             ):
                 self.assertEqual(cmd_run(args), 0)
 

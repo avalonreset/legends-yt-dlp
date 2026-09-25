@@ -2,7 +2,7 @@ import unittest
 from datetime import date
 from pathlib import Path
 
-from slayer_cli.tools import expected_sha256_from_sums, parse_ytdlp_release_date, ytdlp_age_days, ytdlp_stale_detail
+from legends_ytdlp.tools import expected_sha256_from_sums, parse_ytdlp_release_date, ytdlp_age_days, ytdlp_stale_detail
 
 
 class ToolTests(unittest.TestCase):

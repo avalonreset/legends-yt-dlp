@@ -12,7 +12,7 @@ Use this runbook when a clip boundary is delicate and word starts/ends need a st
 
 ## Position in the Stack
 
-NVIDIA NeMo Forced Aligner is an optional refinement layer for `slayer intelligence`. It does not download media and it does not replace CrispASR/Parakeet as the preferred ready-made transcription path. Slayer keeps NeMo, PyTorch, CUDA, and model weights outside the core package.
+NVIDIA NeMo Forced Aligner is an optional refinement layer for `legends-yt-dlp intelligence`. It does not download media and it does not replace CrispASR/Parakeet as the preferred ready-made transcription path. Legends YT-DLP keeps NeMo, PyTorch, CUDA, and model weights outside the core package.
 
 The durable contract remains the normalized word ledger:
 
@@ -27,27 +27,27 @@ The durable contract remains the normalized word ledger:
 Prepare an NFA manifest from the existing word ledger:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "VIDEO_ID" --prepare-only
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "VIDEO_ID" --prepare-only
 ```
 
 Run NFA through an operator-managed NeMo checkout:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "VIDEO_ID" --python "C:\path\to\nemo-env\python.exe" --nemo-dir "C:\path\to\NeMo"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "VIDEO_ID" --python "C:\path\to\nemo-env\python.exe" --nemo-dir "C:\path\to\NeMo"
 ```
 
-Import a CTM produced outside Slayer:
+Import a CTM produced outside Legends YT-DLP:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --import-ctm ".\output\ctm\words\VIDEO_ID.ctm" --video-id "VIDEO_ID"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence align nfa "batches\...\manifest.json" --import-ctm ".\output\ctm\words\VIDEO_ID.ctm" --video-id "VIDEO_ID"
 ```
 
 After import, rerun the normal search and clip workflow. Search and clip planning automatically use the refined ledger:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence search "batches\...\manifest.json" "crazy insane"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips plan "batches\...\manifest.json" --query "crazy insane"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips render "batches\...\intelligence\clips\crazy-insane\clip-plan.json" --yes
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence search "batches\...\manifest.json" "crazy insane"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence clips plan "batches\...\manifest.json" --query "crazy insane"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence clips render "batches\...\intelligence\clips\crazy-insane\clip-plan.json" --yes
 ```
 
 ## Guardrails

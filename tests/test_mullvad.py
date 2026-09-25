@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import call, patch
 
-from slayer_cli.mullvad import MullvadSetting, MullvadStatus, disconnect_refusal_reason, recovery_action_for_status, shutdown_connection
-from slayer_cli.process import CommandResult
+from legends_ytdlp.mullvad import MullvadSetting, MullvadStatus, disconnect_refusal_reason, recovery_action_for_status, shutdown_connection
+from legends_ytdlp.process import CommandResult
 
 
 class MullvadSettingTests(unittest.TestCase):
@@ -58,7 +58,7 @@ class RecoveryActionTests(unittest.TestCase):
 class ShutdownTests(unittest.TestCase):
     def test_shutdown_turns_lockdown_off_before_disconnect(self) -> None:
         with patch(
-            "slayer_cli.mullvad.run_mullvad",
+            "legends_ytdlp.mullvad.run_mullvad",
             side_effect=[
                 CommandResult(("mullvad", "lockdown-mode", "set", "off"), 0, "Lockdown mode: off", ""),
                 CommandResult(("mullvad", "disconnect", "--wait"), 0, "Disconnected", ""),
@@ -80,7 +80,7 @@ class ShutdownTests(unittest.TestCase):
 
     def test_shutdown_stops_if_lockdown_cannot_be_disabled(self) -> None:
         with patch(
-            "slayer_cli.mullvad.run_mullvad",
+            "legends_ytdlp.mullvad.run_mullvad",
             return_value=CommandResult(("mullvad", "lockdown-mode", "set", "off"), 1, "", "failed"),
         ) as run_mullvad:
             result = shutdown_connection()

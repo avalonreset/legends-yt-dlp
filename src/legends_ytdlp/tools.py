@@ -86,7 +86,7 @@ def ytdlp_stale_detail(path: Path, version: str | None, *, today: date | None = 
     version_detail = f" ({version})" if version else ""
     return (
         f"{path}{version_detail} is {age_days} days old; refresh with: "
-        "powershell -ExecutionPolicy Bypass -File scripts\\slayer.ps1 yt-dlp update"
+        "powershell -ExecutionPolicy Bypass -File scripts\\legends-yt-dlp.ps1 yt-dlp update"
     )
 
 

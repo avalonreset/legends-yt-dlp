@@ -186,7 +186,7 @@ def cmd_mullvad_disconnect(args: argparse.Namespace) -> int:
     refusal = disconnect_refusal_reason(lockdown_setting(), force=args.force)
     if refusal:
         print(refusal, file=sys.stderr)
-        print("For fail-closed testing, use: slayer mullvad disconnect-test --emergency-unlock", file=sys.stderr)
+        print("For fail-closed testing, use: legends-yt-dlp mullvad disconnect-test --emergency-unlock", file=sys.stderr)
         return 2
     return print_mullvad_result(["disconnect"], timeout=120)
 
@@ -260,7 +260,7 @@ def cmd_mullvad_disconnect_test(args: argparse.Namespace) -> int:
             if output:
                 print(output)
         else:
-            print("Recovery failed. Run slayer mullvad recover, or slayer mullvad lockdown off as a manual emergency rescue.", file=sys.stderr)
+            print("Recovery failed. Run legends-yt-dlp mullvad recover, or legends-yt-dlp mullvad lockdown off as a manual emergency rescue.", file=sys.stderr)
 
     return 0 if test_ok and status(verbose=True).connected else 1
 
@@ -367,7 +367,7 @@ def cmd_ytdlp_install(_: argparse.Namespace) -> int:
 def cmd_ytdlp_version(_: argparse.Namespace) -> int:
     info = find_ytdlp()
     if not info.path:
-        print("yt-dlp not found. Run: python -m slayer_cli yt-dlp install", file=sys.stderr)
+        print("yt-dlp not found. Run: python -m legends_ytdlp yt-dlp install", file=sys.stderr)
         return 1
     if not info.ok:
         print(f"WARNING: {info.detail}", file=sys.stderr)
@@ -1013,12 +1013,12 @@ def finalize_run_vpn(args: argparse.Namespace, return_code: int) -> int:
     print_recovery_messages(shutdown.messages)
     if shutdown.ok:
         return return_code
-    print("Mullvad shutdown failed after the batch stopped. Run slayer mullvad shutdown or inspect manually.", file=sys.stderr)
+    print("Mullvad shutdown failed after the batch stopped. Run legends-yt-dlp mullvad shutdown or inspect manually.", file=sys.stderr)
     return return_code or 1
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="slayer", description="Legends YT-DLP Slayer control CLI")
+    parser = argparse.ArgumentParser(prog="legends-yt-dlp", description="Legends YT-DLP control CLI")
     sub = parser.add_subparsers(dest="command", required=True)
 
     doctor = sub.add_parser("doctor", help="Check local prerequisites")
@@ -1297,7 +1297,7 @@ def build_parser() -> argparse.ArgumentParser:
         import_words_parser.add_argument("--engine", default="imported", help="Source engine label")
         import_words_parser.set_defaults(func=cmd_intelligence_import_words)
 
-    import_crispasr = intelligence_sub.add_parser("import-crispasr", help="Import CrispASR full JSON output into the Slayer word ledger")
+    import_crispasr = intelligence_sub.add_parser("import-crispasr", help="Import CrispASR full JSON output into the Legends YT-DLP word ledger")
     import_crispasr.add_argument("manifest", help="Path to batch manifest.json")
     import_crispasr.add_argument("--input", required=True, help="CrispASR -ojf JSON output")
     import_crispasr.add_argument("--video-id", help="Video id to attach to imported words")
@@ -1335,7 +1335,7 @@ def build_parser() -> argparse.ArgumentParser:
     align_nfa.add_argument("--item-id", help="Item id to refine")
     align_nfa.add_argument("--audio", help="Pre-extracted mono 16 kHz WAV; defaults to intelligence/audio/<video_id>.wav")
     align_nfa.add_argument("--refresh-audio", action="store_true", help="Re-extract alignment audio even if it already exists")
-    align_nfa.add_argument("--text", help="Reference transcript text. Defaults to the existing Slayer word ledger for the target.")
+    align_nfa.add_argument("--text", help="Reference transcript text. Defaults to the existing Legends YT-DLP word ledger for the target.")
     align_nfa.add_argument("--text-file", help="UTF-8 reference transcript text file")
     align_nfa.add_argument("--prepare-only", action="store_true", help="Write the NFA manifest and stop before launching NeMo")
     align_nfa.add_argument("--import-ctm", help="Import an existing NFA words CTM instead of running NeMo")

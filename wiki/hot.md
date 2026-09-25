@@ -39,7 +39,7 @@ tags: [hot-cache, meta]
 
 ## Recent Changes
 
-- Hardened `src/slayer_cli/ledger.py` and `src/slayer_cli/verify.py` around broad output folders.
+- Hardened `src/legends_ytdlp/ledger.py` and `src/legends_ytdlp/verify.py` around broad output folders.
 - Added output folder policies to batch planning and inventory.
 - Added CrispASR diagnostics parsing, GPU-required doctor/transcribe flags, docs, and regression tests.
 - Added contradictory GPU flag rejection for `intelligence transcribe` so CPU-forced and GPU-required modes cannot be mixed.

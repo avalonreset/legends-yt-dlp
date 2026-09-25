@@ -5,7 +5,7 @@ This walkthrough takes a Windows operator from a fresh checkout to a verified fi
 ## 1. Start With Onboarding
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard
 ```
 
 `onboard` inspects the local machine and prints:
@@ -19,8 +19,8 @@ powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard
 For automation or CI-style checks:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard --json
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard --strict
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard --json
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard --strict
 ```
 
 ## 2. Install External Tools
@@ -31,10 +31,10 @@ Install Mullvad VPN from Mullvad:
 https://mullvad.net/en/download/vpn/windows
 ```
 
-Then let Slayer install the official upstream `yt-dlp.exe` locally:
+Then let Legends YT-DLP install the official upstream `yt-dlp.exe` locally:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp install
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp install
 ```
 
 The installer downloads `yt-dlp.exe` from the official upstream GitHub release and verifies it against upstream `SHA2-256SUMS`.
@@ -59,9 +59,9 @@ Never commit `.env`.
 ## 4. Set Production Posture
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad login
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 setup production
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --production
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad login
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 setup production
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor --production
 ```
 
 Production posture requires Mullvad connected, Lockdown on, split tunneling off, LAN sharing blocked, auto-connect on, anonymous `yt-dlp`, and no browser cookies or account auth.
@@ -69,12 +69,12 @@ Production posture requires Mullvad connected, Lockdown on, split tunneling off,
 ## 5. Validate With A Smoke Run
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --url "<authorized-video-url>" --name first-smoke
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\...\manifest.json"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --dry-run
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\manifest.json"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json" --refresh
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 smoke plan --url "<authorized-video-url>" --name first-smoke
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 preflight "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --dry-run
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --yes
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 verify "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 ledger "batches\...\manifest.json" --refresh
 ```
 
 Use the manifest path printed by `smoke plan`.
@@ -104,15 +104,15 @@ Copy-Item .\examples\rights-evidence-template.md .\rights-evidence.md
 For a channel or playlist:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "<channel-or-playlist-url>" --rights-file ".\rights-evidence.md" --name "<batch-name>" --max-items 25 --max-height 360 --max-filesize 75M
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 inventory "<channel-or-playlist-url>" --rights-file ".\rights-evidence.md" --name "<batch-name>" --max-items 25 --max-height 360 --max-filesize 75M
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 ledger "batches\...\manifest.json"
 ```
 
 For a hand-curated URL file:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file ".\examples\urls.txt" --rights "optional permission/license/fair-use note" --rights-file ".\rights-evidence.md" --name "<batch-name>" --max-height 360 --max-filesize 75M --folder-policy batch
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 plan --from-file ".\examples\urls.txt" --rights "optional permission/license/fair-use note" --rights-file ".\rights-evidence.md" --name "<batch-name>" --max-height 360 --max-filesize 75M --folder-policy batch
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 ledger "batches\...\manifest.json"
 ```
 
 Review `items.jsonl` with the user before any real run.
@@ -120,19 +120,19 @@ Review `items.jsonl` with the user before any real run.
 ## 8. Run The Batch
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "batches\...\manifest.json"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --dry-run
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 preflight "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --dry-run
 ```
 
 Only after the user approves:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "batches\...\manifest.json" --yes
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "batches\...\manifest.json"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "batches\...\manifest.json" --refresh
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --yes
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 verify "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 ledger "batches\...\manifest.json" --refresh
 ```
 
-For a plain archive/download request, stop there. Move into `slayer intelligence` only when the user asked for transcripts, exact search, clips, a transcript vault, or the job clearly needs analysis.
+For a plain archive/download request, stop there. Move into `legends-yt-dlp intelligence` only when the user asked for transcripts, exact search, clips, a transcript vault, or the job clearly needs analysis.
 
 ## Stop Conditions
 

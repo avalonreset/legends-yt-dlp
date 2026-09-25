@@ -2,7 +2,7 @@ import unittest
 import json
 from pathlib import Path
 
-from slayer_cli.batch import (
+from legends_ytdlp.batch import (
     auth_policy_check,
     classify_run_failure,
     classify_success,
@@ -14,8 +14,8 @@ from slayer_cli.batch import (
     write_run_report,
     write_ytdlp_config,
 )
-from slayer_cli.ledger import load_item_ledger
-from slayer_cli.process import CommandResult
+from legends_ytdlp.ledger import load_item_ledger
+from legends_ytdlp.process import CommandResult
 
 
 class BatchTests(unittest.TestCase):
@@ -84,7 +84,7 @@ class BatchTests(unittest.TestCase):
                 manifest = json.loads(paths.manifest.read_text(encoding="utf-8"))
                 self.assertIsNone(manifest["rights_basis"])
 
-                with patch("slayer_cli.batch.run_doctor", return_value=[]):
+                with patch("legends_ytdlp.batch.run_doctor", return_value=[]):
                     checks = preflight_batch(paths.manifest, require_connected=False, production=False)
                 self.assertNotIn("rights basis", [check.name for check in checks])
             finally:

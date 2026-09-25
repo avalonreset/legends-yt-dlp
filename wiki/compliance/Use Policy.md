@@ -8,7 +8,7 @@ tags: [policy, compliance]
 
 # Use Policy
 
-Legends YT-DLP Slayer is for legitimate archival jobs only.
+Legends YT-DLP is for legitimate archival jobs only.
 
 ## Allowed
 

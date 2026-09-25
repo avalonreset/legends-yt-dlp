@@ -1,7 +1,7 @@
-Legends YT-DLP Slayer
+Legends YT-DLP
 Copyright (c) 2026 Avalon Reset Pro
 
-Legends YT-DLP Slayer is a wrapper and operator control plane. It does not
+Legends YT-DLP is a wrapper and operator control plane. It does not
 contain, fork, or reimplement yt-dlp, YouTube, or Mullvad VPN.
 
 Third-party tools
@@ -12,7 +12,7 @@ yt-dlp
 - Project: https://github.com/yt-dlp/yt-dlp
 - License: Unlicense
 - Use in this repository: downloaded by the local operator through
-  `slayer yt-dlp install`, verified against upstream SHA2-256SUMS, and executed
+  `legends-yt-dlp yt-dlp install`, verified against upstream SHA2-256SUMS, and executed
   as an external child process.
 - Distribution note: this source repository and alpha package do not bundle the
   yt-dlp executable. If a future package bundles yt-dlp, include the upstream

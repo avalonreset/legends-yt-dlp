@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from slayer_cli.ledger import (
+from legends_ytdlp.ledger import (
     load_item_ledger,
     merge_download_artifacts,
     planned_items_from_urls,

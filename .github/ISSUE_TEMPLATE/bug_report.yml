@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible problem in the Slayer CLI.
+description: Report a reproducible problem in the Legends YT-DLP CLI.
 title: "[Bug]: "
 labels: ["bug"]
 body:
@@ -20,7 +20,7 @@ body:
       label: Reproduction steps
       description: List the exact commands and sanitized paths.
       placeholder: |
-        1. powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ...
+        1. powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 ...
         2. ...
     validations:
       required: true

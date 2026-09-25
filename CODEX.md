@@ -1,4 +1,4 @@
-# Legends YT-DLP Slayer: LLM Wiki
+# Legends YT-DLP: LLM Wiki
 
 Mode: Combined Mode B/C/E
 Purpose: Build a Windows-first, rights-aware video archive orchestrator around yt-dlp, Mullvad VPN privacy controls, queue state, audit logs, and community release packaging.
@@ -73,4 +73,4 @@ Out of scope:
 - Runbook work: update [[Windows Operator Setup]], [[Preflight Checklist]], and [[Batch Archive SOP]].
 - Source work: add immutable notes under `.raw/sources/`, then synthesize a page under `wiki/sources/` or `wiki/research/`.
 - Health check: run `powershell -ExecutionPolicy Bypass -File tools/vault-health-check.ps1`.
-- Skill suite: use `skills/legends-yt-dlp-slayer/SKILL.md` as the Codex operating procedure for archive batches.
+- Skill suite: use `skills/legends-yt-dlp/SKILL.md` as the Codex operating procedure for archive batches.

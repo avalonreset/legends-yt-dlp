@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "legends-yt-dlp-slayer"
-version = "0.2.1"
-description = "Windows-first yt-dlp orchestration CLI for source capture, verification, and creator clip workflows with Mullvad lifecycle controls."
+name = "legends-yt-dlp"
+version = "0.3.0"
+description = "Windows-first yt-dlp orchestration CLI for source capture, verification, and creator clip workflows with optional Mullvad VPN controls."
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
@@ -15,8 +15,9 @@ license = { text = "MIT" }
 dependencies = []
 
 [project.scripts]
-slayer = "slayer_cli.cli:main"
-printing-press = "slayer_cli.cli:main"
+legends-yt-dlp = "legends_ytdlp.cli:main"
+slayer = "legends_ytdlp.cli:main"
+printing-press = "legends_ytdlp.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

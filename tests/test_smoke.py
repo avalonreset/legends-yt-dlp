@@ -3,7 +3,7 @@ import unittest
 import shutil
 from pathlib import Path
 
-from slayer_cli.smoke import SMOKE_VIDEOS, create_custom_smoke_batch, smoke_urls
+from legends_ytdlp.smoke import SMOKE_VIDEOS, create_custom_smoke_batch, smoke_urls
 
 
 class SmokeTests(unittest.TestCase):

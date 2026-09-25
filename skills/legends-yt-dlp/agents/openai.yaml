@@ -1,0 +1,8 @@
+interface:
+  display_name: "Legends YT-DLP"
+  short_description: "Operate lawful yt-dlp batches behind Mullvad."
+  brand_color: "#2563EB"
+  default_prompt: "Use $legends-yt-dlp to plan, preflight, and run a lawful archived video batch behind Mullvad."
+policy:
+  allow_implicit_invocation: true
+

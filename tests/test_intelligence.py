@@ -4,8 +4,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from slayer_cli.process import CommandResult
-from slayer_cli.intelligence import (
+from legends_ytdlp.process import CommandResult
+from legends_ytdlp.intelligence import (
     build_vault,
     import_crispasr_json,
     import_words,
@@ -21,7 +21,7 @@ from slayer_cli.intelligence import (
     search_words,
     transcribe_with_crispasr,
 )
-from slayer_cli.tools import ToolInfo
+from legends_ytdlp.tools import ToolInfo
 
 
 class IntelligenceTests(unittest.TestCase):
@@ -135,7 +135,7 @@ class IntelligenceTests(unittest.TestCase):
                 audio_path.write_bytes(b"wav")
                 return CommandResult(("ffmpeg",), 0, "", "")
 
-            with patch("slayer_cli.intelligence.extract_audio", side_effect=fake_extract):
+            with patch("legends_ytdlp.intelligence.extract_audio", side_effect=fake_extract):
                 prepared = prepare_nfa_manifest(manifest, media, video_id="vid123")
 
             nfa_manifest = Path(str(prepared["manifest_path"]))
@@ -217,7 +217,7 @@ class IntelligenceTests(unittest.TestCase):
                 return CommandResult(command, 0, "", "")
 
             rows = parse_nfa_words_ctm(ctm)
-            with patch("slayer_cli.intelligence.run_command", side_effect=fake_run_command):
+            with patch("legends_ytdlp.intelligence.run_command", side_effect=fake_run_command):
                 result = run_nfa_alignment(
                     root / "manifest.jsonl",
                     root / "out",
@@ -361,15 +361,15 @@ class IntelligenceTests(unittest.TestCase):
 
             with (
                 patch(
-                    "slayer_cli.intelligence.find_crispasr",
+                    "legends_ytdlp.intelligence.find_crispasr",
                     return_value=ToolInfo("crispasr", root / "crispasr.exe", "fake", True, "ok"),
                 ),
                 patch(
-                    "slayer_cli.intelligence.extract_audio",
+                    "legends_ytdlp.intelligence.extract_audio",
                     return_value=CommandResult(("ffmpeg",), 0, "", ""),
                 ),
-                patch("slayer_cli.intelligence.run_command", side_effect=fake_run_command),
-                patch("slayer_cli.intelligence.import_crispasr_json", side_effect=fake_import),
+                patch("legends_ytdlp.intelligence.run_command", side_effect=fake_run_command),
+                patch("legends_ytdlp.intelligence.import_crispasr_json", side_effect=fake_import),
             ):
                 audio, transcript, words, count, results = transcribe_with_crispasr(
                     manifest,
@@ -395,7 +395,7 @@ class IntelligenceTests(unittest.TestCase):
             media = root / "clip.mp4"
             media.write_bytes(b"fake")
 
-            with patch("slayer_cli.intelligence.find_crispasr") as find_crispasr:
+            with patch("legends_ytdlp.intelligence.find_crispasr") as find_crispasr:
                 find_crispasr.return_value = ToolInfo(
                     "crispasr",
                     root / "crispasr.exe",

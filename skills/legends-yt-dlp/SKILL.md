@@ -1,21 +1,21 @@
 ---
-name: legends-yt-dlp-slayer
-description: Use when the user wants Codex to operate Legends YT-DLP Slayer: yt-dlp source capture, Mullvad VPN lifecycle control, large download catalogs, dry-runs, resumable queue execution, or troubleshooting the Slayer/Printing Press CLI.
+name: legends-yt-dlp
+description: Use when the user wants Codex to operate Legends YT-DLP: yt-dlp source capture, Mullvad VPN lifecycle control, large download catalogs, dry-runs, resumable queue execution, or troubleshooting the Legends YT-DLP/Printing Press CLI.
 ---
 
-# Legends YT-DLP Slayer
+# Legends YT-DLP
 
-Operate the local Slayer CLI as the deterministic runtime. The skill is the operator brain; the CLI is the control plane.
+Operate the local Legends YT-DLP CLI as the deterministic runtime. The skill is the operator brain; the CLI is the control plane.
 
 ## Start Here
 
-1. Confirm the working directory is the project root containing `scripts/slayer.ps1`.
+1. Confirm the working directory is the project root containing `scripts/legends-yt-dlp.ps1`.
 2. Read `wiki/hot.md` if it exists.
 3. Run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --require-connected
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --production
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor --require-connected
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor --production
 ```
 
 If the command fails, fix setup before planning or running downloads.
@@ -41,12 +41,12 @@ For the detailed policy, read `references/safety-and-errors.md`.
 ### Setup / Inspect
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 onboard
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 setup production
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad inspect
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp version
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp update
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 catalog
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 setup production
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad inspect
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp version
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp update
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 catalog
 ```
 
 Use `onboard` first in a new checkout or after unpacking an alpha zip. It prints readiness, missing setup steps, the user interview checklist, and the next safe commands without mutating local state.
@@ -64,7 +64,7 @@ Inspect `docs/PACKAGING.md`, `docs/LEGAL.md`, `NOTICE`, and `LICENSE` before pub
 For VPN fail-closed testing, use only the guarded command:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 mullvad disconnect-test --emergency-unlock
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad disconnect-test --emergency-unlock
 ```
 
 Do not use raw `disconnect` during operator work unless the user explicitly accepts the risk. For normal end-of-work cleanup, use `mullvad shutdown`; it disables Lockdown before disconnecting and verifies Mullvad is no longer connected. The guarded test constrains to a US relay by default, checks Lockdown behavior, and reconnects before returning.
@@ -76,14 +76,14 @@ Use this only after a lawful local batch has been downloaded and verified. The i
 Do not automatically transcribe every batch. The default archive workflow stops after run, verify, and ledger review. Invoke intelligence when the user asks for transcription, search, clip extraction, transcript vaults, or when the job context clearly calls for analysis and the operator explains that next step.
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence init "<manifest.json>"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "<manifest.json>" --media "<video.mp4>" --video-id "<video-id>" --model auto
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence import-crispasr "<manifest.json>" --input "<transcript.json>" --video-id "<video-id>" --media-path "<video.mp4>"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence ingest-words "<manifest.json>" --input "<words.jsonl>" --video-id "<video-id>"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "<manifest.json>" --media "<video.mp4>" --video-id "<video-id>" --prepare-only
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence search "<manifest.json>" "agentic workflow"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips plan "<manifest.json>" --query "agentic workflow"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence vault build "<manifest.json>"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence init "<manifest.json>"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "<manifest.json>" --media "<video.mp4>" --video-id "<video-id>" --model auto
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence import-crispasr "<manifest.json>" --input "<transcript.json>" --video-id "<video-id>" --media-path "<video.mp4>"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence ingest-words "<manifest.json>" --input "<words.jsonl>" --video-id "<video-id>"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence align nfa "<manifest.json>" --media "<video.mp4>" --video-id "<video-id>" --prepare-only
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence search "<manifest.json>" "agentic workflow"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence clips plan "<manifest.json>" --query "agentic workflow"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence vault build "<manifest.json>"
 ```
 
 The stable contract is a timestamped word ledger. Prefer the ready-made CrispASR Parakeet backend for local transcription. Heavy ASR stacks such as NVIDIA NeMo + Parakeet remain advanced external producers of that ledger, preferably isolated in WSL2, Docker, or a separate Python environment.
@@ -114,25 +114,25 @@ The safety boundary is firm: do not use relay rotation, account switching, login
 For one or more explicit URLs:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL>" --name "<batch-name>"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 plan "<URL>" --name "<batch-name>"
 ```
 
 For many URLs, create a text file with one URL per line and run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --name "<batch-name>"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 plan --from-file "<urls.txt>" --name "<batch-name>"
 ```
 
 Attach rights evidence when available:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --rights "optional permission/license/fair-use note" --rights-file "<rights-evidence.md>" --name "<batch-name>"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 plan --from-file "<urls.txt>" --rights "optional permission/license/fair-use note" --rights-file "<rights-evidence.md>" --name "<batch-name>"
 ```
 
 For mixed hand-curated links, keep the user's working set together:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan --from-file "<urls.txt>" --name "<batch-name>" --folder-policy batch
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 plan --from-file "<urls.txt>" --name "<batch-name>" --folder-policy batch
 ```
 
 Folder policies are `auto`, `batch`, `by-uploader`, and `flat`. Use `batch` for one folder per request. Use `by-uploader` for channel, playlist, or multi-source archive work.
@@ -142,8 +142,8 @@ Folder policies are `auto`, `batch`, `by-uploader`, and `flat`. Use `batch` for 
 For channel or playlist work, inventory first:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 inventory "<channel-or-playlist-url>" --rights-file "<rights-evidence.md>" --name "<batch-name>"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "<manifest.json>"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 inventory "<channel-or-playlist-url>" --rights-file "<rights-evidence.md>" --name "<batch-name>"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 ledger "<manifest.json>"
 ```
 
 Inventory creates `items.jsonl` for operator review without downloading media. Use `--max-items`, `--max-height`, `--max-downloads`, or `--max-filesize` when the user wants a bounded first pass.
@@ -151,7 +151,7 @@ Inventory creates `items.jsonl` for operator review without downloading media. U
 For smoke tests or bounded jobs, add limits:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 plan "<URL>" --name "<batch-name>" --max-downloads 1 --max-height 360 --max-filesize 50M
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 plan "<URL>" --name "<batch-name>" --max-downloads 1 --max-height 360 --max-filesize 50M
 ```
 
 Read `references/batch-catalog.md` before planning large archives.
@@ -161,26 +161,26 @@ Read `references/batch-catalog.md` before planning large archives.
 Use a small operator-verified smoke URL before treating an install as ready:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 smoke plan --url "<authorized-video-url>" --name "first-smoke"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "<manifest.json>"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --dry-run
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --yes
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "<manifest.json>"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 ledger "<manifest.json>" --refresh
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 smoke plan --url "<authorized-video-url>" --name "first-smoke"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 preflight "<manifest.json>"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "<manifest.json>" --dry-run
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "<manifest.json>" --yes
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 verify "<manifest.json>"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 ledger "<manifest.json>" --refresh
 ```
 
 ### Preflight / Dry Run / Real Run
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 preflight "<manifest.json>"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --dry-run
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 preflight "<manifest.json>"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "<manifest.json>" --dry-run
 ```
 
 Only after the user explicitly approves a real download. The CLI prints a legal-use notice before invoking `yt-dlp`:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 run "<manifest.json>" --yes
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 verify "<manifest.json>"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "<manifest.json>" --yes
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 verify "<manifest.json>"
 ```
 
 `run` defaults to safe VPN recovery. It may reconnect Mullvad and retry for tunnel/network failures. Use `--no-recover-vpn` only for diagnostics.

@@ -14,14 +14,14 @@ Provide the operator interface for planning, preflighting, running, resuming, an
 
 ## Candidate Commands
 
-- `slayer init`
-- `slayer doctor`
-- `slayer plan --url <url> --rights "<basis>"`
-- `slayer preflight <batch>`
-- `slayer run <batch>`
-- `slayer resume <batch>`
-- `slayer status`
-- `slayer report <batch>`
+- `legends-yt-dlp init`
+- `legends-yt-dlp doctor`
+- `legends-yt-dlp plan --url <url> --rights "<basis>"`
+- `legends-yt-dlp preflight <batch>`
+- `legends-yt-dlp run <batch>`
+- `legends-yt-dlp resume <batch>`
+- `legends-yt-dlp status`
+- `legends-yt-dlp report <batch>`
 
 ## Responsibilities
 

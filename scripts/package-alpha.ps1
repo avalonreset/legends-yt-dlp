@@ -11,7 +11,7 @@ if (-not $OutputDir) {
 }
 
 $OutputDir = [System.IO.Path]::GetFullPath($OutputDir)
-$PackageName = "legends-yt-dlp-slayer-$Version"
+$PackageName = "legends-yt-dlp-$Version"
 $ZipPath = Join-Path $OutputDir "$PackageName.zip"
 $HashPath = "$ZipPath.sha256"
 $StageRoot = Join-Path ([System.IO.Path]::GetTempPath()) "$PackageName-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
@@ -95,8 +95,8 @@ try {
             "It intentionally excludes untracked local experiments, local secrets, .local binaries, batches, reports, downloads, caches, cookies, and git metadata.",
             "",
             "Install check:",
-            "powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 yt-dlp install",
-            "powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 doctor --production"
+            "powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp install",
+            "powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor --production"
         )
         Set-Content -LiteralPath (Join-Path $Stage "PACKAGE-MANIFEST.txt") -Value $Manifest -Encoding UTF8
 

@@ -1,8 +1,8 @@
 # CrispASR Parakeet Backend
 
-CrispASR is the preferred ready-made ASR backend for Slayer intelligence.
+CrispASR is the preferred ready-made ASR backend for Legends YT-DLP intelligence.
 
-It gives Slayer a local Parakeet transcription runner without making the core CLI depend on PyTorch, NeMo, or model weights. Slayer treats CrispASR as an external executable: CrispASR handles audio-to-transcript, and Slayer handles normalized word ledgers, exact search, clip plans, montage rendering, and transcript vaults.
+It gives Legends YT-DLP a local Parakeet transcription runner without making the core CLI depend on PyTorch, NeMo, or model weights. Legends YT-DLP treats CrispASR as an external executable: CrispASR handles audio-to-transcript, and Legends YT-DLP handles normalized word ledgers, exact search, clip plans, montage rendering, and transcript vaults.
 
 ## Why This Backend
 
@@ -23,7 +23,7 @@ Sources:
 
 ## Install
 
-Slayer does not bundle CrispASR or Parakeet models. Operators install them locally and point Slayer at the executable.
+Legends YT-DLP does not bundle CrispASR or Parakeet models. Operators install them locally and point Legends YT-DLP at the executable.
 
 Expected executable discovery order:
 
@@ -58,7 +58,7 @@ The `_WIN32_WINNT=0x0601` flag avoids older MinGW headers failing on the newer `
 Local transcription is not the same as GPU transcription. Before a long job, run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor "batches\...\manifest.json" --require-gpu
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence doctor "batches\...\manifest.json" --require-gpu
 ```
 
 The command runs `crispasr --diagnostics` and fails unless the binary reports a compiled GPU backend such as CUDA, Vulkan, or Metal. If diagnostics say `ggml backends: cpu`, Parakeet still runs locally without Codex/Claude tokens, but it is a CPU-only install.
@@ -66,7 +66,7 @@ The command runs `crispasr --diagnostics` and fails unless the binary reports a 
 To force a GPU backend once diagnostics prove it exists:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
 ```
 
 Do not combine contradictory GPU flags. `--require-gpu --no-gpu` and `--require-gpu --gpu-backend cpu` are rejected before transcription starts.
@@ -83,7 +83,7 @@ On the current Windows test workstation, the checked-in integration path is veri
 Treat those as setup blockers, not application failures. The product gate remains:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor "batches\...\manifest.json" --require-gpu
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence doctor "batches\...\manifest.json" --require-gpu
 ```
 
 Only call a machine GPU-ready after that command passes and diagnostics list a CUDA, Vulkan, Metal, or similar backend.
@@ -91,7 +91,7 @@ Only call a machine GPU-ready after that command passes and diagnostics list a C
 ## One-File Transcription
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --media "batches\...\downloads\video.mp4" --video-id "abc123" --model auto
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "batches\...\manifest.json" --media "batches\...\downloads\video.mp4" --video-id "abc123" --model auto
 ```
 
 This command:
@@ -104,7 +104,7 @@ This command:
 ## Batch Transcription
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --limit 5
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --limit 5
 ```
 
 By default, `--all` processes ledger items with `downloaded`, `archived`, or `verified` status and an existing local `output_path`.
@@ -115,12 +115,12 @@ If you run CrispASR yourself:
 
 ```powershell
 crispasr --backend parakeet -m auto -f ".\audio.wav" -ojf -of ".\transcript"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence import-crispasr "batches\...\manifest.json" --input ".\transcript.json" --video-id "abc123" --media-path ".\video.mp4"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence import-crispasr "batches\...\manifest.json" --input ".\transcript.json" --video-id "abc123" --media-path ".\video.mp4"
 ```
 
 ## Output Contract
 
-The adapter expects CrispASR full JSON output from `-ojf`. It reads top-level or segment-level `words[]` when present. If Parakeet emits token timings instead, Slayer combines adjacent subword tokens into word rows. It accepts segment fallback rows with timestamps only when a backend output lacks explicit word or token timing.
+The adapter expects CrispASR full JSON output from `-ojf`. It reads top-level or segment-level `words[]` when present. If Parakeet emits token timings instead, Legends YT-DLP combines adjacent subword tokens into word rows. It accepts segment fallback rows with timestamps only when a backend output lacks explicit word or token timing.
 
 For exact clip retrieval, explicit word rows are preferred.
 

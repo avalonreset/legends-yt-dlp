@@ -1,6 +1,6 @@
 # Architecture
 
-Legends YT-DLP Slayer is a wrapper and operator control plane. It does not reimplement video extraction.
+Legends YT-DLP is a wrapper and operator control plane. It does not reimplement video extraction.
 
 ## Components
 
@@ -61,17 +61,17 @@ Codex Skill Suite
 
 ## Current Implementation
 
-The CLI is a Python package under `src/slayer_cli`.
+The CLI is a Python package under `src/legends_ytdlp`.
 
 The PowerShell launcher sets `PYTHONPATH=src` and runs:
 
 ```powershell
-python -m slayer_cli
+python -m legends_ytdlp
 ```
 
 This keeps early development lightweight. Packaging can come later after the command surface stabilizes.
 
-`slayer onboard` is the non-mutating first-run guide. It runs readiness checks,
+`legends-yt-dlp onboard` is the non-mutating first-run guide. It runs readiness checks,
 prints missing setup actions, surfaces the user interview checklist, and points
 operators to the normal inventory/ledger/preflight/run/verify workflow.
 
@@ -110,11 +110,11 @@ Post-capture intelligence state is also file-based under each batch:
 
 The core intelligence contract is the word ledger, not plain transcript text. External ASR backends such as CrispASR + Parakeet or NVIDIA NeMo + Parakeet can produce that ledger without becoming core package dependencies.
 The default ready-made producer is CrispASR with the Parakeet backend, discovered via `CRISPASR_CLI`, `.local/bin`, or `PATH`.
-NVIDIA NeMo Forced Aligner is an optional refinement path: Slayer prepares manifests and imports word CTM output into the same ledger, but the NeMo/PyTorch runtime stays external.
+NVIDIA NeMo Forced Aligner is an optional refinement path: Legends YT-DLP prepares manifests and imports word CTM output into the same ledger, but the NeMo/PyTorch runtime stays external.
 
 ## Skill Packaging
 
-The Codex-first package lives under `skills/legends-yt-dlp-slayer/`.
+The Codex-first package lives under `skills/legends-yt-dlp/`.
 
 The skill does not replace the CLI. It tells Codex how to operate the CLI safely, when to load reference material, and when to stop instead of continuing.
 
@@ -123,6 +123,6 @@ The skill does not replace the CLI. It tells Codex how to operate the CLI safely
 Alpha packages are generated from source files with `scripts/package-alpha.ps1`.
 Packages intentionally exclude `.env`, `.local`, `batches`, `reports`, media,
 cookies, caches, secrets, and git metadata. Operators install `yt-dlp.exe`
-locally with `slayer yt-dlp install` after unpacking.
+locally with `legends-yt-dlp yt-dlp install` after unpacking.
 
 Heavy ASR runtimes and model weights such as CrispASR, Parakeet GGUF files, PyTorch, NeMo, WhisperX, or pyannote are not bundled in the alpha package. They should be installed by the operator as external tools. The normal path is CrispASR as a local CLI; NeMo/WhisperX remain advanced fallback environments.

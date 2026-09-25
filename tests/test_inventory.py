@@ -2,8 +2,8 @@ import json
 import unittest
 from unittest.mock import patch
 
-from slayer_cli.inventory import create_batch_from_inventory, filter_entries, inventory_items, parse_inventory_json
-from slayer_cli.process import CommandResult
+from legends_ytdlp.inventory import create_batch_from_inventory, filter_entries, inventory_items, parse_inventory_json
+from legends_ytdlp.process import CommandResult
 
 
 class InventoryTests(unittest.TestCase):
@@ -81,7 +81,7 @@ class InventoryTests(unittest.TestCase):
     def test_create_batch_from_inventory_pauses_on_source_warning(self) -> None:
         result = CommandResult(("yt-dlp",), 0, "WARNING: HTTP Error 429: Too Many Requests", "")
 
-        with patch("slayer_cli.inventory.run_ytdlp_inventory", return_value=result):
+        with patch("legends_ytdlp.inventory.run_ytdlp_inventory", return_value=result):
             with self.assertRaisesRegex(RuntimeError, "Source-side warning"):
                 create_batch_from_inventory(
                     source_url="https://www.youtube.com/@legends/videos",

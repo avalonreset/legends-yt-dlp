@@ -1,6 +1,6 @@
 # Post-Capture Intelligence
 
-`slayer intelligence` is the post-download analysis layer for lawful local media that already exists in a Slayer batch.
+`legends-yt-dlp intelligence` is the post-download analysis layer for lawful local media that already exists in a Legends YT-DLP batch.
 
 The module does not download media, operate Mullvad, call `yt-dlp`, rotate relays, or continue through source-side blocks. It works against local batch artifacts after the archive workflow has been verified.
 
@@ -14,7 +14,7 @@ The durable contract is a timestamped word ledger. ASR engines such as CrispASR 
 {"word":"Agentic","start":312.42,"end":312.79,"confidence":0.92,"speaker":null}
 ```
 
-Slayer normalizes that input into:
+Legends YT-DLP normalizes that input into:
 
 ```json
 {
@@ -42,15 +42,15 @@ Exact search operates on contiguous `normalized` tokens. `agentic` matches `Agen
 Initialize the intelligence workspace for a batch:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence init "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence init "batches\...\manifest.json"
 ```
 
 Check local state:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor "batches\...\manifest.json"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence doctor "batches\...\manifest.json" --require-gpu
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence status "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence doctor "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence doctor "batches\...\manifest.json" --require-gpu
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence status "batches\...\manifest.json"
 ```
 
 `doctor --require-gpu` is the truth gate for long local ASR jobs. It fails unless the discovered CrispASR binary reports a compiled GPU backend such as CUDA, Vulkan, or Metal. A CPU-only CrispASR build is still local and token-free, but it should not be described as GPU-ready.
@@ -60,59 +60,59 @@ Contradictory transcription flags are rejected before work starts. Do not combin
 Import timestamped words from JSONL or JSON:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence ingest-words "batches\...\manifest.json" --input ".\words.jsonl" --video-id "abc123" --engine "nvidia/parakeet-tdt-0.6b-v2"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence ingest-words "batches\...\manifest.json" --input ".\words.jsonl" --video-id "abc123" --engine "nvidia/parakeet-tdt-0.6b-v2"
 ```
 
 Run the ready-made CrispASR Parakeet backend on local media:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --model auto
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --limit 5
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --model auto
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --limit 5
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
 ```
 
 Import existing CrispASR `-ojf` JSON:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence import-crispasr "batches\...\manifest.json" --input ".\transcript.json" --video-id "abc123" --media-path ".\video.mp4"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence import-crispasr "batches\...\manifest.json" --input ".\transcript.json" --video-id "abc123" --media-path ".\video.mp4"
 ```
 
 Prepare a NVIDIA NeMo Forced Aligner manifest from an existing word ledger:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --prepare-only
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --prepare-only
 ```
 
 Run NFA through an external NeMo environment and import the resulting word CTM:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --python "C:\path\to\nemo-env\python.exe" --nemo-dir "C:\path\to\NeMo"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence align nfa "batches\...\manifest.json" --import-ctm ".\output\ctm\words\abc123.ctm" --video-id "abc123"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --python "C:\path\to\nemo-env\python.exe" --nemo-dir "C:\path\to\NeMo"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence align nfa "batches\...\manifest.json" --import-ctm ".\output\ctm\words\abc123.ctm" --video-id "abc123"
 ```
 
 Search exact words or phrases:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence search "batches\...\manifest.json" "agentic"
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence search "batches\...\manifest.json" "agentic workflow" --json
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence search "batches\...\manifest.json" "agentic"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence search "batches\...\manifest.json" "agentic workflow" --json
 ```
 
 Create a reviewable FFmpeg clip plan:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips plan "batches\...\manifest.json" --query "agentic" --pad-before 0.5 --pad-after 0.75
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence clips plan "batches\...\manifest.json" --query "agentic" --pad-before 0.5 --pad-after 0.75
 ```
 
 Render a reviewed plan:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence clips render "batches\...\intelligence\clips\agentic\clip-plan.json" --yes
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence clips render "batches\...\intelligence\clips\agentic\clip-plan.json" --yes
 ```
 
 Build Obsidian-compatible transcript pages:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\slayer.ps1 intelligence vault build "batches\...\manifest.json"
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence vault build "batches\...\manifest.json"
 ```
 
 ## Artifact Layout
@@ -138,7 +138,7 @@ batches/<batch>/
 
 The default ready-made ASR backend is now **CrispASR + Parakeet TDT 0.6B v3**.
 
-CrispASR is a local C++ speech engine that can run Parakeet without adding PyTorch or NeMo to the core Slayer package. Slayer invokes it as an external tool, asks for full JSON output, and imports the resulting timestamped words into the same ledger/search/clip system.
+CrispASR is a local C++ speech engine that can run Parakeet without adding PyTorch or NeMo to the core Legends YT-DLP package. Legends YT-DLP invokes it as an external tool, asks for full JSON output, and imports the resulting timestamped words into the same ledger/search/clip system.
 
 Recommended command shape:
 
@@ -146,7 +146,7 @@ Recommended command shape:
 crispasr --backend parakeet -m auto -f ".\audio.wav" -ojf -of ".\transcript"
 ```
 
-Slayer wraps that with `slayer intelligence transcribe`, which first extracts mono 16 kHz WAV with FFmpeg, then imports the CrispASR JSON.
+Legends YT-DLP wraps that with `legends-yt-dlp intelligence transcribe`, which first extracts mono 16 kHz WAV with FFmpeg, then imports the CrispASR JSON.
 
 Do not bundle CrispASR, Parakeet GGUF files, PyTorch, NeMo, or model weights in the core package. They are external runtime dependencies with their own licenses and install steps.
 
@@ -163,9 +163,9 @@ NeMo remains the upstream/reference route when an operator wants the official NV
 
 ## NeMo Forced Aligner Refinement
 
-NVIDIA NeMo Forced Aligner is the precision re-timing layer for high-stakes clip boundaries. It does not replace the default CrispASR/Parakeet path. Slayer prepares an NFA manifest from the existing word ledger, runs `tools/nemo_forced_aligner/align.py` when an external NeMo environment is available, and imports NFA `ctm/words/*.ctm` output back into the same `words/<video_id>.words.jsonl` ledger.
+NVIDIA NeMo Forced Aligner is the precision re-timing layer for high-stakes clip boundaries. It does not replace the default CrispASR/Parakeet path. Legends YT-DLP prepares an NFA manifest from the existing word ledger, runs `tools/nemo_forced_aligner/align.py` when an external NeMo environment is available, and imports NFA `ctm/words/*.ctm` output back into the same `words/<video_id>.words.jsonl` ledger.
 
-The CTM import is strict by design: the CTM word sequence must match the existing ledger word sequence before Slayer replaces timings. If the word count or normalized word order differs, the import fails so an operator can review the transcript instead of silently shifting clip boundaries to the wrong words. Before replacement, Slayer writes a `*.words.pre-nfa.jsonl` backup beside the current ledger.
+The CTM import is strict by design: the CTM word sequence must match the existing ledger word sequence before Legends YT-DLP replaces timings. If the word count or normalized word order differs, the import fails so an operator can review the transcript instead of silently shifting clip boundaries to the wrong words. Before replacement, Legends YT-DLP writes a `*.words.pre-nfa.jsonl` backup beside the current ledger.
 
 Operational constraints:
 
@@ -177,7 +177,7 @@ Operational constraints:
 
 ## Operating SOP
 
-1. Run the normal Slayer archive workflow: inventory, ledger review, preflight, dry-run, approved real run, verify, ledger refresh.
+1. Run the normal Legends YT-DLP archive workflow: inventory, ledger review, preflight, dry-run, approved real run, verify, ledger refresh.
 2. Import or generate a word ledger for verified local media.
 3. For delicate boundaries, run `intelligence align nfa ... --prepare-only`, run/import the NFA CTM, then confirm the word ledger is refined.
 4. Search exact words or phrases.
