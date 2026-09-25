@@ -59,9 +59,10 @@ Do not use relay selection as an automatic response to source-side blocks.
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp install
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp update
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp version
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp check
 ```
 
-`install` and `update` both fetch the current official upstream Windows executable and verify it against `SHA2-256SUMS`. Doctor and preflight fail managed `yt-dlp` builds older than 90 days.
+`install` and `update` both fetch the current official upstream Windows executable and verify it against `SHA2-256SUMS`. `check` compares against upstream stable without downloading (exit 1 means update available). Doctor and preflight fail managed `yt-dlp` builds older than 90 days.
 
 ## Catalog and Batches
 

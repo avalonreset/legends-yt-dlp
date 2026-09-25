@@ -57,7 +57,7 @@ from .mullvad import (
 from .onboarding import onboarding_json, onboarding_text
 from .paths import PROJECT_ROOT
 from .smoke import SMOKE_VIDEOS, create_custom_smoke_batch, create_smoke_batch
-from .tools import find_ytdlp, install_ytdlp, run_tool
+from .tools import compare_ytdlp_versions, fetch_upstream_ytdlp_version, find_ytdlp, install_ytdlp, run_tool
 from .verify import verify_batch
 
 
@@ -405,6 +405,32 @@ def cmd_ytdlp_version(_: argparse.Namespace) -> int:
     result = run_tool(info.path, "--version")
     print(result.stdout or result.stderr)
     return result.returncode
+
+
+def cmd_ytdlp_check(_: argparse.Namespace) -> int:
+    info = find_ytdlp()
+    if not info.path:
+        print("yt-dlp not found. Run: legends-yt-dlp yt-dlp install", file=sys.stderr)
+        return 2
+    try:
+        upstream = fetch_upstream_ytdlp_version()
+    except RuntimeError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+    print(f"Local: {info.version or 'unknown'} ({info.path})")
+    print(f"Upstream stable: {upstream}")
+    verdict = compare_ytdlp_versions(info.version, upstream)
+    if verdict == "current":
+        print("yt-dlp is current.")
+        return 0
+    if verdict == "behind":
+        print("Update available. Run: legends-yt-dlp yt-dlp update")
+        return 1
+    if verdict == "ahead":
+        print("Local build is newer than upstream stable (nightly or custom). No action.")
+        return 0
+    print("Could not compare versions. Run: legends-yt-dlp yt-dlp update to refresh.", file=sys.stderr)
+    return 1
 
 
 def cmd_plan(args: argparse.Namespace) -> int:
@@ -1253,6 +1279,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     ytdlp_version = ytdlp_sub.add_parser("version", help="Show yt-dlp version")
     ytdlp_version.set_defaults(func=cmd_ytdlp_version)
+
+    ytdlp_check = ytdlp_sub.add_parser("check", help="Compare the managed yt-dlp against upstream stable without downloading")
+    ytdlp_check.set_defaults(func=cmd_ytdlp_check)
 
     plan = sub.add_parser("plan", help="Create a batch manifest")
     plan.add_argument("urls", nargs="*", help="Source URL(s) to archive")

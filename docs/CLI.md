@@ -94,9 +94,10 @@ powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad raw 
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp install
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp update
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp version
+powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp check
 ```
 
-The install and update commands download the official Windows standalone executable and verify it against upstream checksums. Readiness checks fail managed `yt-dlp` builds older than 90 days so extractor breakage is caught before a real batch.
+The install and update commands download the official Windows standalone executable and verify it against upstream checksums. `check` compares the managed binary against upstream stable without downloading anything: exit 0 when current, exit 1 when an update is available. Readiness checks fail managed `yt-dlp` builds older than 90 days so extractor breakage is caught before a real batch.
 
 ## Packaging
 

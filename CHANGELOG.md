@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1 - 2026-09-24
+
+- New `yt-dlp check`: compares the managed binary against upstream stable
+  without downloading. Exit 0 when current, 1 when an update is available,
+  2 when the binary is missing or upstream is unreachable.
+- Version parser also accepts nightly-style `YYYY.MM.DD.build` versions and
+  compares them by date.
+
 ## 0.3.0 - 2026-09-24
 
 - Rebrand: `legends-yt-dlp-slayer` becomes `legends-yt-dlp`. Package moves to

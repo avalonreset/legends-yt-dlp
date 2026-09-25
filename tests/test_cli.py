@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from legends_ytdlp.cli import LEGAL_USE_NOTICE, cmd_run
+from legends_ytdlp.cli import LEGAL_USE_NOTICE, cmd_run, cmd_ytdlp_check
 from legends_ytdlp.doctor import Check
 from legends_ytdlp.mullvad import ShutdownResult
 from legends_ytdlp.process import CommandResult
@@ -199,3 +199,50 @@ class CliTests(unittest.TestCase):
                 self.assertEqual(cmd_run(args), 0)
 
             self.assertIn("Medium batch (25 URLs)", stdout.getvalue())
+
+class YtdlpCheckTests(unittest.TestCase):
+    def run_check(self, info, upstream="2026.08.19"):
+        args = argparse.Namespace()
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with (
+            patch("legends_ytdlp.cli.find_ytdlp", return_value=info),
+            patch("legends_ytdlp.cli.fetch_upstream_ytdlp_version", return_value=upstream),
+            contextlib.redirect_stdout(stdout),
+            contextlib.redirect_stderr(stderr),
+        ):
+            code = cmd_ytdlp_check(args)
+        return code, stdout.getvalue(), stderr.getvalue()
+
+    def test_check_current(self) -> None:
+        from legends_ytdlp.tools import ToolInfo
+        info = ToolInfo("yt-dlp", Path("yt-dlp.exe"), "2026.08.19", True, "ok")
+        code, out, _ = self.run_check(info)
+        self.assertEqual(code, 0)
+        self.assertIn("yt-dlp is current.", out)
+
+    def test_check_behind(self) -> None:
+        from legends_ytdlp.tools import ToolInfo
+        info = ToolInfo("yt-dlp", Path("yt-dlp.exe"), "2026.03.17", True, "ok")
+        code, out, _ = self.run_check(info)
+        self.assertEqual(code, 1)
+        self.assertIn("Update available", out)
+
+    def test_check_missing_binary(self) -> None:
+        from legends_ytdlp.tools import ToolInfo
+        info = ToolInfo("yt-dlp", None, None, False, "missing")
+        code, _, err = self.run_check(info)
+        self.assertEqual(code, 2)
+        self.assertIn("yt-dlp install", err)
+
+    def test_check_upstream_unreachable(self) -> None:
+        from legends_ytdlp.tools import ToolInfo
+        info = ToolInfo("yt-dlp", Path("yt-dlp.exe"), "2026.08.19", True, "ok")
+        args = argparse.Namespace()
+        stderr = io.StringIO()
+        with (
+            patch("legends_ytdlp.cli.find_ytdlp", return_value=info),
+            patch("legends_ytdlp.cli.fetch_upstream_ytdlp_version", side_effect=RuntimeError("Could not reach the upstream yt-dlp release feed: down")),
+            contextlib.redirect_stderr(stderr),
+        ):
+            self.assertEqual(cmd_ytdlp_check(args), 2)
+        self.assertIn("Could not reach", stderr.getvalue())

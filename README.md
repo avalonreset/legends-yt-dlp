@@ -63,7 +63,7 @@ Working now:
 - anonymous yt-dlp auth/cookie policy checks
 - JavaScript runtime detection/configuration for YouTube extraction
 - bounded batch limits for smoke tests and controlled archive jobs
-- official `yt-dlp.exe` install, update, checksum verification, and 90-day freshness check
+- official `yt-dlp.exe` install, update, upstream version check, checksum verification, and 90-day freshness check
 - custom smoke-pack planning
 - batch `plan`
 - channel/playlist `inventory`
@@ -76,7 +76,7 @@ Working now:
 - post-capture `intelligence` workspace, CrispASR/Parakeet transcription, word import, search, clip planning, rendering, and vault export
 - Codex skill suite under `skills/legends-yt-dlp`
 
-Latest release: `v0.3.0`.
+Latest release: `v0.3.1`.
 
 ## Quick Start
 

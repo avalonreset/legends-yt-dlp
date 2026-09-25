@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import shutil
 import urllib.request
@@ -15,6 +16,7 @@ from .process import CommandResult, run_command
 YTDLP_STABLE_EXE_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"
 YTDLP_STABLE_SHA256_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/SHA2-256SUMS"
 YTDLP_STALE_AFTER_DAYS = 90
+YTDLP_LATEST_API_URL = "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest"
 
 
 @dataclass(frozen=True)
@@ -62,10 +64,10 @@ def parse_ytdlp_release_date(version: str | None) -> date | None:
     if token.startswith("stable@"):
         token = token.removeprefix("stable@")
     parts = token.split(".")
-    if len(parts) != 3:
+    if len(parts) not in (3, 4):
         return None
     try:
-        year, month, day = (int(part) for part in parts)
+        year, month, day = (int(part) for part in parts[:3])
         return date(year, month, day)
     except ValueError:
         return None
@@ -77,6 +79,32 @@ def ytdlp_age_days(version: str | None, *, today: date | None = None) -> int | N
         return None
     current = today or date.today()
     return (current - release_date).days
+
+
+def fetch_upstream_ytdlp_version(*, timeout: int = 30) -> str:
+    """Return the latest stable upstream yt-dlp version without downloading the binary."""
+
+    request = urllib.request.Request(YTDLP_LATEST_API_URL, headers={"Accept": "application/vnd.github+json"})
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (OSError, ValueError) as exc:
+        raise RuntimeError(f"Could not reach the upstream yt-dlp release feed: {exc}") from exc
+    tag = str(payload.get("tag_name") or "").strip()
+    if not parse_ytdlp_release_date(tag):
+        raise RuntimeError(f"Upstream yt-dlp release tag is not a stable date version: {tag!r}")
+    return tag
+
+
+def compare_ytdlp_versions(local: str | None, upstream: str) -> str:
+    """Return one of current, behind, ahead, or unknown for a local vs upstream version pair."""
+    local_date = parse_ytdlp_release_date(local)
+    upstream_date = parse_ytdlp_release_date(upstream)
+    if local_date is None or upstream_date is None:
+        return "unknown"
+    if local_date == upstream_date:
+        return "current"
+    return "behind" if local_date < upstream_date else "ahead"
 
 
 def ytdlp_stale_detail(path: Path, version: str | None, *, today: date | None = None) -> str | None:
