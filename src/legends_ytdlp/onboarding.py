@@ -19,19 +19,21 @@ def command_line(command: str) -> str:
     return f"powershell -ExecutionPolicy Bypass -File scripts\\legends-yt-dlp.ps1 {command}"
 
 
-def readiness_summary(checks: list[Check], *, require_connected: bool = True) -> str:
+def readiness_summary(checks: list[Check], *, require_connected: bool = False) -> str:
     return "READY" if overall_ok(checks, require_connected=require_connected) else "ACTION REQUIRED"
 
 
-def next_setup_steps(checks: list[Check], *, require_connected: bool = True) -> list[str]:
+def next_setup_steps(checks: list[Check], *, require_connected: bool = False, with_vpn: bool = False) -> list[str]:
     by_name = check_by_name(checks)
     steps: list[str] = []
 
-    if not by_name.get("mullvad", Check("mullvad", False, "")).ok:
-        steps.append(f"Install Mullvad VPN for Windows: {MULLVAD_WINDOWS_DOWNLOAD_URL}")
-    if not by_name.get(".env account", Check(".env account", False, "")).ok:
-        steps.append("Copy .env.example to .env and set MULLVAD_ACCOUNT_NUMBER.")
-        steps.append(f"Create or recover a Mullvad account: {MULLVAD_ACCOUNT_URL}")
+    if with_vpn:
+        if not by_name.get("mullvad", Check("mullvad", False, "")).ok:
+            steps.append(f"Install Mullvad VPN for Windows: {MULLVAD_WINDOWS_DOWNLOAD_URL}")
+        if not by_name.get(".env account", Check(".env account", False, "")).ok:
+            steps.append("Copy .env.example to .env and set MULLVAD_ACCOUNT_NUMBER.")
+            steps.append(f"Create or recover a Mullvad account: {MULLVAD_ACCOUNT_URL}")
+
     ytdlp_check = by_name.get("yt-dlp", Check("yt-dlp", False, ""))
     if not ytdlp_check.ok:
         command = "yt-dlp update" if "days old" in ytdlp_check.detail else "yt-dlp install"
@@ -40,7 +42,7 @@ def next_setup_steps(checks: list[Check], *, require_connected: bool = True) -> 
         steps.append("Install ffmpeg and make ffmpeg/ffprobe available on PATH.")
     if not by_name.get("yt-dlp JS runtime", Check("yt-dlp JS runtime", True, "")).ok:
         steps.append("Install Node.js or Deno so yt-dlp can solve modern YouTube JavaScript challenges.")
-    if not by_name.get("mullvad connected", Check("mullvad connected", not require_connected, "")).ok:
+    if with_vpn and not by_name.get("mullvad connected", Check("mullvad connected", not require_connected, "")).ok:
         steps.append(command_line("mullvad login"))
         steps.append(command_line("setup production"))
 
@@ -50,9 +52,14 @@ def next_setup_steps(checks: list[Check], *, require_connected: bool = True) -> 
         "mullvad LAN sharing blocked",
         "mullvad auto-connect",
     }
-    if any(not check.ok for check in checks if check.name in production_names):
+    if with_vpn and any(not check.ok for check in checks if check.name in production_names):
         steps.append(command_line("setup production"))
 
+    vpn_hint = (
+        "Optional: for VPN-guarded runs, install Mullvad VPN, set MULLVAD_ACCOUNT_NUMBER, "
+        + command_line("setup production")
+        + ", then pass --with-vpn to plan, preflight, and run."
+    )
     if not steps:
         steps.extend(
             [
@@ -64,6 +71,8 @@ def next_setup_steps(checks: list[Check], *, require_connected: bool = True) -> 
                 command_line('ledger "batches\\...\\manifest.json" --refresh'),
             ]
         )
+    if not with_vpn:
+        steps.append(vpn_hint)
     return dedupe_preserve_order(steps)
 
 
@@ -106,11 +115,11 @@ def first_batch_lines() -> list[str]:
     ]
 
 
-def onboarding_payload(checks: list[Check], *, require_connected: bool = True) -> dict:
+def onboarding_payload(checks: list[Check], *, require_connected: bool = False, with_vpn: bool = False) -> dict:
     return {
         "status": readiness_summary(checks, require_connected=require_connected),
         "checks": [{"name": check.name, "ok": check.ok, "detail": check.detail} for check in checks],
-        "next_steps": next_setup_steps(checks, require_connected=require_connected),
+        "next_steps": next_setup_steps(checks, require_connected=require_connected, with_vpn=with_vpn),
         "docs": {
             "walkthrough": str(PROJECT_ROOT / "docs" / "WALKTHROUGH.md"),
             "sop": str(PROJECT_ROOT / "docs" / "SOP.md"),
@@ -120,8 +129,8 @@ def onboarding_payload(checks: list[Check], *, require_connected: bool = True) -
     }
 
 
-def onboarding_text(checks: list[Check], *, require_connected: bool = True) -> str:
-    payload = onboarding_payload(checks, require_connected=require_connected)
+def onboarding_text(checks: list[Check], *, require_connected: bool = False, with_vpn: bool = False) -> str:
+    payload = onboarding_payload(checks, require_connected=require_connected, with_vpn=with_vpn)
     lines = [
         "Legends YT-DLP Onboarding",
         f"Status: {payload['status']}",
@@ -152,5 +161,5 @@ def onboarding_text(checks: list[Check], *, require_connected: bool = True) -> s
     return "\n".join(lines)
 
 
-def onboarding_json(checks: list[Check], *, require_connected: bool = True) -> str:
-    return json.dumps(onboarding_payload(checks, require_connected=require_connected), indent=2)
+def onboarding_json(checks: list[Check], *, require_connected: bool = False, with_vpn: bool = False) -> str:
+    return json.dumps(onboarding_payload(checks, require_connected=require_connected, with_vpn=with_vpn), indent=2)

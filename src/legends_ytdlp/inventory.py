@@ -83,6 +83,7 @@ def create_batch_from_inventory(
     live_statuses: set[str] | None = None,
     rights_file: str | None = None,
     folder_policy: str = "auto",
+    with_vpn: bool = False,
 ) -> tuple[BatchPaths, InventoryResult]:
     if not validate_url(source_url):
         raise ValueError(f"Invalid URL: {source_url}")
@@ -113,5 +114,6 @@ def create_batch_from_inventory(
         items=items,
         rights_file=rights_file,
         folder_policy=folder_policy,
+        with_vpn=with_vpn,
     )
     return paths, inventory

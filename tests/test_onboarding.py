@@ -18,10 +18,13 @@ class OnboardingTests(unittest.TestCase):
         ]
 
         steps = next_setup_steps(checks)
+        vpn_steps = next_setup_steps(checks, with_vpn=True)
         text = onboarding_text(checks)
 
         self.assertEqual(readiness_summary(checks), "ACTION REQUIRED")
-        self.assertTrue(any("Install Mullvad VPN" in step for step in steps))
+        self.assertTrue(any("Optional: for VPN-guarded runs" in step for step in steps))
+        self.assertFalse(any("Install Mullvad VPN" in step for step in steps))
+        self.assertTrue(any("Install Mullvad VPN" in step for step in vpn_steps))
         self.assertIn("yt-dlp install", "\n".join(steps))
         self.assertIn("setup production", "\n".join(steps))
         self.assertIn("Ask the user these before a real batch", text)

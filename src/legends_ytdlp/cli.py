@@ -68,6 +68,36 @@ LEGAL_USE_NOTICE = (
 )
 
 
+MEDIUM_BATCH_URLS = 10
+BULK_BATCH_URLS = 50
+
+
+def batch_url_count(manifest_data: dict) -> int:
+    urls = manifest_data.get("source_urls") or []
+    return len(urls) or 1
+
+
+def bulk_gate_error(url_count: int, *, acknowledged: bool) -> str | None:
+    if url_count <= BULK_BATCH_URLS or acknowledged:
+        return None
+    return (
+        f"Bulk batch ({url_count} URLs): re-run with --bulk to acknowledge a large pull. "
+        "Large pulls run with default pacing and stop on source throttles; keep them modest "
+        "and lawful."
+    )
+
+
+def print_pacing_notice(url_count: int) -> None:
+    if MEDIUM_BATCH_URLS < url_count <= BULK_BATCH_URLS:
+        print(
+            f"Medium batch ({url_count} URLs): default pacing applies between items. "
+            "Keep pulls modest; batches over "
+            f"{BULK_BATCH_URLS} URLs require --bulk."
+        )
+    elif url_count > BULK_BATCH_URLS:
+        print(f"Bulk batch ({url_count} URLs) acknowledged with --bulk. Default pacing applies.")
+
+
 def print_check(name: str, ok: bool, detail: str) -> None:
     marker = "PASS" if ok else "FAIL"
     print(f"[{marker}] {name}: {detail}")
@@ -105,12 +135,13 @@ def cmd_doctor(args: argparse.Namespace) -> int:
 
 
 def cmd_onboard(args: argparse.Namespace) -> int:
-    require_connected = not args.basic
-    checks = run_doctor(production=not args.basic)
+    vpn = args.with_vpn and not args.basic
+    require_connected = vpn
+    checks = run_doctor(production=vpn)
     if args.json:
-        print(onboarding_json(checks, require_connected=require_connected))
+        print(onboarding_json(checks, require_connected=require_connected, with_vpn=vpn))
     else:
-        print(onboarding_text(checks, require_connected=require_connected))
+        print(onboarding_text(checks, require_connected=require_connected, with_vpn=vpn))
     if args.strict and not overall_ok(checks, require_connected=require_connected):
         return 1
     return 0
@@ -395,6 +426,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
             max_filesize=args.max_filesize,
             rights_file=args.rights_file,
             folder_policy=args.folder_policy,
+            with_vpn=args.with_vpn,
         )
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
@@ -404,16 +436,18 @@ def cmd_plan(args: argparse.Namespace) -> int:
     print(f"Item ledger: {paths.ledger}")
     print(f"yt-dlp config: {paths.config}")
     print(f"URL count: {len(urls)}")
+    if len(urls) > BULK_BATCH_URLS:
+        print(f"Bulk plan ({len(urls)} URLs): running this batch later requires --bulk.")
     return 0
 
 
 def cmd_inventory(args: argparse.Namespace) -> int:
-    if not args.no_production:
+    if args.with_vpn:
         checks = run_doctor(production=True)
         if not overall_ok(checks, require_connected=True):
             for check in checks:
                 print_check(check.name, check.ok, check.detail)
-            print("Production doctor failed. Inventory did not start.", file=sys.stderr)
+            print("VPN production doctor failed. Inventory did not start.", file=sys.stderr)
             return 1
     live_statuses = {value.lower() for value in args.live_status} if args.live_status else None
     try:
@@ -429,6 +463,7 @@ def cmd_inventory(args: argparse.Namespace) -> int:
             live_statuses=live_statuses,
             rights_file=args.rights_file,
             folder_policy=args.folder_policy,
+            with_vpn=args.with_vpn,
         )
     except (OSError, ValueError, RuntimeError, json.JSONDecodeError) as exc:
         print(f"Inventory failed: {exc}", file=sys.stderr)
@@ -442,6 +477,8 @@ def cmd_inventory(args: argparse.Namespace) -> int:
     print(f"Manifest: {paths.manifest}")
     print(f"Item ledger: {paths.ledger}")
     print(f"yt-dlp config: {paths.config}")
+    if len(result.entries) > BULK_BATCH_URLS:
+        print(f"Bulk inventory ({len(result.entries)} entries): running this batch later requires --bulk.")
     if result.warnings:
         print("Warnings:")
         for warning in result.warnings[-10:]:
@@ -502,11 +539,11 @@ def cmd_catalog(_: argparse.Namespace) -> int:
 
 
 def cmd_preflight(args: argparse.Namespace) -> int:
-    production = not args.no_production and not args.no_require_connected
-    checks = preflight_batch(Path(args.manifest), require_connected=not args.no_require_connected, production=production)
+    vpn = args.with_vpn
+    checks = preflight_batch(Path(args.manifest), require_connected=vpn, production=vpn)
     for check in checks:
         print_check(check.name, check.ok, check.detail)
-    return 0 if preflight_ok(checks, require_connected=not args.no_require_connected) else 1
+    return 0 if preflight_ok(checks, require_connected=vpn) else 1
 
 
 def cmd_verify(args: argparse.Namespace) -> int:
@@ -936,14 +973,22 @@ def cmd_intelligence_vault_build(args: argparse.Namespace) -> int:
 
 
 def cmd_run(args: argparse.Namespace) -> int:
-    if not args.dry_run and (args.no_production or args.no_require_connected):
-        print("Refusing real download without production VPN posture. Remove --no-production/--no-require-connected.", file=sys.stderr)
-        return 2
     manifest = Path(args.manifest)
-    production = not args.no_production and not args.no_require_connected
-    checks = preflight_batch(manifest, require_connected=not args.no_require_connected, production=production)
-    if not preflight_ok(checks, require_connected=not args.no_require_connected):
-        if args.recover_vpn and not args.no_require_connected and only_mullvad_connection_failed(checks):
+    vpn = args.with_vpn
+    try:
+        manifest_data = load_manifest(manifest)
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"Could not load manifest: {exc}", file=sys.stderr)
+        return 2
+    if not args.dry_run:
+        bulk_error = bulk_gate_error(batch_url_count(manifest_data), acknowledged=args.bulk)
+        if bulk_error:
+            print(bulk_error, file=sys.stderr)
+            return 2
+        print_pacing_notice(batch_url_count(manifest_data))
+    checks = preflight_batch(manifest, require_connected=vpn, production=vpn)
+    if not preflight_ok(checks, require_connected=vpn):
+        if vpn and args.recover_vpn and only_mullvad_connection_failed(checks):
             recovery = recover_connection(attempts=args.vpn_recovery_attempts, wait_seconds=args.vpn_recovery_wait)
             for message in recovery.messages:
                 print(redact_account_in_text(message, env_account()))
@@ -990,7 +1035,7 @@ def cmd_run(args: argparse.Namespace) -> int:
             print("Configured download limit reached.")
             print_run_summary(report)
             return finalize_run_vpn(args, 0)
-        if not args.recover_vpn or category != "transient-network" or attempt >= args.vpn_recovery_attempts:
+        if not vpn or not args.recover_vpn or category != "transient-network" or attempt >= args.vpn_recovery_attempts:
             if category == "source-block":
                 print("Source-side block/throttle/login signal detected. Pausing without VPN relay/IP switching.", file=sys.stderr)
             report = write_run_report(manifest, dry_run=args.dry_run, result=result, category=category, started=started, ended=ended)
@@ -1007,7 +1052,7 @@ def cmd_run(args: argparse.Namespace) -> int:
 
 
 def finalize_run_vpn(args: argparse.Namespace, return_code: int) -> int:
-    if args.dry_run or args.keep_vpn:
+    if args.dry_run or args.keep_vpn or not args.with_vpn:
         return return_code
     shutdown = shutdown_connection()
     print_recovery_messages(shutdown.messages)
@@ -1028,6 +1073,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     onboard = sub.add_parser("onboard", help="Show first-run setup status and next safe commands")
     onboard.add_argument("--basic", action="store_true", help="Skip production posture checks and only inspect basic dependencies")
+    onboard.add_argument("--with-vpn", action="store_true", help="Include Mullvad production posture checks (opt-in guarded runs)")
     onboard.add_argument("--strict", action="store_true", help="Return non-zero until the shown readiness checks pass")
     onboard.add_argument("--json", action="store_true", help="Print machine-readable onboarding status")
     onboard.set_defaults(func=cmd_onboard)
@@ -1224,6 +1270,7 @@ def build_parser() -> argparse.ArgumentParser:
         default="auto",
         help="Output organization: auto uses one batch folder for multi-link plans and uploader folders for inventory",
     )
+    plan.add_argument("--with-vpn", action="store_true", help="Stamp VPN-guarded policy on this batch (Mullvad required at run)")
     plan.set_defaults(func=cmd_plan)
 
     inventory = sub.add_parser("inventory", help="Inventory a channel, playlist, or URL into a batch item ledger")
@@ -1243,7 +1290,7 @@ def build_parser() -> argparse.ArgumentParser:
         default="auto",
         help="Output organization: auto keeps inventoried channel/playlist work by uploader",
     )
-    inventory.add_argument("--no-production", action="store_true", help="Diagnostics only: skip production Mullvad posture before inventory")
+    inventory.add_argument("--with-vpn", action="store_true", help="Require VPN production posture before inventory and stamp it on the batch")
     inventory.set_defaults(func=cmd_inventory)
 
     smoke = sub.add_parser("smoke", help="Create and run curated validation batches")
@@ -1385,8 +1432,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     preflight = sub.add_parser("preflight", help="Check a batch before running")
     preflight.add_argument("manifest", help="Path to batch manifest.json")
-    preflight.add_argument("--no-require-connected", action="store_true", help="Do not fail solely because Mullvad is disconnected")
-    preflight.add_argument("--no-production", action="store_true", help="Local harness only: skip production posture and anonymous-auth policy checks")
+    preflight.add_argument("--with-vpn", action="store_true", help="Require Mullvad production posture for this check")
     preflight.set_defaults(func=cmd_preflight)
 
     verify = sub.add_parser("verify", help="Verify batch artifacts, reports, archive entries, and media files")
@@ -1400,8 +1446,8 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--dry-run", action="store_true", help="Simulate yt-dlp without downloading")
     run.add_argument("--show-output", action="store_true", help="Print raw yt-dlp output; dry-runs suppress it by default")
     run.add_argument("--yes", action="store_true", help="Allow real downloads after preflight")
-    run.add_argument("--no-require-connected", action="store_true", help="Do not fail solely because Mullvad is disconnected")
-    run.add_argument("--no-production", action="store_true", help="Diagnostics only. Real downloads refuse this flag.")
+    run.add_argument("--with-vpn", action="store_true", help="Guard this run with Mullvad production posture (connect, recover, shutdown after)")
+    run.add_argument("--bulk", action="store_true", help="Acknowledge a bulk batch of more than 50 URLs")
     run.add_argument("--recover-vpn", dest="recover_vpn", action="store_true", default=True, help="Recover Mullvad on tunnel/network failures")
     run.add_argument("--no-recover-vpn", dest="recover_vpn", action="store_false", help="Disable Mullvad recovery")
     run.add_argument("--vpn-recovery-attempts", type=int, default=2)

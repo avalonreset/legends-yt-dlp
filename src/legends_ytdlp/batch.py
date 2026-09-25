@@ -158,6 +158,7 @@ def create_batch_from_urls(
     items: list[dict] | None = None,
     rights_file: str | None = None,
     folder_policy: str = "auto",
+    with_vpn: bool = False,
 ) -> BatchPaths:
     if not urls:
         raise ValueError("At least one URL is required")
@@ -222,8 +223,8 @@ def create_batch_from_urls(
             "output_template": output_template_for_policy(effective_folder_policy),
         },
         "policy": {
-            "requires_mullvad_connected": True,
-            "requires_mullvad_lockdown": True,
+            "requires_mullvad_connected": with_vpn,
+            "requires_mullvad_lockdown": with_vpn,
             "requires_anonymous_ytdlp": True,
             "ignore_user_ytdlp_config": True,
             "no_browser_cookies": True,
@@ -397,10 +398,6 @@ def preflight_batch(path: Path, *, require_connected: bool = True, production: b
         for label, key in [
             ("policy requires Mullvad", "requires_mullvad_connected"),
             ("policy requires Lockdown", "requires_mullvad_lockdown"),
-            ("policy anonymous yt-dlp", "requires_anonymous_ytdlp"),
-            ("policy ignores user yt-dlp config", "ignore_user_ytdlp_config"),
-            ("policy no browser cookies", "no_browser_cookies"),
-            ("policy no account auth", "no_account_auth"),
         ]:
             checks.append(Check(label, policy.get(key) is True, "enabled" if policy.get(key) is True else "missing or false"))
 
@@ -423,7 +420,7 @@ def preflight_batch(path: Path, *, require_connected: bool = True, production: b
         exists = target.exists() if key not in {"download_archive"} else target.parent.exists()
         checks.append(Check(label, exists, str(target)))
 
-    if production and config_path is not None:
+    if config_path is not None:
         checks.append(auth_policy_check(config_path))
 
     checks.extend(run_doctor(production=production))

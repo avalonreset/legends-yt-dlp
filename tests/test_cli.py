@@ -24,8 +24,8 @@ class CliTests(unittest.TestCase):
             args = argparse.Namespace(
                 manifest=str(manifest),
                 dry_run=False,
-                no_production=False,
-                no_require_connected=False,
+                with_vpn=True,
+                bulk=False,
                 recover_vpn=True,
                 vpn_recovery_attempts=0,
                 vpn_recovery_wait=0.0,
@@ -58,8 +58,8 @@ class CliTests(unittest.TestCase):
             args = argparse.Namespace(
                 manifest=str(manifest),
                 dry_run=False,
-                no_production=False,
-                no_require_connected=False,
+                with_vpn=True,
+                bulk=False,
                 recover_vpn=True,
                 vpn_recovery_attempts=0,
                 vpn_recovery_wait=0.0,
@@ -77,3 +77,125 @@ class CliTests(unittest.TestCase):
                 self.assertEqual(cmd_run(args), 0)
 
             shutdown.assert_not_called()
+
+    def test_default_run_skips_vpn_shutdown(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = root / "manifest.json"
+            manifest.write_text("{}", encoding="utf-8")
+            report = root / "report.json"
+            report.write_text(json.dumps({"status": "completed", "classification": "ok", "ledger": {}}), encoding="utf-8")
+            args = argparse.Namespace(
+                manifest=str(manifest),
+                dry_run=False,
+                with_vpn=False,
+                bulk=False,
+                recover_vpn=True,
+                vpn_recovery_attempts=0,
+                vpn_recovery_wait=0.0,
+                yes=True,
+                show_output=False,
+                keep_vpn=False,
+            )
+            with (
+                patch("legends_ytdlp.cli.preflight_batch", return_value=[Check("manifest", True, str(manifest))]),
+                patch("legends_ytdlp.cli.preflight_ok", return_value=True),
+                patch("legends_ytdlp.cli.run_batch", return_value=CommandResult(("yt-dlp",), 0, "", "")),
+                patch("legends_ytdlp.cli.write_run_report", return_value=report),
+                patch("legends_ytdlp.cli.shutdown_connection") as shutdown,
+            ):
+                self.assertEqual(cmd_run(args), 0)
+
+            shutdown.assert_not_called()
+
+    def test_bulk_batch_requires_acknowledgement(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = root / "manifest.json"
+            urls = [f"https://example.com/video{i}" for i in range(51)]
+            manifest.write_text(json.dumps({"source_urls": urls}), encoding="utf-8")
+            args = argparse.Namespace(
+                manifest=str(manifest),
+                dry_run=False,
+                with_vpn=False,
+                bulk=False,
+                recover_vpn=True,
+                vpn_recovery_attempts=0,
+                vpn_recovery_wait=0.0,
+                yes=True,
+                show_output=False,
+                keep_vpn=False,
+            )
+            stderr = io.StringIO()
+            with (
+                patch("legends_ytdlp.cli.preflight_batch") as preflight,
+                contextlib.redirect_stderr(stderr),
+            ):
+                self.assertEqual(cmd_run(args), 2)
+
+            self.assertIn("--bulk", stderr.getvalue())
+            preflight.assert_not_called()
+
+    def test_bulk_batch_runs_when_acknowledged(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = root / "manifest.json"
+            urls = [f"https://example.com/video{i}" for i in range(51)]
+            manifest.write_text(json.dumps({"source_urls": urls}), encoding="utf-8")
+            report = root / "report.json"
+            report.write_text(json.dumps({"status": "completed", "classification": "ok", "ledger": {}}), encoding="utf-8")
+            args = argparse.Namespace(
+                manifest=str(manifest),
+                dry_run=False,
+                with_vpn=False,
+                bulk=True,
+                recover_vpn=True,
+                vpn_recovery_attempts=0,
+                vpn_recovery_wait=0.0,
+                yes=True,
+                show_output=False,
+                keep_vpn=False,
+            )
+            stdout = io.StringIO()
+            with (
+                patch("legends_ytdlp.cli.preflight_batch", return_value=[Check("manifest", True, str(manifest))]),
+                patch("legends_ytdlp.cli.preflight_ok", return_value=True),
+                patch("legends_ytdlp.cli.run_batch", return_value=CommandResult(("yt-dlp",), 0, "", "")),
+                patch("legends_ytdlp.cli.write_run_report", return_value=report),
+                contextlib.redirect_stdout(stdout),
+            ):
+                self.assertEqual(cmd_run(args), 0)
+
+            self.assertIn("acknowledged with --bulk", stdout.getvalue())
+
+    def test_medium_batch_prints_pacing_notice(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = root / "manifest.json"
+            urls = [f"https://example.com/video{i}" for i in range(25)]
+            manifest.write_text(json.dumps({"source_urls": urls}), encoding="utf-8")
+            report = root / "report.json"
+            report.write_text(json.dumps({"status": "completed", "classification": "ok", "ledger": {}}), encoding="utf-8")
+            args = argparse.Namespace(
+                manifest=str(manifest),
+                dry_run=False,
+                with_vpn=False,
+                bulk=False,
+                recover_vpn=True,
+                vpn_recovery_attempts=0,
+                vpn_recovery_wait=0.0,
+                yes=True,
+                show_output=False,
+                keep_vpn=False,
+            )
+            stdout = io.StringIO()
+            with (
+                patch("legends_ytdlp.cli.preflight_batch", return_value=[Check("manifest", True, str(manifest))]),
+                patch("legends_ytdlp.cli.preflight_ok", return_value=True),
+                patch("legends_ytdlp.cli.run_batch", return_value=CommandResult(("yt-dlp",), 0, "", "")),
+                patch("legends_ytdlp.cli.write_run_report", return_value=report),
+                contextlib.redirect_stdout(stdout),
+            ):
+                self.assertEqual(cmd_run(args), 0)
+
+            self.assertIn("Medium batch (25 URLs)", stdout.getvalue())
