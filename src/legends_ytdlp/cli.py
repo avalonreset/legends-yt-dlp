@@ -128,7 +128,7 @@ def print_mullvad_result(args: list[str], *, timeout: int = 60) -> int:
 
 
 def cmd_doctor(args: argparse.Namespace) -> int:
-    checks = run_doctor(production=args.production)
+    checks = run_doctor(production=args.production, with_vpn=args.require_connected)
     for check in checks:
         print_check(check.name, check.ok, check.detail)
     return 0 if overall_ok(checks, require_connected=args.require_connected or args.production) else 1

@@ -387,7 +387,7 @@ def catalog_rows() -> list[dict[str, str]]:
     return rows
 
 
-def preflight_batch(path: Path, *, require_connected: bool = True, production: bool = True) -> list[Check]:
+def preflight_batch(path: Path, *, require_connected: bool = False, production: bool = False) -> list[Check]:
     manifest = load_manifest(path)
     policy = manifest.get("policy", {})
     checks = [
@@ -423,13 +423,11 @@ def preflight_batch(path: Path, *, require_connected: bool = True, production: b
     if config_path is not None:
         checks.append(auth_policy_check(config_path))
 
-    checks.extend(run_doctor(production=production))
-    if not require_connected:
-        return checks
+    checks.extend(run_doctor(production=production, with_vpn=require_connected))
     return checks
 
 
-def preflight_ok(checks: list[Check], *, require_connected: bool = True) -> bool:
+def preflight_ok(checks: list[Check], *, require_connected: bool = False) -> bool:
     return overall_ok(checks, require_connected=require_connected)
 
 

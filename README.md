@@ -75,7 +75,21 @@ Working now:
 - batch `verify`
 - post-capture `intelligence` workspace, CrispASR/Parakeet transcription, word import, search, clip planning, rendering, and vault export
 
-Latest release: `v0.1.0`.
+Latest release: `v0.1.1`.
+
+## Conversational operation
+
+Tell the agent what you want to download. The agent handles the CLI flags, setup,
+and checks; you do not need to know commands such as `--with-vpn`. An occasional
+authorized pull proceeds without a VPN or a separate VPN approval step.
+
+For a large request, such as 100 videos, the agent explains pacing and may offer
+VPN assistance as an optional convenience. Your explicit request for that batch
+supplies the bulk acknowledgement; it does not require another approval card.
+Declining VPN, having no subscription, or having no Mullvad installation is fine
+at any batch size. Bulk mode never enables VPN automatically. VPN cannot guarantee
+protection from throttling, blocks, or account enforcement and is not a way to
+bypass source-side controls. Pause and report those controls when encountered.
 
 ## Quick Start
 
@@ -263,7 +277,7 @@ All batches are anonymous by default: no browser cookies, no cookie files, no us
 Build a local alpha zip:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.0"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.1"
 ```
 
 The package excludes `.env`, `.local`, `batches`, `reports`, downloads, caches, cookies, secrets, and git metadata.

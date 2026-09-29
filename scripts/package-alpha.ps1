@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "0.1.0",
+    [string]$Version = "0.1.1",
     [string]$OutputDir = ""
 )
 
@@ -96,7 +96,7 @@ try {
             "",
             "Install check:",
             "powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp install",
-            "powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor --production"
+            "powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor"
         )
         Set-Content -LiteralPath (Join-Path $Stage "PACKAGE-MANIFEST.txt") -Value $Manifest -Encoding UTF8
 

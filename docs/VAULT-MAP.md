@@ -36,7 +36,7 @@ word_count: <n>
 <full running text>
 ```
 
-Pages use `[[wikilink]]` index entries, so the folder opens directly in Obsidian.
+Pages use Obsidian wikilink index entries, so the folder opens directly in Obsidian.
 
 ## Empire mapping
 

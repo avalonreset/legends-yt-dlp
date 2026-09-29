@@ -35,15 +35,17 @@ def mullvad_setting_check(name: str, raw: str, ok: bool, expected: str) -> Check
     return Check(name, ok, detail)
 
 
-def run_doctor(*, production: bool = False) -> list[Check]:
+def run_doctor(*, production: bool = False, with_vpn: bool = False) -> list[Check]:
+    checks = [tool_check(find_ytdlp()), tool_check(find_ffmpeg())]
+    if not (with_vpn or production):
+        return checks
+
     env = read_env_file(PROJECT_ROOT / ".env")
     account = env.get("MULLVAD_ACCOUNT_NUMBER")
-    checks: list[Check] = [
+    checks.extend([
         tool_check(find_mullvad()),
-        tool_check(find_ytdlp()),
-        tool_check(find_ffmpeg()),
         Check(".env account", bool(account), f"MULLVAD_ACCOUNT_NUMBER={redact(account)}" if account else "missing"),
-    ]
+    ])
 
     mullvad = mullvad_status(verbose=True)
     if mullvad.available:
@@ -66,7 +68,7 @@ def run_doctor(*, production: bool = False) -> list[Check]:
 
 def overall_ok(checks: list[Check], *, require_connected: bool = False) -> bool:
     for check in checks:
-        if check.name == "mullvad connected" and not require_connected:
+        if not require_connected and (check.name.startswith("mullvad") or check.name == ".env account"):
             continue
         if not check.ok:
             return False

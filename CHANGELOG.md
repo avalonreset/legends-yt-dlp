@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1 - 2026-09-28
+
+- Fixed default doctor and preflight accidentally requiring an installed Mullvad CLI and account file. Ordinary runs perform no VPN probes or operations.
+- Kept explicit VPN readiness and recovery enforcement through `--with-vpn`, `doctor --require-connected`, and `doctor --production`. Bulk acknowledgement remains independent of VPN.
+- Corrected packaged install instructions to use ordinary doctor and added regression tests for absent Mullvad/account, explicit VPN failure, and default preflight/run.
+
 ## 0.1.0 - 2026-09-25
 
 - Router-native reset generation: de-skillified to the single `cto-legends` router skill (vendored pinned copy at `skills/cto-legends/SKILL.md`, router commit `6975dcb`).

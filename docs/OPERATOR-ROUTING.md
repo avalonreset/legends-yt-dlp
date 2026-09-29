@@ -14,7 +14,7 @@ Operate the local Legends YT-DLP CLI as the deterministic runtime. This recipe i
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor
 ```
 
-For VPN-guarded runs, add `doctor --production` and pass `--with-vpn` to `plan`, `preflight`, and `run`. Mullvad is optional; nothing requires it by default.
+For VPN-guarded runs, add `doctor --production` and pass `--with-vpn` to `plan`, `preflight`, and `run`. Mullvad is optional; ordinary doctor, preflight, and run do not inspect or require Mullvad, a subscription, or an account file. Bulk acknowledgement does not enable VPN.
 
 If the command fails, fix setup before planning or running downloads.
 
@@ -34,13 +34,26 @@ If the user asks for automatic IP switching on download errors, implement only t
 
 For the detailed policy, read `docs/SAFETY-AND-ERRORS.md`.
 
+## Conversational operation
+
+Tell the agent what you want to download. The agent handles the CLI flags, setup,
+and checks; you do not need to know commands such as `--with-vpn`. An occasional
+authorized pull proceeds without a VPN or a separate VPN approval step.
+
+For a large request, such as 100 videos, the agent explains pacing and may offer
+VPN assistance as an optional convenience. Your explicit request for that batch
+supplies the bulk acknowledgement; it does not require another approval card.
+Declining VPN, having no subscription, or having no Mullvad installation is fine
+at any batch size. Bulk mode never enables VPN automatically. VPN cannot guarantee
+protection from throttling, blocks, or account enforcement and is not a way to
+bypass source-side controls. Pause and report those controls when encountered.
+
 ## Core Workflows
 
 ### Setup / Inspect
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad inspect
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp version
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp update
 powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 catalog
@@ -53,7 +66,7 @@ Read `docs/COMMANDS.md` for the full command surface.
 For alpha packaging:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.0"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.1"
 ```
 
 Inspect `docs/PACKAGING.md`, `docs/LEGAL.md`, `NOTICE`, and `LICENSE` before publishing a release package.

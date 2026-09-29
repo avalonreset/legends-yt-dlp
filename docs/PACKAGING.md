@@ -3,13 +3,13 @@
 Use the packaging script from the repository root:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.0"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.1"
 ```
 
 The script writes:
 
-- `dist/legends-yt-dlp-0.1.0.zip`
-- `dist/legends-yt-dlp-0.1.0.zip.sha256`
+- `dist/legends-yt-dlp-0.1.1.zip`
+- `dist/legends-yt-dlp-0.1.1.zip.sha256`
 
 The package includes tracked source, docs, scripts, tests, the router skill file, and legal/community files. It excludes ignored local runtime state:
 
@@ -42,14 +42,14 @@ git diff --check
 $accountEnv = 'MULLVAD_ACCOUNT_NUMBER'
 $secretPattern = "$accountEnv=.*[0-9]|[0-9]{16}"
 rg -n $secretPattern --glob '!*.pyc' --glob '!.git/**' --glob '!.env' --glob '!.local/**' --glob '!batches/**' --glob '!reports/**'
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.0"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.1"
 ```
 
 Then inspect the package:
 
 ```powershell
-tar -tf dist\legends-yt-dlp-0.1.0.zip
-Get-Content dist\legends-yt-dlp-0.1.0.zip.sha256
+tar -tf dist\legends-yt-dlp-0.1.1.zip
+Get-Content dist\legends-yt-dlp-0.1.1.zip.sha256
 ```
 
 Do not publish a package that contains account numbers, cookies, downloaded media, local `yt-dlp.exe` binaries, batch outputs, client rights evidence, or untracked local experiment files.
