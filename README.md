@@ -239,7 +239,7 @@ Capture and transcription are separate concerns. This module transcribes its own
 verified media through an external CrispASR executable (Parakeet-capable, never
 bundled). For heavier transcription work, route outward instead of bulking up:
 continuous background audio and voice sketchpads belong to
-`legends-ambient-intelligence`, and live typing belongs to `hyperyap`.
+[`legends-ambient-intelligence`](https://github.com/avalonreset/legends-ambient-intelligence), and live typing belongs to [`legends-hyperyap`](https://github.com/avalonreset/legends-hyperyap).
 See [docs/TRANSCRIPTION.md](docs/TRANSCRIPTION.md).
 
 ## Empire Vault
