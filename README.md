@@ -1,6 +1,4 @@
-# Legends YT-DLP
-
-![Legends YT-DLP banner](assets/legends-yt-dlp-banner.webp)
+# ![legends-yt-dlp](assets/banner.webp)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 ![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)
@@ -8,9 +6,7 @@
 ![yt-dlp](https://img.shields.io/badge/powered%20by-yt--dlp-lightgrey.svg)
 ![Mullvad optional](https://img.shields.io/badge/Mullvad-optional-orange.svg)
 
-Clip faster. Create sharper.
-
-Windows-first creator control plane for repeatable source pulls, local verification, transcripts, search, and clip-building on top of `yt-dlp`, with optional Mullvad VPN guardrails.
+**Clip faster and create sharper with a Windows-first `yt-dlp` workflow for repeatable source pulls, local verification, transcripts, search, and clip-building, with optional Mullvad VPN guardrails.**
 
 Legends YT-DLP exists because raw `yt-dlp` is powerful, but real creator work needs more than a one-off command. The project wraps the official `yt-dlp` binary with explicit batch plans, optional source notes, local state, conservative defaults, a short use notice before real runs, default pacing between pulls, and an opt-in Mullvad VPN mode for guarded runs. Ripping a video from time to time is frictionless; bulk pulls slow down and ask for acknowledgement.
 
@@ -263,6 +259,10 @@ mapping.
 - [Alpha Packaging](docs/PACKAGING.md)
 - [Changelog](CHANGELOG.md)
 - [Operator Routing](docs/OPERATOR-ROUTING.md)
+- [Search Strategy](docs/SEARCH-STRATEGY.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security Policy](SECURITY.md)
+- [Support](SUPPORT.md)
 
 ## Local Secrets
 
@@ -281,6 +281,14 @@ powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1
 ```
 
 The package excludes `.env`, `.local`, `batches`, `reports`, downloads, caches, cookies, secrets, and git metadata.
+
+## FAQ
+
+**Is Mullvad VPN required to use `legends-yt-dlp`?**
+No. Occasional authorized pulls run without Mullvad or any VPN setup. Mullvad (`--with-vpn`) is strictly an opt-in guardrail for operators who want leak protection during larger batches.
+
+**Does `legends-yt-dlp` bundle `yt-dlp.exe` in the repository?**
+No. It downloads the official release binary from `yt-dlp/yt-dlp` locally and verifies its SHA-256 checksum against upstream `SHA2-256SUMS`.
 
 ## License
 
