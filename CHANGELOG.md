@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2 - 2026-10-29
+
+- Raise minimum supported Python runtime to Python 3.11 (`requires-python = ">=3.11"`) across package metadata and documentation.
+- Add cross-platform GitHub Actions test workflow (`.github/workflows/ci.yml` on Python 3.11 and 3.13) and harden workflows with 40-character commit SHA action pins, explicit `contents: read` permissions, and `pip>=26.2.2`.
+
 ## 0.1.1 - 2026-09-28
 
 - Fixed default doctor and preflight accidentally requiring an installed Mullvad CLI and account file. Ordinary runs perform no VPN probes or operations.

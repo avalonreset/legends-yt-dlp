@@ -1,7 +1,7 @@
 # ![legends-yt-dlp](assets/banner.webp)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)
+![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)
 ![Windows first](https://img.shields.io/badge/Windows-first-0078D4.svg)
 ![yt-dlp](https://img.shields.io/badge/powered%20by-yt--dlp-lightgrey.svg)
 ![Mullvad optional](https://img.shields.io/badge/Mullvad-optional-orange.svg)
@@ -71,7 +71,7 @@ Working now:
 - batch `verify`
 - post-capture `intelligence` workspace, CrispASR/Parakeet transcription, word import, search, clip planning, rendering, and vault export
 
-Latest release: `v0.1.1`.
+Latest release: `v0.1.2`.
 
 ## Conversational operation
 
@@ -277,7 +277,7 @@ All batches are anonymous by default: no browser cookies, no cookie files, no us
 Build a local alpha zip:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.1"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.2"
 ```
 
 The package excludes `.env`, `.local`, `batches`, `reports`, downloads, caches, cookies, secrets, and git metadata.

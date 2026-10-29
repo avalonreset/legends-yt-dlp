@@ -66,7 +66,7 @@ Read `docs/COMMANDS.md` for the full command surface.
 For alpha packaging:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.1"
+powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.2"
 ```
 
 Inspect `docs/PACKAGING.md`, `docs/LEGAL.md`, `NOTICE`, and `LICENSE` before publishing a release package.
