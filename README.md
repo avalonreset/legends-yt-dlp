@@ -295,3 +295,10 @@ No. It downloads the official release binary from `yt-dlp/yt-dlp` locally and ve
 Legends YT-DLP is released under the [MIT License](LICENSE).
 
 Important distribution note: the project does not commit or package the `yt-dlp.exe` binary. It downloads the official upstream executable locally and verifies its checksum. See [NOTICE](NOTICE) and [docs/LEGAL.md](docs/LEGAL.md).
+
+---
+
+**Specification & benchmarks on cto-legends.com:**
+- **Module specification & architecture matrix:** [cto-legends.com/modules/legends-yt-dlp](https://cto-legends.com/modules/legends-yt-dlp)
+- **Related engineering dispatches:** [How to Build AI Agents: Production CLI & MCP Routing](https://cto-legends.com/blog?post=how-to-build-ai-agents-cli-mcp-routing) · [Obsidian Second Brain: Markdown Knowledge Base Guide](https://cto-legends.com/blog?post=obsidian-second-brain-markdown-knowledge-base) · [Claude Code Skills: MCP vs CLI Workflow Architecture](https://cto-legends.com/blog?post=claude-code-skills-mcp-vs-cli-workflow)
+- **Ecosystem hub:** [cto-legends.com/home](https://cto-legends.com/home)
