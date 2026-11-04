@@ -95,8 +95,8 @@ try {
             "It intentionally excludes untracked local experiments, local secrets, .local binaries, batches, reports, downloads, caches, cookies, and git metadata.",
             "",
             "Install check:",
-            "powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp install",
-            "powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor"
+            "legends-yt-dlp yt-dlp install",
+            "legends-yt-dlp doctor"
         )
         Set-Content -LiteralPath (Join-Path $Stage "PACKAGE-MANIFEST.txt") -Value $Manifest -Encoding UTF8
 

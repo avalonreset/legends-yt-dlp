@@ -7,15 +7,15 @@ Thanks for helping improve Legends YT-DLP.
 ```powershell
 git clone https://github.com/avalonreset/legends-yt-dlp.git
 cd legends-yt-dlp
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor
+legends-yt-dlp doctor
 ```
 
 For production-path testing, install the Mullvad app, fund/login to a Mullvad
 account, create an ignored `.env` from `.env.example`, then run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 setup production
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor --production
+legends-yt-dlp setup production
+legends-yt-dlp doctor --production
 ```
 
 ## Test Gate

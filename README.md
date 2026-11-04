@@ -92,10 +92,10 @@ bypass source-side controls. Pause and report those controls when encountered.
 From the project root:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp update
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp version
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor
+legends-yt-dlp onboard
+legends-yt-dlp yt-dlp update
+legends-yt-dlp yt-dlp version
+legends-yt-dlp doctor
 ```
 
 Optional: VPN-guarded runs with Mullvad. Nothing above needs it. When you want
@@ -103,28 +103,28 @@ guarded runs, set up Mullvad once, then pass `--with-vpn` to `plan`,
 `preflight`, and `run`:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard --with-vpn
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 setup production
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad status --verbose
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad inspect
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad login
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad lockdown on
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad connect
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad recover
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad shutdown
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad disconnect-test --emergency-unlock
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor --require-connected
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor --production
+legends-yt-dlp onboard --with-vpn
+legends-yt-dlp setup production
+legends-yt-dlp mullvad status --verbose
+legends-yt-dlp mullvad inspect
+legends-yt-dlp mullvad login
+legends-yt-dlp mullvad lockdown on
+legends-yt-dlp mullvad connect
+legends-yt-dlp mullvad recover
+legends-yt-dlp mullvad shutdown
+legends-yt-dlp mullvad disconnect-test --emergency-unlock
+legends-yt-dlp doctor --require-connected
+legends-yt-dlp doctor --production
 ```
 
 Validate the install with a small authorized smoke URL:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 smoke plan --url "https://www.youtube.com/watch?v=..." --name "first-smoke"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 preflight "batches\...\manifest.json"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --dry-run
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --yes
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 verify "batches\...\manifest.json"
+legends-yt-dlp smoke plan --url "https://www.youtube.com/watch?v=..." --name "first-smoke"
+legends-yt-dlp preflight "batches\...\manifest.json"
+legends-yt-dlp run "batches\...\manifest.json" --dry-run
+legends-yt-dlp run "batches\...\manifest.json" --yes
+legends-yt-dlp verify "batches\...\manifest.json"
 ```
 
 In `--with-vpn` mode, `run --yes` shuts Mullvad down after the batch reaches a terminal state: Lockdown is turned off first, Mullvad disconnects with `--wait`, and the final disconnected state is verified. Use `--keep-vpn` only when the operator intentionally wants Mullvad and Lockdown left running after the batch.
@@ -132,11 +132,11 @@ In `--with-vpn` mode, `run --yes` shuts Mullvad down after the batch reaches a t
 Create a batch:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 plan "https://www.youtube.com/@CHANNEL" --name "channel-name"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 plan --from-file ".\urls.txt" --name "catalog-name"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 plan --from-file ".\urls.txt" --rights "optional permission/license/fair-use note" --rights-file ".\rights-evidence.md" --name "catalog-name"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 plan --from-file ".\urls.txt" --name "catalog-name" --folder-policy batch
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 catalog
+legends-yt-dlp plan "https://www.youtube.com/@CHANNEL" --name "channel-name"
+legends-yt-dlp plan --from-file ".\urls.txt" --name "catalog-name"
+legends-yt-dlp plan --from-file ".\urls.txt" --rights "optional permission/license/fair-use note" --rights-file ".\rights-evidence.md" --name "catalog-name"
+legends-yt-dlp plan --from-file ".\urls.txt" --name "catalog-name" --folder-policy batch
+legends-yt-dlp catalog
 ```
 
 Folder policy controls output layout. `auto` puts direct multi-link plans into one named batch folder and keeps inventoried channel/playlist work grouped by uploader. Use `--folder-policy batch` for mixed one-off links, `--folder-policy by-uploader` for channel/archive work, and `--folder-policy flat` only when the selected output folder already represents the job.
@@ -144,8 +144,8 @@ Folder policy controls output layout. `auto` puts direct multi-link plans into o
 For channel or playlist work, inventory first:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 inventory "https://www.youtube.com/@CHANNEL" --rights-file ".\rights-evidence.md" --name "channel-name"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 ledger "batches\...\manifest.json"
+legends-yt-dlp inventory "https://www.youtube.com/@CHANNEL" --rights-file ".\rights-evidence.md" --name "channel-name"
+legends-yt-dlp ledger "batches\...\manifest.json"
 ```
 
 Inventory creates the batch manifest, `urls.txt`, `yt-dlp.conf`, and `items.jsonl` without downloading media. Review the ledger with the user before a real run.
@@ -153,25 +153,25 @@ Inventory creates the batch manifest, `urls.txt`, `yt-dlp.conf`, and `items.json
 Preflight and run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 preflight "batches\...\manifest.json"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --dry-run
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --yes
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 verify "batches\...\manifest.json"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 ledger "batches\...\manifest.json" --refresh
+legends-yt-dlp preflight "batches\...\manifest.json"
+legends-yt-dlp run "batches\...\manifest.json" --dry-run
+legends-yt-dlp run "batches\...\manifest.json" --yes
+legends-yt-dlp verify "batches\...\manifest.json"
+legends-yt-dlp ledger "batches\...\manifest.json" --refresh
 ```
 
 Analyze verified local media after download when the user asks for transcripts, search, clips, a transcript vault, or when the job clearly calls for post-capture analysis. Plain archive/download jobs do not need transcription by default:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence init "batches\...\manifest.json"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence doctor "batches\...\manifest.json" --require-gpu
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "batches\...\manifest.json" --media ".\video.mp4" --video-id "VIDEO_ID" --model auto
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence ingest-words "batches\...\manifest.json" --input ".\examples\intelligence-words.jsonl" --video-id "VIDEO_ID"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "VIDEO_ID" --prepare-only
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence search "batches\...\manifest.json" "agentic workflow"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence clips plan "batches\...\manifest.json" --query "agentic workflow"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence vault build "batches\...\manifest.json"
+legends-yt-dlp intelligence init "batches\...\manifest.json"
+legends-yt-dlp intelligence doctor "batches\...\manifest.json" --require-gpu
+legends-yt-dlp intelligence transcribe "batches\...\manifest.json" --media ".\video.mp4" --video-id "VIDEO_ID" --model auto
+legends-yt-dlp intelligence transcribe "batches\...\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
+legends-yt-dlp intelligence ingest-words "batches\...\manifest.json" --input ".\examples\intelligence-words.jsonl" --video-id "VIDEO_ID"
+legends-yt-dlp intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "VIDEO_ID" --prepare-only
+legends-yt-dlp intelligence search "batches\...\manifest.json" "agentic workflow"
+legends-yt-dlp intelligence clips plan "batches\...\manifest.json" --query "agentic workflow"
+legends-yt-dlp intelligence vault build "batches\...\manifest.json"
 ```
 
 `intelligence doctor --require-gpu` is the truth gate for GPU-backed Parakeet. CPU-only CrispASR still runs locally without Codex or Claude token spend, but the project does not label that install GPU-ready unless CrispASR diagnostics report a compiled GPU backend.

@@ -5,13 +5,13 @@ Run all commands from the project root.
 ## Doctor
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard --json
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard --strict
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor --require-connected
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor --production
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 setup production
+legends-yt-dlp onboard
+legends-yt-dlp onboard --json
+legends-yt-dlp onboard --strict
+legends-yt-dlp doctor
+legends-yt-dlp doctor --require-connected
+legends-yt-dlp doctor --production
+legends-yt-dlp setup production
 ```
 
 Use `onboard` first in a fresh checkout. It prints readiness, missing setup steps, user interview prompts, and the next safe commands without mutating local state.
@@ -21,32 +21,32 @@ Use `doctor` before real work. For VPN-guarded runs, use `doctor --production` (
 ## Mullvad
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad inspect
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad status --verbose
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad login
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad lockdown on
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad connect
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad reconnect
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad recover
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad disconnect-test --emergency-unlock
+legends-yt-dlp mullvad inspect
+legends-yt-dlp mullvad status --verbose
+legends-yt-dlp mullvad login
+legends-yt-dlp mullvad lockdown on
+legends-yt-dlp mullvad connect
+legends-yt-dlp mullvad reconnect
+legends-yt-dlp mullvad recover
+legends-yt-dlp mullvad disconnect-test --emergency-unlock
 ```
 
 Useful settings:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad auto-connect set on
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad lan set block
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad split-tunnel set off
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad tunnel quantum-resistant on
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad tunnel ipv6 off
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad relay get
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad dns get
+legends-yt-dlp mullvad auto-connect set on
+legends-yt-dlp mullvad lan set block
+legends-yt-dlp mullvad split-tunnel set off
+legends-yt-dlp mullvad tunnel quantum-resistant on
+legends-yt-dlp mullvad tunnel ipv6 off
+legends-yt-dlp mullvad relay get
+legends-yt-dlp mullvad dns get
 ```
 
 Manual relay selection is available:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad relay location us
+legends-yt-dlp mullvad relay location us
 ```
 
 Do not use relay selection as an automatic response to source-side blocks.
@@ -56,10 +56,10 @@ Do not use relay selection as an automatic response to source-side blocks.
 ## yt-dlp
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp install
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp update
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp version
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp check
+legends-yt-dlp yt-dlp install
+legends-yt-dlp yt-dlp update
+legends-yt-dlp yt-dlp version
+legends-yt-dlp yt-dlp check
 ```
 
 `install` and `update` both fetch the current official upstream Windows executable and verify it against `SHA2-256SUMS`. `check` compares against upstream stable without downloading (exit 1 means update available). Doctor and preflight fail managed `yt-dlp` builds older than 90 days.
@@ -67,20 +67,20 @@ powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp check
 ## Catalog and Batches
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 catalog
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 plan "<URL>" --name "<name>"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 plan "<URL1>" "<URL2>" --name "<name>"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 plan --from-file "<urls.txt>" --name "<name>"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 plan --from-file "<urls.txt>" --name "<name>" --folder-policy batch
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 inventory "<channel-or-playlist-url>" --rights-file ".\rights-evidence.md" --name "<name>" --max-items 25
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 ledger "<manifest.json>"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 smoke plan --url "<authorized-video-url>" --name "first-smoke"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 preflight "<manifest.json>"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "<manifest.json>" --dry-run
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "<manifest.json>" --yes
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "<manifest.json>" --yes --vpn-recovery-attempts 3
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 verify "<manifest.json>"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 ledger "<manifest.json>" --refresh
+legends-yt-dlp catalog
+legends-yt-dlp plan "<URL>" --name "<name>"
+legends-yt-dlp plan "<URL1>" "<URL2>" --name "<name>"
+legends-yt-dlp plan --from-file "<urls.txt>" --name "<name>"
+legends-yt-dlp plan --from-file "<urls.txt>" --name "<name>" --folder-policy batch
+legends-yt-dlp inventory "<channel-or-playlist-url>" --rights-file ".\rights-evidence.md" --name "<name>" --max-items 25
+legends-yt-dlp ledger "<manifest.json>"
+legends-yt-dlp smoke plan --url "<authorized-video-url>" --name "first-smoke"
+legends-yt-dlp preflight "<manifest.json>"
+legends-yt-dlp run "<manifest.json>" --dry-run
+legends-yt-dlp run "<manifest.json>" --yes
+legends-yt-dlp run "<manifest.json>" --yes --vpn-recovery-attempts 3
+legends-yt-dlp verify "<manifest.json>"
+legends-yt-dlp ledger "<manifest.json>" --refresh
 ```
 
 `run --yes` prints a legal-use notice before invoking `yt-dlp`. It defaults to safe VPN recovery and can reconnect Mullvad and retry after transient tunnel/network failures. It must not continue through source-side block signals.
@@ -90,16 +90,16 @@ Folder policy: `auto` puts direct multi-link plans into one named batch folder a
 ## Intelligence
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence init "<manifest.json>"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence doctor "<manifest.json>"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence doctor "<manifest.json>" --require-gpu
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "<manifest.json>" --all --model auto
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "<manifest.json>" --all --model auto --gpu-backend cuda --require-gpu
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence align nfa "<manifest.json>" --media "<video.mp4>" --video-id "<video-id>" --prepare-only
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence search "<manifest.json>" "agentic workflow"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence clips plan "<manifest.json>" --query "agentic workflow"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence clips render "<clip-plan.json>" --yes
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence vault build "<manifest.json>"
+legends-yt-dlp intelligence init "<manifest.json>"
+legends-yt-dlp intelligence doctor "<manifest.json>"
+legends-yt-dlp intelligence doctor "<manifest.json>" --require-gpu
+legends-yt-dlp intelligence transcribe "<manifest.json>" --all --model auto
+legends-yt-dlp intelligence transcribe "<manifest.json>" --all --model auto --gpu-backend cuda --require-gpu
+legends-yt-dlp intelligence align nfa "<manifest.json>" --media "<video.mp4>" --video-id "<video-id>" --prepare-only
+legends-yt-dlp intelligence search "<manifest.json>" "agentic workflow"
+legends-yt-dlp intelligence clips plan "<manifest.json>" --query "agentic workflow"
+legends-yt-dlp intelligence clips render "<clip-plan.json>" --yes
+legends-yt-dlp intelligence vault build "<manifest.json>"
 ```
 
 `intelligence doctor --require-gpu` is the local ASR truth gate. CPU-only CrispASR remains local and token-free, but do not call a setup GPU-ready unless diagnostics report a GPU backend.

@@ -26,5 +26,5 @@ jobs:
       - run: python -m pip install --upgrade "pip>=26.2.2"
       - run: python -m pip install -e .
       - run: python -m unittest discover -s tests -v
-      - run: legends-ytdlp --help
-      - run: legends-ytdlp doctor
+      - run: legends-yt-dlp --help
+      - run: legends-yt-dlp doctor

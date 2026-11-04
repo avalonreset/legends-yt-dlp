@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.3 - 2026-11-04
+
+- Add `yt-dlp>=2026.10.01` as a standard package dependency and prefer the active Python environment / PATH `yt-dlp` executable in `find_ytdlp()` before `.local\bin\yt-dlp.exe`.
+- Make `install_ytdlp()` fail-closed when `SHA2-256SUMS` is missing an entry and verify the SHA-256 digest on a staging file before writing `yt-dlp.exe`.
+- Replace `legends-yt-dlp` across `onboarding.py`, `tools.py`, and operator documentation with the direct `legends-yt-dlp` entrypoint.
+- Fix Windows 8.3 short-path resolution in `tests/test_batch.py` and add the `legends-ytdlp` console script alias for CI parity.
+
 ## 0.1.2 - 2026-10-29
 
 - Raise minimum supported Python runtime to Python 3.11 (`requires-python = ">=3.11"`) across package metadata and documentation.

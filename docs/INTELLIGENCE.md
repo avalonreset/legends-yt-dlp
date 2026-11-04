@@ -42,15 +42,15 @@ Exact search operates on contiguous `normalized` tokens. `agentic` matches `Agen
 Initialize the intelligence workspace for a batch:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence init "batches\...\manifest.json"
+legends-yt-dlp intelligence init "batches\...\manifest.json"
 ```
 
 Check local state:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence doctor "batches\...\manifest.json"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence doctor "batches\...\manifest.json" --require-gpu
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence status "batches\...\manifest.json"
+legends-yt-dlp intelligence doctor "batches\...\manifest.json"
+legends-yt-dlp intelligence doctor "batches\...\manifest.json" --require-gpu
+legends-yt-dlp intelligence status "batches\...\manifest.json"
 ```
 
 `doctor --require-gpu` is the truth gate for long local ASR jobs. It fails unless the discovered CrispASR binary reports a compiled GPU backend such as CUDA, Vulkan, or Metal. A CPU-only CrispASR build is still local and token-free, but it should not be described as GPU-ready.
@@ -60,59 +60,59 @@ Contradictory transcription flags are rejected before work starts. Do not combin
 Import timestamped words from JSONL or JSON:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence ingest-words "batches\...\manifest.json" --input ".\words.jsonl" --video-id "abc123" --engine "nvidia/parakeet-tdt-0.6b-v2"
+legends-yt-dlp intelligence ingest-words "batches\...\manifest.json" --input ".\words.jsonl" --video-id "abc123" --engine "nvidia/parakeet-tdt-0.6b-v2"
 ```
 
 Run the ready-made CrispASR Parakeet backend on local media:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --model auto
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --limit 5
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
+legends-yt-dlp intelligence transcribe "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --model auto
+legends-yt-dlp intelligence transcribe "batches\...\manifest.json" --all --model auto --limit 5
+legends-yt-dlp intelligence transcribe "batches\...\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
 ```
 
 Import existing CrispASR `-ojf` JSON:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence import-crispasr "batches\...\manifest.json" --input ".\transcript.json" --video-id "abc123" --media-path ".\video.mp4"
+legends-yt-dlp intelligence import-crispasr "batches\...\manifest.json" --input ".\transcript.json" --video-id "abc123" --media-path ".\video.mp4"
 ```
 
 Prepare a NVIDIA NeMo Forced Aligner manifest from an existing word ledger:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --prepare-only
+legends-yt-dlp intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --prepare-only
 ```
 
 Run NFA through an external NeMo environment and import the resulting word CTM:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --python "C:\path\to\nemo-env\python.exe" --nemo-dir "C:\path\to\NeMo"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence align nfa "batches\...\manifest.json" --import-ctm ".\output\ctm\words\abc123.ctm" --video-id "abc123"
+legends-yt-dlp intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --python "C:\path\to\nemo-env\python.exe" --nemo-dir "C:\path\to\NeMo"
+legends-yt-dlp intelligence align nfa "batches\...\manifest.json" --import-ctm ".\output\ctm\words\abc123.ctm" --video-id "abc123"
 ```
 
 Search exact words or phrases:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence search "batches\...\manifest.json" "agentic"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence search "batches\...\manifest.json" "agentic workflow" --json
+legends-yt-dlp intelligence search "batches\...\manifest.json" "agentic"
+legends-yt-dlp intelligence search "batches\...\manifest.json" "agentic workflow" --json
 ```
 
 Create a reviewable FFmpeg clip plan:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence clips plan "batches\...\manifest.json" --query "agentic" --pad-before 0.5 --pad-after 0.75
+legends-yt-dlp intelligence clips plan "batches\...\manifest.json" --query "agentic" --pad-before 0.5 --pad-after 0.75
 ```
 
 Render a reviewed plan:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence clips render "batches\...\intelligence\clips\agentic\clip-plan.json" --yes
+legends-yt-dlp intelligence clips render "batches\...\intelligence\clips\agentic\clip-plan.json" --yes
 ```
 
 Build Obsidian-compatible transcript pages:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence vault build "batches\...\manifest.json"
+legends-yt-dlp intelligence vault build "batches\...\manifest.json"
 ```
 
 ## Artifact Layout

@@ -54,3 +54,20 @@ class ToolTests(unittest.TestCase):
     def test_ytdlp_stale_detail_allows_current_build(self) -> None:
         detail = ytdlp_stale_detail(Path("yt-dlp.exe"), "2026.06.09", today=date(2026, 6, 24))
         self.assertIsNone(detail)
+
+    def test_install_ytdlp_fails_closed_when_checksum_missing(self) -> None:
+        import tempfile
+        from unittest.mock import patch
+        from legends_ytdlp.tools import install_ytdlp
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_dir = Path(tmp)
+            def fake_download(url: str, target: Path) -> None:
+                target.write_text("deadbeef  other-file.exe\n", encoding="utf-8")
+
+            with patch("legends_ytdlp.tools.LOCAL_BIN_DIR", tmp_dir), patch(
+                "legends_ytdlp.tools.download_file", side_effect=fake_download
+            ):
+                with self.assertRaises(RuntimeError):
+                    install_ytdlp()
+                self.assertFalse((tmp_dir / "yt-dlp.exe").exists())

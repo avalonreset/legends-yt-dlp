@@ -26,7 +26,7 @@ The package includes tracked source, docs, scripts, tests, the router skill file
 After unpacking, the first command for a user should be:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 onboard
+legends-yt-dlp onboard
 ```
 
 ## Release Checklist

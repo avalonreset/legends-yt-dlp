@@ -58,7 +58,7 @@ The `_WIN32_WINNT=0x0601` flag avoids older MinGW headers failing on the newer `
 Local transcription is not the same as GPU transcription. Before a long job, run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence doctor "batches\...\manifest.json" --require-gpu
+legends-yt-dlp intelligence doctor "batches\...\manifest.json" --require-gpu
 ```
 
 The command runs `crispasr --diagnostics` and fails unless the binary reports a compiled GPU backend such as CUDA, Vulkan, or Metal. If diagnostics say `ggml backends: cpu`, Parakeet still runs locally without Codex/Claude tokens, but it is a CPU-only install.
@@ -66,7 +66,7 @@ The command runs `crispasr --diagnostics` and fails unless the binary reports a 
 To force a GPU backend once diagnostics prove it exists:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
+legends-yt-dlp intelligence transcribe "batches\...\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
 ```
 
 Do not combine contradictory GPU flags. `--require-gpu --no-gpu` and `--require-gpu --gpu-backend cpu` are rejected before transcription starts.
@@ -83,7 +83,7 @@ On the current Windows test workstation, the checked-in integration path is veri
 Treat those as setup blockers, not application failures. The product gate remains:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence doctor "batches\...\manifest.json" --require-gpu
+legends-yt-dlp intelligence doctor "batches\...\manifest.json" --require-gpu
 ```
 
 Only call a machine GPU-ready after that command passes and diagnostics list a CUDA, Vulkan, Metal, or similar backend.
@@ -91,7 +91,7 @@ Only call a machine GPU-ready after that command passes and diagnostics list a C
 ## One-File Transcription
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "batches\...\manifest.json" --media "batches\...\downloads\video.mp4" --video-id "abc123" --model auto
+legends-yt-dlp intelligence transcribe "batches\...\manifest.json" --media "batches\...\downloads\video.mp4" --video-id "abc123" --model auto
 ```
 
 This command:
@@ -104,7 +104,7 @@ This command:
 ## Batch Transcription
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence transcribe "batches\...\manifest.json" --all --model auto --limit 5
+legends-yt-dlp intelligence transcribe "batches\...\manifest.json" --all --model auto --limit 5
 ```
 
 By default, `--all` processes ledger items with `downloaded`, `archived`, or `verified` status and an existing local `output_path`.
@@ -115,7 +115,7 @@ If you run CrispASR yourself:
 
 ```powershell
 crispasr --backend parakeet -m auto -f ".\audio.wav" -ojf -of ".\transcript"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 intelligence import-crispasr "batches\...\manifest.json" --input ".\transcript.json" --video-id "abc123" --media-path ".\video.mp4"
+legends-yt-dlp intelligence import-crispasr "batches\...\manifest.json" --input ".\transcript.json" --video-id "abc123" --media-path ".\video.mp4"
 ```
 
 ## Output Contract

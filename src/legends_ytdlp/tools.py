@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import shutil
+import sys
 import urllib.request
 from dataclasses import dataclass
 from datetime import date
@@ -114,7 +115,7 @@ def ytdlp_stale_detail(path: Path, version: str | None, *, today: date | None = 
     version_detail = f" ({version})" if version else ""
     return (
         f"{path}{version_detail} is {age_days} days old; refresh with: "
-        "powershell -ExecutionPolicy Bypass -File scripts\\legends-yt-dlp.ps1 yt-dlp update"
+        "legends-yt-dlp yt-dlp update"
     )
 
 
@@ -131,16 +132,45 @@ def find_mullvad() -> ToolInfo:
     return ToolInfo("mullvad", path, version, True, "Mullvad CLI found")
 
 
+def _venv_ytdlp_candidates() -> list[Path]:
+    exe_dir = Path(sys.executable).resolve().parent
+    names = ("yt-dlp.exe", "yt-dlp") if os.name == "nt" else ("yt-dlp",)
+    return [exe_dir / name for name in names]
+
+
 def find_ytdlp() -> ToolInfo:
-    candidates = [LOCAL_BIN_DIR / "yt-dlp.exe"]
-    path = find_executable("yt-dlp", env_var="YTDLP_CLI", extra_candidates=candidates)
-    if not path:
+    env_candidate = _candidate_from_env("YTDLP_CLI")
+    if env_candidate:
+        candidates = [env_candidate]
+    else:
+        candidates = []
+        for candidate in _venv_ytdlp_candidates():
+            if candidate.exists() and candidate not in candidates:
+                candidates.append(candidate)
+        which_str = shutil.which("yt-dlp")
+        if which_str:
+            which_path = Path(which_str)
+            if which_path.exists() and which_path not in candidates:
+                candidates.append(which_path)
+        for local_name in ("yt-dlp.exe", "yt-dlp"):
+            local_candidate = LOCAL_BIN_DIR / local_name
+            if local_candidate.exists() and local_candidate not in candidates:
+                candidates.append(local_candidate)
+
+    if not candidates:
         return ToolInfo("yt-dlp", None, None, False, "yt-dlp not found")
-    version = version_for(path, "--version")
-    stale_detail = ytdlp_stale_detail(path, version)
-    if stale_detail:
-        return ToolInfo("yt-dlp", path, version, False, stale_detail)
-    return ToolInfo("yt-dlp", path, version, True, "yt-dlp found")
+
+    first_stale: ToolInfo | None = None
+    for path in candidates:
+        version = version_for(path, "--version")
+        stale_detail = ytdlp_stale_detail(path, version)
+        if not stale_detail:
+            return ToolInfo("yt-dlp", path, version, True, "yt-dlp found")
+        if first_stale is None:
+            first_stale = ToolInfo("yt-dlp", path, version, False, stale_detail)
+
+    assert first_stale is not None
+    return first_stale
 
 
 def find_ffmpeg() -> ToolInfo:
@@ -213,17 +243,21 @@ def expected_sha256_from_sums(sums_text: str, filename: str) -> str | None:
     return None
 
 
-def install_ytdlp() -> tuple[Path, str, str | None]:
+def install_ytdlp() -> tuple[Path, str, str]:
     target = LOCAL_BIN_DIR / "yt-dlp.exe"
+    tmp_target = LOCAL_BIN_DIR / "yt-dlp.exe.download"
     sums_target = LOCAL_BIN_DIR / "SHA2-256SUMS"
-    download_file(YTDLP_STABLE_EXE_URL, target)
     download_file(YTDLP_STABLE_SHA256_URL, sums_target)
-
-    actual = sha256_file(target)
     expected = expected_sha256_from_sums(sums_target.read_text(encoding="utf-8"), "yt-dlp.exe")
-    if expected and expected != actual:
-        target.unlink(missing_ok=True)
+    if not expected:
+        raise RuntimeError("yt-dlp.exe SHA256 entry missing from official SHA2-256SUMS; refusing unverified binary")
+
+    download_file(YTDLP_STABLE_EXE_URL, tmp_target)
+    actual = sha256_file(tmp_target)
+    if expected.lower() != actual.lower():
+        tmp_target.unlink(missing_ok=True)
         raise RuntimeError(f"yt-dlp.exe SHA256 mismatch: expected {expected}, got {actual}")
+    tmp_target.replace(target)
     return target, actual, expected
 
 

@@ -96,7 +96,7 @@ class BatchTests(unittest.TestCase):
         import tempfile
 
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+            root = Path(tmp).resolve()
             paths = create_batch_from_urls(
                 urls=[
                     "https://x.com/i/status/111",
@@ -126,7 +126,7 @@ class BatchTests(unittest.TestCase):
         import tempfile
 
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+            root = Path(tmp).resolve()
             paths = create_batch_from_urls(
                 urls=["https://www.youtube.com/watch?v=alpha123"],
                 rights_basis="fixture",

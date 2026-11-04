@@ -11,26 +11,26 @@ tags: [runbook, cli, operator]
 Use the PowerShell launcher from the project root:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 doctor
+legends-yt-dlp doctor
 ```
 
 ## Tooling
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp install
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 yt-dlp version
+legends-yt-dlp yt-dlp install
+legends-yt-dlp yt-dlp version
 ```
 
 ## Mullvad
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad status --verbose
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad login
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad lockdown on
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad connect
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad recover
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad disconnect-test --emergency-unlock
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 mullvad inspect
+legends-yt-dlp mullvad status --verbose
+legends-yt-dlp mullvad login
+legends-yt-dlp mullvad lockdown on
+legends-yt-dlp mullvad connect
+legends-yt-dlp mullvad recover
+legends-yt-dlp mullvad disconnect-test --emergency-unlock
+legends-yt-dlp mullvad inspect
 ```
 
 The `login` command reads `MULLVAD_ACCOUNT_NUMBER` from `.env` and redacts it in output.
@@ -42,8 +42,8 @@ First-class Mullvad wrappers now cover account/device reads, version, auto-conne
 ## Batch Planning
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 plan "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --name "channel-name"
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 preflight "batches\...\manifest.json"
+legends-yt-dlp plan "https://www.youtube.com/@CHANNEL" --rights "owned or authorized" --name "channel-name"
+legends-yt-dlp preflight "batches\...\manifest.json"
 ```
 
 ## Running
@@ -51,8 +51,8 @@ powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 preflight "b
 Real downloads require passing preflight and an explicit `--yes` flag:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --dry-run
-powershell -ExecutionPolicy Bypass -File scripts\legends-yt-dlp.ps1 run "batches\...\manifest.json" --yes
+legends-yt-dlp run "batches\...\manifest.json" --dry-run
+legends-yt-dlp run "batches\...\manifest.json" --yes
 ```
 
 Until Mullvad is connected, default preflight exits nonzero and the runner does not start.

@@ -16,7 +16,7 @@ def check_by_name(checks: list[Check]) -> dict[str, Check]:
 
 
 def command_line(command: str) -> str:
-    return f"powershell -ExecutionPolicy Bypass -File scripts\\legends-yt-dlp.ps1 {command}"
+    return f"legends-yt-dlp {command}"
 
 
 def readiness_summary(checks: list[Check], *, require_connected: bool = False) -> str:
