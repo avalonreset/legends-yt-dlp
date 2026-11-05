@@ -11,7 +11,7 @@ tags: [health, meta]
 Run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File tools/vault-health-check.ps1
+python scripts/check_release.py
 ```
 
 Expected initial result:

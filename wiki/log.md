@@ -71,7 +71,7 @@ tags: [log, meta]
 ## 2026-05-28 - Alpha Packaging and GitHub Presence Hardened
 
 - Added MIT license, `NOTICE`, `SECURITY.md`, `CITATION.cff`, `CONTRIBUTING.md`, code of conduct, issue templates, PR template, and release config.
-- Added `scripts/package-alpha.ps1`, `docs/PACKAGING.md`, and `docs/LEGAL.md`; package output includes source/docs/scripts/tests/skill/legal files while excluding `.env`, `.local`, batches, reports, media, cookies, caches, secrets, and git metadata.
+- Added release packaging tooling, `docs/PACKAGING.md`, and `docs/LEGAL.md`; package output includes source/docs/scripts/tests/skill/legal files while excluding `.env`, `.local`, batches, reports, media, cookies, caches, secrets, and git metadata.
 - Verified upstream license posture with GitHub API: `yt-dlp/yt-dlp` reports Unlicense and `mullvad/mullvadvpn-app` reports GPL-3.0; current package does not bundle either binary.
 - Clean-clone test passed from a temp clone: `yt-dlp install`, checksum verification, `doctor --production`, smoke planning, preflight, and dry-run all succeeded, then the temp clone was deleted.
 - Resume/interruption harness passed: a fake yt-dlp interrupted after one item, ledger refreshed to one downloaded/one planned, rerun skipped the archived item and completed the second, and `verify --no-probe` passed with two downloaded ledger items.
@@ -209,7 +209,7 @@ tags: [log, meta]
 ## 2026-05-27 - CLI Scaffold and yt-dlp Install
 
 - Added Python CLI package with `slayer` / `printing-press` entry points.
-- Added `scripts/legends-yt-dlp.ps1` launcher for local PowerShell operation.
+- Added `legends-yt-dlp` launcher for local PowerShell operation.
 - Added commands for `doctor`, Mullvad status/login/connect/lockdown/raw, yt-dlp install/version, batch `plan`, `preflight`, and guarded `run`.
 - Installed official Windows `yt-dlp.exe` to `.local/bin`, verified SHA256 against upstream `SHA2-256SUMS`, and confirmed version `2026.03.17`.
 - Confirmed Mullvad CLI path and version, but batch preflight remains blocked until Mullvad is logged in, funded, and connected.

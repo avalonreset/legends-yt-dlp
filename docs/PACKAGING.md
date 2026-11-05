@@ -2,8 +2,8 @@
 
 Use the packaging script from the repository root:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.2"
+```bash
+python scripts/check_release.py
 ```
 
 The script writes:
@@ -37,12 +37,11 @@ Before attaching the zip to a release:
 $env:PYTHONPATH='src'
 python -m unittest discover -s tests
 python -m compileall -q src tests
-powershell -ExecutionPolicy Bypass -File tools\vault-health-check.ps1
+python scripts/check_release.py
 git diff --check
 $accountEnv = 'MULLVAD_ACCOUNT_NUMBER'
 $secretPattern = "$accountEnv=.*[0-9]|[0-9]{16}"
 rg -n $secretPattern --glob '!*.pyc' --glob '!.git/**' --glob '!.env' --glob '!.local/**' --glob '!batches/**' --glob '!reports/**'
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.2"
 ```
 
 Then inspect the package:

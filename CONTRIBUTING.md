@@ -26,7 +26,7 @@ Run the deterministic gate before opening a pull request:
 $env:PYTHONPATH='src'
 python -m unittest discover -s tests
 python -m compileall -q src tests
-powershell -ExecutionPolicy Bypass -File tools\vault-health-check.ps1
+python scripts/check_release.py
 git diff --check
 ```
 

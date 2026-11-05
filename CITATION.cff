@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 type: software
 title: "Legends YT-DLP"
-version: "0.3.1"
-date-released: "2026-09-24"
+version: "0.1.4"
+date-released: "2026-11-05"
 authors:
   - name: "Avalon Reset Pro"
 repository-code: "https://github.com/avalonreset/legends-yt-dlp"

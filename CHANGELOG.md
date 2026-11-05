@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.4 - 2026-11-05
+
+- Added `docs/AGENT-RECIPE.md` and `AGENTS.md` with complete CLI reference and Windows Defender / EDR security guardrails.
+- Updated `legends-yt-dlp doctor` to output structured JSON by default, added `--offline`, `--json`, `--text`, and `--require-tools` flags, and reported `yt-dlp` and `ffmpeg` as optional external runtime binaries unless `--require-tools` or `--production` is specified.
+- Removed legacy PowerShell wrapper scripts in favor of native `legends-yt-dlp` and `python -m legends_ytdlp` entrypoints.
+- Added `THIRD_PARTY_NOTICES.md`, `assets/manifest.json`, and automated release verification (`scripts/check_release.py`).
+
 ## 0.1.3 - 2026-11-04
 
 - Add `yt-dlp>=2026.10.01` as a standard package dependency and prefer the active Python environment / PATH `yt-dlp` executable in `find_ytdlp()` before `.local\bin\yt-dlp.exe`.

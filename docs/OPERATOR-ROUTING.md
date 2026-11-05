@@ -6,7 +6,7 @@ Operate the local Legends YT-DLP CLI as the deterministic runtime. This recipe i
 
 ## Start Here
 
-1. Confirm the working directory is the project root containing `scripts/legends-yt-dlp.ps1`.
+1. Confirm the working directory is the project root containing `pyproject.toml`.
 2. Read `wiki/hot.md` if it exists.
 3. Run:
 
@@ -63,10 +63,10 @@ Use `onboard` first in a new checkout or after unpacking an alpha zip. It prints
 
 Read `docs/COMMANDS.md` for the full command surface.
 
-For alpha packaging:
+For release verification:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.2"
+```bash
+python scripts/check_release.py
 ```
 
 Inspect `docs/PACKAGING.md`, `docs/LEGAL.md`, `NOTICE`, and `LICENSE` before publishing a release package.
@@ -216,6 +216,12 @@ Read `docs/TRANSCRIPTION.md`.
 `intelligence vault build` exports Obsidian-compatible transcript pages.
 Map them into Empire per `docs/VAULT-MAP.md`: cite by `video_id`, keep the
 batch manifest as rights provenance, never vault binaries.
+
+## EDR and Security Guardrails
+
+- Never spawn background shells, hidden console windows, or execution-policy bypass shell wrappers.
+- Never read local browser profile databases, DPAPI stores, or cookie files; all `yt-dlp` runs enforce `--ignore-config`, `--no-cookies`, and `--no-cookies-from-browser`.
+- Never automate VPN relay rotation to continue through source-side rate limits, captchas, login prompts, or blocks.
 
 ## Reporting Back
 

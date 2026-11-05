@@ -10,6 +10,8 @@ legends-yt-dlp <command>
 
 ```powershell
 legends-yt-dlp doctor
+legends-yt-dlp doctor --offline
+legends-yt-dlp doctor --require-tools
 legends-yt-dlp doctor --require-connected
 legends-yt-dlp doctor --production
 ```
@@ -101,8 +103,8 @@ The install and update commands download the official Windows standalone executa
 
 ## Packaging
 
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.0"
+```bash
+python scripts/check_release.py
 ```
 
 Creates a local alpha zip and `.sha256` file under `dist/`. The package contains source, docs, scripts, tests, the router skill file, and legal/community files. It excludes local secrets, managed binaries, batches, reports, downloads, cookies, caches, and git metadata.

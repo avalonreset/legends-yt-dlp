@@ -71,7 +71,7 @@ Working now:
 - batch `verify`
 - post-capture `intelligence` workspace, CrispASR/Parakeet transcription, word import, search, clip planning, rendering, and vault export
 
-Latest release: `v0.1.2`.
+Latest release: `v0.1.4`.
 
 ## Conversational operation
 
@@ -227,7 +227,7 @@ Legends YT-DLP is markdown-first: an agent reads this README plus
 `docs/OPERATOR-ROUTING.md` and the docs below to operate the CLI. No skill
 installation is required to start; `cto-legends` routes capture goals here and
 hands over this README plus the recipe. Human operators use the same commands
-through `scripts/legends-yt-dlp.ps1`.
+through `legends-yt-dlp` or `python -m legends_ytdlp`.
 
 ## Transcription Routes
 
@@ -258,6 +258,7 @@ mapping.
 - [Legal and Attribution Notes](docs/LEGAL.md)
 - [Alpha Packaging](docs/PACKAGING.md)
 - [Changelog](CHANGELOG.md)
+- [Agent Recipe](docs/AGENT-RECIPE.md)
 - [Operator Routing](docs/OPERATOR-ROUTING.md)
 - [Search Strategy](docs/SEARCH-STRATEGY.md)
 - [Contributing](CONTRIBUTING.md)
@@ -276,8 +277,9 @@ All batches are anonymous by default: no browser cookies, no cookie files, no us
 
 Build a local alpha zip:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts\package-alpha.ps1 -Version "0.1.2"
+```bash
+python -m unittest discover -s tests -v
+python scripts/check_release.py
 ```
 
 The package excludes `.env`, `.local`, `batches`, `reports`, downloads, caches, cookies, secrets, and git metadata.

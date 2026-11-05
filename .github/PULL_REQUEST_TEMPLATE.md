@@ -6,7 +6,7 @@
 
 - [ ] `$env:PYTHONPATH='src'; python -m unittest discover -s tests`
 - [ ] `$env:PYTHONPATH='src'; python -m compileall -q src tests`
-- [ ] `powershell -ExecutionPolicy Bypass -File tools\vault-health-check.ps1`
+- [ ] `python scripts/check_release.py`
 - [ ] `git diff --check`
 - [ ] Secret scan checked for `.env`, account numbers, cookies, media, and batch outputs
 

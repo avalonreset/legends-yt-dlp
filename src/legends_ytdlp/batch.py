@@ -423,7 +423,7 @@ def preflight_batch(path: Path, *, require_connected: bool = False, production: 
     if config_path is not None:
         checks.append(auth_policy_check(config_path))
 
-    checks.extend(run_doctor(production=production, with_vpn=require_connected))
+    checks.extend(run_doctor(production=production, with_vpn=require_connected, require_tools=True))
     return checks
 
 

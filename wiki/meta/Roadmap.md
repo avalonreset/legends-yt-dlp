@@ -46,7 +46,7 @@ tags: [roadmap, meta]
 
 - Write install docs.
 - Add guided first-run onboarding.
-- Package for Windows with `scripts/package-alpha.ps1`.
+- Package for Windows with standard release tooling.
 - Run lawful sample smoke tests.
 - Publish alpha release notes after user review.
 

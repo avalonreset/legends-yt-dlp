@@ -63,9 +63,9 @@ Operator Recipe
 
 The CLI is a Python package under `src/legends_ytdlp`.
 
-The PowerShell launcher sets `PYTHONPATH=src` and runs:
+The package installs the `legends-yt-dlp` console entrypoint and can also be run via:
 
-```powershell
+```bash
 python -m legends_ytdlp
 ```
 
@@ -121,7 +121,7 @@ The recipe does not replace the CLI. It tells an operator how to run the CLI saf
 
 ## Packaging Strategy
 
-Alpha packages are generated from source files with `scripts/package-alpha.ps1`.
+Release packages are built with standard Python wheel/sdist tooling and verified with `python scripts/check_release.py`.
 Packages intentionally exclude `.env`, `.local`, `batches`, `reports`, media,
 cookies, caches, secrets, and git metadata. Operators install `yt-dlp.exe`
 locally with `legends-yt-dlp yt-dlp install` after unpacking.

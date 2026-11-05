@@ -128,16 +128,48 @@ def print_mullvad_result(args: list[str], *, timeout: int = 60) -> int:
 
 
 def cmd_doctor(args: argparse.Namespace) -> int:
-    checks = run_doctor(production=args.production, with_vpn=args.require_connected)
-    for check in checks:
-        print_check(check.name, check.ok, check.detail)
-    return 0 if overall_ok(checks, require_connected=args.require_connected or args.production) else 1
+    from . import __version__
+
+    production = bool(getattr(args, "production", False))
+    require_connected = bool(getattr(args, "require_connected", False))
+    offline = bool(getattr(args, "offline", False))
+    require_tools = bool(getattr(args, "require_tools", False))
+    as_text = bool(getattr(args, "text", False))
+
+    checks = run_doctor(
+        production=production,
+        with_vpn=require_connected,
+        offline=offline,
+        require_tools=require_tools,
+    )
+    ok = overall_ok(checks, require_connected=require_connected or production)
+    if as_text:
+        for check in checks:
+            print_check(check.name, check.ok, check.detail)
+    else:
+        payload = {
+            "ok": ok,
+            "module": "legends-yt-dlp",
+            "version": __version__,
+            "offline": offline,
+            "checks": [
+                {
+                    "name": check.name,
+                    "ok": check.ok,
+                    "required": check.required,
+                    "detail": check.detail,
+                }
+                for check in checks
+            ],
+        }
+        print(json.dumps(payload, indent=2))
+    return 0 if ok else 1
 
 
 def cmd_onboard(args: argparse.Namespace) -> int:
     vpn = args.with_vpn and not args.basic
     require_connected = vpn
-    checks = run_doctor(production=vpn)
+    checks = run_doctor(production=vpn, require_tools=True)
     if args.json:
         print(onboarding_json(checks, require_connected=require_connected, with_vpn=vpn))
     else:
@@ -1093,8 +1125,12 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     doctor = sub.add_parser("doctor", help="Check local prerequisites")
+    doctor.add_argument("--offline", action="store_true", help="Run offline package readiness check without external network or VPN calls")
+    doctor.add_argument("--require-tools", action="store_true", help="Fail if external yt-dlp or ffmpeg binaries are not installed")
     doctor.add_argument("--require-connected", action="store_true", help="Fail if Mullvad is not connected")
     doctor.add_argument("--production", action="store_true", help="Require connected Mullvad, Lockdown, split tunnel off, LAN blocked, and auto-connect on")
+    doctor.add_argument("--json", action="store_true", help="Print machine-readable JSON (default)")
+    doctor.add_argument("--text", action="store_true", help="Print human-readable PASS/FAIL lines")
     doctor.set_defaults(func=cmd_doctor)
 
     onboard = sub.add_parser("onboard", help="Show first-run setup status and next safe commands")
