@@ -4,11 +4,19 @@ import json
 from pathlib import Path
 
 from .doctor import Check, overall_ok
-from .paths import PROJECT_ROOT
+from .paths import IS_REPO_CHECKOUT, PROJECT_ROOT
 
 
 MULLVAD_WINDOWS_DOWNLOAD_URL = "https://mullvad.net/en/download/vpn/windows"
 MULLVAD_ACCOUNT_URL = "https://mullvad.net/en/account/create"
+GITHUB_BLOB_BASE = "https://github.com/avalonreset/legends-yt-dlp/blob/main"
+
+
+def _doc_reference(rel_path: str) -> str:
+    candidate = PROJECT_ROOT / rel_path
+    if IS_REPO_CHECKOUT or candidate.exists():
+        return str(candidate)
+    return f"{GITHUB_BLOB_BASE}/{rel_path}"
 
 
 def check_by_name(checks: list[Check]) -> dict[str, Check]:
@@ -121,10 +129,10 @@ def onboarding_payload(checks: list[Check], *, require_connected: bool = False, 
         "checks": [{"name": check.name, "ok": check.ok, "detail": check.detail} for check in checks],
         "next_steps": next_setup_steps(checks, require_connected=require_connected, with_vpn=with_vpn),
         "docs": {
-            "walkthrough": str(PROJECT_ROOT / "docs" / "WALKTHROUGH.md"),
-            "sop": str(PROJECT_ROOT / "docs" / "SOP.md"),
-            "safety": str(PROJECT_ROOT / "docs" / "SAFETY.md"),
-            "examples": str(PROJECT_ROOT / "examples"),
+            "walkthrough": _doc_reference("docs/WALKTHROUGH.md"),
+            "sop": _doc_reference("docs/SOP.md"),
+            "safety": _doc_reference("docs/SAFETY.md"),
+            "examples": _doc_reference("examples"),
         },
     }
 

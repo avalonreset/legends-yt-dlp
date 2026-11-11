@@ -6,6 +6,8 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+from .paths import assert_not_symlink, read_safe_text, write_safe_text
+
 
 LEDGER_SCHEMA_VERSION = 1
 MEDIA_EXTENSIONS = {".mp4", ".mkv", ".webm", ".mov", ".m4v"}
@@ -86,16 +88,16 @@ def item_from_inventory_entry(entry: dict, *, source_url: str, position: int) ->
 
 
 def write_item_ledger(path: Path, items: list[dict]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
     text = "".join(json.dumps(item, ensure_ascii=False, sort_keys=True) + "\n" for item in items)
-    path.write_text(text, encoding="utf-8")
+    write_safe_text(path, text)
 
 
 def load_item_ledger(path: Path) -> list[dict]:
+    assert_not_symlink(path)
     if not path.exists():
         return []
     items: list[dict] = []
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
+    for raw_line in read_safe_text(path).splitlines():
         line = raw_line.strip()
         if line:
             items.append(json.loads(line))
@@ -103,10 +105,11 @@ def load_item_ledger(path: Path) -> list[dict]:
 
 
 def archive_ids(path: Path) -> set[str]:
+    assert_not_symlink(path)
     if not path.exists():
         return set()
     ids: set[str] = set()
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
+    for raw_line in read_safe_text(path).splitlines():
         parts = raw_line.strip().split()
         if len(parts) >= 2:
             ids.add(parts[-1])
@@ -116,6 +119,8 @@ def archive_ids(path: Path) -> set[str]:
 def find_media_for_info(info_json: Path) -> Path | None:
     base = info_json.name.removesuffix(".info.json")
     for candidate in info_json.parent.iterdir():
+        if candidate.is_symlink():
+            continue
         candidate_base = candidate.name.removesuffix(candidate.suffix)
         if candidate.is_file() and candidate.suffix.lower() in MEDIA_EXTENSIONS and candidate_base == base:
             return candidate
@@ -123,13 +128,15 @@ def find_media_for_info(info_json: Path) -> Path | None:
 
 
 def info_items(output: Path) -> list[dict]:
-    if not output.exists():
+    if not output.exists() or output.is_symlink():
         return []
     items: list[dict] = []
     for path in sorted(output.rglob("*.info.json")):
+        if path.is_symlink():
+            continue
         try:
-            metadata = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
+            metadata = json.loads(read_safe_text(path))
+        except (OSError, ValueError, json.JSONDecodeError):
             continue
         media = find_media_for_info(path)
         item = {

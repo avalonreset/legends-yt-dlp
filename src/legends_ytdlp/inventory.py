@@ -25,6 +25,8 @@ class InventoryResult:
 
 
 def run_ytdlp_inventory(source_url: str, *, max_items: int | None = None) -> CommandResult:
+    if not validate_url(source_url):
+        raise ValueError(f"Invalid URL: {source_url}")
     if max_items is not None and max_items <= 0:
         raise ValueError("--max-items must be greater than 0")
     tool = find_ytdlp()
@@ -41,7 +43,7 @@ def run_ytdlp_inventory(source_url: str, *, max_items: int | None = None) -> Com
     ]
     if max_items:
         args.extend(["--playlist-end", str(max_items)])
-    args.append(source_url)
+    args.extend(["--", source_url])
     return run_command(args, timeout=30 * 60)
 
 

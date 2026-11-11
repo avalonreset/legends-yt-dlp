@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import shlex
 import shutil
 from dataclasses import dataclass
 from datetime import datetime
@@ -10,9 +11,9 @@ from urllib.parse import urlparse
 
 from .doctor import Check, overall_ok, run_doctor
 from .ledger import planned_items_from_urls, refresh_item_ledger, write_item_ledger
-from .paths import PROJECT_ROOT
+from .paths import MAX_TEXT_FILE_BYTES, PROJECT_ROOT, assert_not_symlink, read_safe_text, write_safe_text
 from .process import CommandResult, run_command
-from .tools import find_js_runtime, find_ytdlp
+from .tools import find_js_runtime, find_ytdlp, sha256_file
 
 
 BATCHES_DIR = PROJECT_ROOT / "batches"
@@ -75,7 +76,49 @@ FORBIDDEN_AUTH_OPTIONS = {
     "--ap-username",
     "--ap-password",
     "--client-certificate-password",
+    "--exec",
+    "--exec-before-download",
+    "--alias",
+    "--plugin-dirs",
+    "--config-location",
+    "--config-locations",
+    "--load-info-json",
+    "--print-to-file",
+    "--proxy",
 }
+
+ALLOWED_BOOL_OPTIONS = {
+    "--ignore-config",
+    "--no-cookies",
+    "--no-cookies-from-browser",
+    "--windows-filenames",
+    "--continue",
+    "--no-overwrites",
+    "--write-info-json",
+    "--newline",
+}
+
+ALLOWED_VALUE_OPTIONS = {
+    "--js-runtimes",
+    "--batch-file",
+    "--download-archive",
+    "--paths",
+    "--output",
+    "--retries",
+    "--fragment-retries",
+    "--retry-sleep",
+    "--sleep-requests",
+    "--sleep-interval",
+    "--max-sleep-interval",
+    "--skip-playlist-after-errors",
+    "--format",
+    "--merge-output-format",
+    "--max-downloads",
+    "--max-filesize",
+}
+
+ALLOWED_CONFIG_OPTIONS = ALLOWED_BOOL_OPTIONS | ALLOWED_VALUE_OPTIONS
+MAX_FILESIZE_RE = re.compile(r"^\d+(?:\.\d+)?[KkMmGgTtPp]?[Bb]?$")
 
 
 @dataclass(frozen=True)
@@ -112,14 +155,31 @@ def output_template_for_policy(folder_policy: str) -> str:
     return FLAT_OUTPUT_TEMPLATE
 
 
+def _has_control_chars(value: str) -> bool:
+    return any(ord(ch) < 32 or ord(ch) == 127 for ch in value)
+
+
 def validate_url(value: str) -> bool:
+    if not isinstance(value, str) or not value:
+        return False
+    if value.startswith("-") or any(ord(ch) <= 32 or ord(ch) == 127 for ch in value):
+        return False
     parsed = urlparse(value)
     return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
 
 
+def validate_max_filesize(value: str | None) -> str | None:
+    if value is None:
+        return None
+    cleaned = str(value).strip()
+    if not cleaned or _has_control_chars(cleaned) or not MAX_FILESIZE_RE.fullmatch(cleaned):
+        raise ValueError(f"Invalid --max-filesize expression: {value!r}")
+    return cleaned
+
+
 def read_url_file(path: Path) -> list[str]:
     urls: list[str] = []
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
+    for raw_line in read_safe_text(path).splitlines():
         line = raw_line.strip()
         if not line or line.startswith("#"):
             continue
@@ -169,11 +229,21 @@ def create_batch_from_urls(
         raise ValueError("--max-height must be greater than 0")
     if max_downloads is not None and max_downloads <= 0:
         raise ValueError("--max-downloads must be greater than 0")
+    validated_max_filesize = validate_max_filesize(max_filesize)
+    if name is not None and _has_control_chars(name):
+        raise ValueError("Batch name must not contain control characters")
+    if rights_basis is not None and _has_control_chars(rights_basis):
+        raise ValueError("Rights basis must not contain control characters")
+    if output_dir is not None and _has_control_chars(output_dir):
+        raise ValueError("Output directory must not contain control characters")
     rights_evidence_path: Path | None = None
     if rights_file:
         source = Path(rights_file)
+        assert_not_symlink(source)
         if not source.exists() or not source.is_file():
             raise ValueError(f"Rights evidence file not found: {rights_file}")
+        if source.stat().st_size > MAX_TEXT_FILE_BYTES:
+            raise ValueError(f"Rights evidence file exceeds maximum size: {rights_file}")
 
     parsed = urlparse(urls[0])
     batch_name = name or parsed.netloc
@@ -215,7 +285,7 @@ def create_batch_from_urls(
         "limits": {
             "max_height": max_height,
             "max_downloads": max_downloads,
-            "max_filesize": max_filesize,
+            "max_filesize": validated_max_filesize,
         },
         "folder_policy": {
             "requested": folder_policy,
@@ -233,7 +303,7 @@ def create_batch_from_urls(
             "no_automatic_relay_rotation": True,
         },
     }
-    paths.urls.write_text("\n".join(urls) + "\n", encoding="utf-8")
+    write_safe_text(paths.urls, "\n".join(urls) + "\n")
     write_item_ledger(paths.ledger, items or planned_items_from_urls(urls))
     write_ytdlp_config(
         paths.config,
@@ -243,10 +313,13 @@ def create_batch_from_urls(
         paths.temp,
         max_height=max_height,
         max_downloads=max_downloads,
-        max_filesize=max_filesize,
+        max_filesize=validated_max_filesize,
         output_template=output_template_for_policy(effective_folder_policy),
     )
-    paths.manifest.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    config_sha256 = sha256_file(paths.config)
+    manifest["paths"]["yt_dlp_config_sha256"] = config_sha256
+    manifest["policy"]["config_sha256"] = config_sha256
+    write_safe_text(paths.manifest, json.dumps(manifest, indent=2) + "\n")
     return paths
 
 
@@ -262,10 +335,19 @@ def write_ytdlp_config(
     max_filesize: str | None = None,
     output_template: str = UPLOADER_OUTPUT_TEMPLATE,
 ) -> None:
+    validated_max_filesize = validate_max_filesize(max_filesize)
+    if _has_control_chars(output_template):
+        raise ValueError("Output template must not contain control characters")
+
     def ytdlp_path(path: Path) -> str:
-        return path.resolve().as_posix()
+        resolved = path.resolve().as_posix()
+        if _has_control_chars(resolved):
+            raise ValueError(f"Config path must not contain control characters: {path}")
+        return resolved
 
     def quote_config_value(value: str) -> str:
+        if _has_control_chars(value):
+            raise ValueError("Config value must not contain control characters or newlines")
         return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
     lines = [
@@ -312,10 +394,10 @@ def write_ytdlp_config(
         format_selector = f"bestvideo[height<={max_height}]+bestaudio/best[height<={max_height}]/best"
         lines.extend(["--format", quote_config_value(format_selector), "--merge-output-format", "mp4"])
     if max_downloads:
-        lines.extend(["--max-downloads", str(max_downloads)])
-    if max_filesize:
-        lines.extend(["--max-filesize", quote_config_value(max_filesize)])
-    config.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        lines.extend(["--max-downloads", str(int(max_downloads))])
+    if validated_max_filesize:
+        lines.extend(["--max-filesize", quote_config_value(validated_max_filesize)])
+    write_safe_text(config, "\n".join(lines) + "\n")
 
 
 def js_runtime_args() -> list[str]:
@@ -327,25 +409,55 @@ def js_runtime_args() -> list[str]:
 
 
 def read_config_options(config: Path) -> list[str]:
-    options: list[str] = []
-    for raw_line in config.read_text(encoding="utf-8").splitlines():
+    tokens: list[str] = []
+    for raw_line in read_safe_text(config).splitlines():
         line = raw_line.strip()
         if not line or line.startswith("#"):
             continue
-        token = line.split(maxsplit=1)[0].split("=", 1)[0].lower()
-        options.append(token)
+        try:
+            line_tokens = shlex.split(raw_line, comments=True, posix=True)
+        except ValueError:
+            return ["<malformed-quotes>"]
+        tokens.extend(line_tokens)
+
+    options: list[str] = []
+    expecting_value_for: str | None = None
+    for token in tokens:
+        if expecting_value_for is not None:
+            if token.startswith("-"):
+                options.append(f"<missing-value:{expecting_value_for}>")
+                expecting_value_for = None
+            else:
+                expecting_value_for = None
+                continue
+        if not token.startswith("-"):
+            options.append(f"<positional:{token}>")
+            continue
+        flag = token.split("=", 1)[0].lower()
+        has_inline_value = "=" in token
+        options.append(flag)
+        if flag in ALLOWED_VALUE_OPTIONS and not has_inline_value:
+            expecting_value_for = flag
+        elif flag in ALLOWED_BOOL_OPTIONS and has_inline_value:
+            options.append(f"<unexpected-arg:{flag}>")
+    if expecting_value_for is not None:
+        options.append(f"<missing-value:{expecting_value_for}>")
     return options
 
 
 def auth_policy_check(config: Path) -> Check:
     try:
         options = read_config_options(config)
-    except OSError as exc:
+    except (OSError, ValueError) as exc:
         return Check("yt-dlp auth policy", False, f"config unreadable: {exc}")
 
-    violations = sorted(option for option in set(options) if option in FORBIDDEN_AUTH_OPTIONS)
-    if violations:
-        return Check("yt-dlp auth policy", False, f"forbidden auth/cookie options: {', '.join(violations)}")
+    forbidden = sorted(option for option in set(options) if option in FORBIDDEN_AUTH_OPTIONS)
+    if forbidden:
+        return Check("yt-dlp auth policy", False, f"forbidden auth/cookie options: {', '.join(forbidden)}")
+
+    disallowed = sorted(option for option in set(options) if option not in ALLOWED_CONFIG_OPTIONS)
+    if disallowed:
+        return Check("yt-dlp auth policy", False, f"disallowed config options or tokens: {', '.join(disallowed)}")
 
     missing = [option for option in REQUIRED_AUTH_SAFETY_OPTIONS if option not in options]
     if missing:
@@ -355,11 +467,11 @@ def auth_policy_check(config: Path) -> Check:
 
 
 def load_manifest(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+    return json.loads(read_safe_text(path))
 
 
 def save_manifest(path: Path, manifest: dict) -> None:
-    path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    write_safe_text(path, json.dumps(manifest, indent=2) + "\n")
 
 
 def find_batch_manifests() -> list[Path]:
@@ -422,6 +534,20 @@ def preflight_batch(path: Path, *, require_connected: bool = False, production: 
 
     if config_path is not None:
         checks.append(auth_policy_check(config_path))
+        expected_sha = policy.get("config_sha256") or manifest.get("paths", {}).get("yt_dlp_config_sha256")
+        if expected_sha:
+            try:
+                actual_sha = sha256_file(config_path)
+                sha_ok = actual_sha.lower() == str(expected_sha).lower()
+                checks.append(
+                    Check(
+                        "yt-dlp config integrity",
+                        sha_ok,
+                        actual_sha if sha_ok else f"SHA-256 mismatch: expected {expected_sha}, got {actual_sha}",
+                    )
+                )
+            except (OSError, ValueError) as exc:
+                checks.append(Check("yt-dlp config integrity", False, f"config unreadable: {exc}"))
 
     checks.extend(run_doctor(production=production, with_vpn=require_connected, require_tools=True))
     return checks
@@ -546,8 +672,30 @@ def write_run_report(
 
 
 def run_batch(path: Path, *, dry_run: bool = True) -> CommandResult:
-    manifest = load_manifest(path)
+    try:
+        manifest = load_manifest(path)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        return CommandResult(("yt-dlp",), 2, "", f"Refusing batch run: invalid manifest ({exc})")
     config = Path(manifest["paths"]["yt_dlp_config"])
+    policy_check = auth_policy_check(config)
+    if not policy_check.ok:
+        return CommandResult(("yt-dlp",), 2, "", f"Refusing batch run: {policy_check.detail}")
+    expected_sha = manifest.get("policy", {}).get("config_sha256") or manifest.get("paths", {}).get("yt_dlp_config_sha256")
+    if expected_sha:
+        try:
+            actual_sha = sha256_file(config)
+        except (OSError, ValueError) as exc:
+            return CommandResult(("yt-dlp",), 2, "", f"Refusing batch run: config unreadable ({exc})")
+        if actual_sha.lower() != str(expected_sha).lower():
+            return CommandResult(("yt-dlp",), 2, "", "Refusing batch run: yt-dlp.conf SHA-256 mismatch against manifest")
+    urls_path_str = manifest.get("paths", {}).get("urls")
+    if urls_path_str:
+        try:
+            batch_urls = read_url_file(Path(urls_path_str))
+        except (OSError, ValueError) as exc:
+            return CommandResult(("yt-dlp",), 2, "", f"Refusing batch run: urls file unreadable ({exc})")
+        if not batch_urls or any(not validate_url(u) for u in batch_urls):
+            return CommandResult(("yt-dlp",), 2, "", "Refusing batch run: urls.txt contains invalid URL")
     tool = find_ytdlp()
     if not tool.path:
         return CommandResult(("yt-dlp",), 127, "", "yt-dlp not found")

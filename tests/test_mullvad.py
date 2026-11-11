@@ -1,8 +1,17 @@
+import subprocess
 import unittest
 from unittest.mock import call, patch
 
-from legends_ytdlp.mullvad import MullvadSetting, MullvadStatus, disconnect_refusal_reason, recovery_action_for_status, shutdown_connection
-from legends_ytdlp.process import CommandResult
+from legends_ytdlp.mullvad import (
+    MullvadSetting,
+    MullvadStatus,
+    disconnect_refusal_reason,
+    login,
+    recovery_action_for_status,
+    shutdown_connection,
+    validate_account_number,
+)
+from legends_ytdlp.process import CommandResult, run_command
 
 
 class MullvadSettingTests(unittest.TestCase):
@@ -88,6 +97,27 @@ class ShutdownTests(unittest.TestCase):
         self.assertFalse(result.ok)
         self.assertIn("could not disable Lockdown mode", "\n".join(result.messages))
         run_mullvad.assert_called_once_with("lockdown-mode", "set", "off", timeout=60)
+
+    def test_validate_account_number_and_timeout_redaction(self) -> None:
+        self.assertEqual(validate_account_number("1234567890123456"), "1234567890123456")
+        with self.assertRaises(ValueError):
+            validate_account_number("--help")
+        with self.assertRaises(ValueError):
+            login("not-an-account")
+
+        timeout_exc = subprocess.TimeoutExpired(
+            cmd=["mullvad", "account", "login", "1234567890123456"],
+            timeout=5,
+            output="Logging in 1234567890123456",
+            stderr="Timeout for 1234567890123456",
+        )
+        with patch("legends_ytdlp.process.subprocess.run", side_effect=timeout_exc):
+            res = run_command(["mullvad", "account", "login", "1234567890123456"], timeout=5)
+        self.assertEqual(res.returncode, 124)
+        self.assertNotIn("1234567890123456", " ".join(res.args))
+        self.assertNotIn("1234567890123456", res.stdout)
+        self.assertNotIn("1234567890123456", res.stderr)
+        self.assertIn("************3456", res.stdout)
 
 
 if __name__ == "__main__":

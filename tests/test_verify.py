@@ -5,7 +5,9 @@ import unittest
 from pathlib import Path
 
 from legends_ytdlp.batch import REPORTS_DIR
-from legends_ytdlp.verify import summarize_batch, verify_batch
+from legends_ytdlp.process import CommandResult
+from legends_ytdlp.tools import ToolInfo
+from legends_ytdlp.verify import probe_media, summarize_batch, verify_batch
 
 
 class VerifyTests(unittest.TestCase):
@@ -75,6 +77,32 @@ class VerifyTests(unittest.TestCase):
                 self.assertEqual(refreshed.ledger_items, 2)
             finally:
                 shutil.rmtree(report_dir, ignore_errors=True)
+
+    def test_probe_media_uses_dash_i_and_rejects_option_paths(self) -> None:
+        from unittest.mock import patch
+
+        bad_check = probe_media(Path("-v"))
+        self.assertFalse(bad_check.ok)
+        self.assertIn("unsafe media file", bad_check.detail)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            media = Path(tmp) / "clip.mp4"
+            media.write_bytes(b"fake")
+            captured: list[tuple[str, ...]] = []
+
+            def fake_run(args, **kwargs):
+                cmd = tuple(str(a) for a in args)
+                captured.append(cmd)
+                return CommandResult(cmd, 0, "duration=1.0", "")
+
+            with (
+                patch("legends_ytdlp.verify.find_ffprobe", return_value=ToolInfo("ffprobe", Path("ffprobe"), "1.0", True, "ok")),
+                patch("legends_ytdlp.verify.run_command", side_effect=fake_run),
+            ):
+                check = probe_media(media)
+
+            self.assertTrue(check.ok)
+            self.assertEqual(captured[0][-2:], ("-i", str(media)))
 
 
 if __name__ == "__main__":

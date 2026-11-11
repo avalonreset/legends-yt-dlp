@@ -1,8 +1,9 @@
 # CLI Commands
 
-Use the PowerShell launcher from the repository root:
+Use the CLI from the repository root or active environment:
 
 ```powershell
+legends-yt-dlp --version
 legends-yt-dlp <command>
 ```
 
@@ -101,13 +102,13 @@ legends-yt-dlp yt-dlp check
 
 The install and update commands download the official Windows standalone executable and verify it against upstream checksums. `check` compares the managed binary against upstream stable without downloading anything: exit 0 when current, exit 1 when an update is available. Readiness checks fail managed `yt-dlp` builds older than 90 days so extractor breakage is caught before a real batch.
 
-## Packaging
+## Packaging and Release Verification
 
 ```bash
 python scripts/check_release.py
 ```
 
-Creates a local alpha zip and `.sha256` file under `dist/`. The package contains source, docs, scripts, tests, the router skill file, and legal/community files. It excludes local secrets, managed binaries, batches, reports, downloads, cookies, caches, and git metadata.
+Runs the release readiness gate across source, docs, scripts, tests, assets, and the router skill file, verifying that local secrets, managed binaries, batches, reports, downloads, cookies, caches, and forbidden patterns are excluded.
 
 ## Batch Planning
 
@@ -185,13 +186,15 @@ legends-yt-dlp intelligence transcribe "batches\...\manifest.json" --all --model
 legends-yt-dlp intelligence transcribe "batches\...\manifest.json" --all --model auto --limit 5
 legends-yt-dlp intelligence import-crispasr "batches\...\manifest.json" --input ".\transcript.json" --video-id "abc123" --media-path ".\video.mp4"
 legends-yt-dlp intelligence ingest-words "batches\...\manifest.json" --input ".\words.jsonl" --video-id "abc123"
+legends-yt-dlp intelligence import-words "batches\...\manifest.json" --input ".\words.jsonl" --video-id "abc123"
 legends-yt-dlp intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --prepare-only
 legends-yt-dlp intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "abc123" --python "C:\path\to\nemo-env\python.exe" --nemo-dir "C:\path\to\NeMo"
 legends-yt-dlp intelligence align nfa "batches\...\manifest.json" --import-ctm ".\output\ctm\words\abc123.ctm" --video-id "abc123"
 legends-yt-dlp intelligence search "batches\...\manifest.json" "agentic workflow"
 legends-yt-dlp intelligence clips plan "batches\...\manifest.json" --query "agentic workflow"
-legends-yt-dlp intelligence clips render "batches\...\intelligence\clips\agentic-workflow\clip-plan.json" --yes
+legends-yt-dlp intelligence clips render "batches\...\intelligence\clips\agentic-workflow\clip-plan.json" --yes [--overwrite]
 legends-yt-dlp intelligence vault build "batches\...\manifest.json"
+legends-yt-dlp intelligence vault export "batches\...\manifest.json"
 ```
 
 `intelligence` analyzes already-downloaded, verified local media. It does not download media, call `yt-dlp`, operate Mullvad, rotate relays, or continue through source-side blocks.

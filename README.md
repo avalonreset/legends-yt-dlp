@@ -71,7 +71,7 @@ Working now:
 - batch `verify`
 - post-capture `intelligence` workspace, CrispASR/Parakeet transcription, word import, search, clip planning, rendering, and vault export
 
-Latest release: `v0.1.4`.
+Latest release: `v0.1.5`.
 
 ## Conversational operation
 
@@ -275,10 +275,10 @@ All batches are anonymous by default: no browser cookies, no cookie files, no us
 
 ## Packaging
 
-Build a local alpha zip:
+Verify release readiness and test coverage:
 
 ```bash
-python -m unittest discover -s tests -v
+python -m unittest discover -s tests -p "test_*.py" -v
 python scripts/check_release.py
 ```
 

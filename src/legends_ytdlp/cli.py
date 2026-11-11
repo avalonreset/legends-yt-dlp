@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import json
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
 
+from . import __version__
 from .batch import (
     catalog_rows,
     classify_run_failure,
@@ -21,7 +23,7 @@ from .batch import (
     write_run_report,
 )
 from .doctor import overall_ok, run_doctor
-from .envfile import read_env_file, redact
+from .envfile import read_env_file, redact, resolve_mullvad_account
 from .inventory import create_batch_from_inventory
 from .intelligence import (
     CRISPASR_ENGINE,
@@ -55,7 +57,7 @@ from .mullvad import (
     status,
 )
 from .onboarding import onboarding_json, onboarding_text
-from .paths import PROJECT_ROOT
+from .paths import PROJECT_ROOT, read_safe_text, validate_local_media_file
 from .smoke import SMOKE_VIDEOS, create_custom_smoke_batch, create_smoke_batch
 from .tools import compare_ytdlp_versions, fetch_upstream_ytdlp_version, find_ytdlp, install_ytdlp, run_tool
 from .verify import verify_batch
@@ -110,7 +112,17 @@ def configure_console() -> None:
 
 
 def env_account() -> str | None:
-    return read_env_file(PROJECT_ROOT / ".env").get("MULLVAD_ACCOUNT_NUMBER")
+    return resolve_mullvad_account(env_reader=read_env_file)
+
+
+def _validate_mullvad_tokens(tokens: list[str], *, label: str) -> str | None:
+    for token in tokens:
+        text = str(token)
+        if not text.strip() or any(ord(ch) < 32 or ord(ch) == 127 for ch in text):
+            return f"Invalid {label} value: {token!r}"
+        if text.lstrip().startswith("-"):
+            return f"Refusing option-like {label} value: {token}"
+    return None
 
 
 def redacted_result_output(stdout: str, stderr: str) -> str:
@@ -191,6 +203,10 @@ def print_mullvad_step(label: str, mv_args: list[str], *, timeout: int = 120) ->
 
 
 def cmd_setup_production(args: argparse.Namespace) -> int:
+    token_err = _validate_mullvad_tokens(list(args.relay_location), label="relay location")
+    if token_err:
+        print(token_err, file=sys.stderr)
+        return 2
     steps: list[tuple[str, list[str]]] = [
         ("Relay constraint", ["relay", "set", "location", *args.relay_location]),
         ("Lockdown mode", ["lockdown-mode", "set", "on"]),
@@ -227,8 +243,12 @@ def cmd_mullvad_login(_: argparse.Namespace) -> int:
     if not account:
         print("MULLVAD_ACCOUNT_NUMBER is missing from .env", file=sys.stderr)
         return 2
+    try:
+        result = login(account)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
     print(f"Logging into Mullvad account {redact(account)}")
-    result = login(account)
     output = redact_account_in_text("\n".join(part for part in [result.stdout, result.stderr] if part), account)
     if output:
         print(output)
@@ -272,6 +292,10 @@ def cmd_mullvad_recover(args: argparse.Namespace) -> int:
 
 def cmd_mullvad_disconnect_test(args: argparse.Namespace) -> int:
     if args.relay_location:
+        token_err = _validate_mullvad_tokens(list(args.relay_location), label="relay location")
+        if token_err:
+            print(token_err, file=sys.stderr)
+            return 2
         result = run_mullvad("relay", "set", "location", *args.relay_location, timeout=120)
         output = redacted_result_output(result.stdout, result.stderr)
         if output:
@@ -343,10 +367,18 @@ def cmd_mullvad_static(args: argparse.Namespace) -> int:
 
 
 def cmd_mullvad_relay_location(args: argparse.Namespace) -> int:
+    token_err = _validate_mullvad_tokens(list(args.location), label="relay location")
+    if token_err:
+        print(token_err, file=sys.stderr)
+        return 2
     return print_mullvad_result(["relay", "set", "location", *args.location], timeout=120)
 
 
 def cmd_mullvad_relay_provider(args: argparse.Namespace) -> int:
+    token_err = _validate_mullvad_tokens(list(args.providers), label="relay provider")
+    if token_err:
+        print(token_err, file=sys.stderr)
+        return 2
     return print_mullvad_result(["relay", "set", "provider", *args.providers], timeout=120)
 
 
@@ -366,6 +398,16 @@ def cmd_mullvad_dns_default(args: argparse.Namespace) -> int:
 
 
 def cmd_mullvad_dns_custom(args: argparse.Namespace) -> int:
+    token_err = _validate_mullvad_tokens(list(args.servers), label="DNS server")
+    if token_err:
+        print(token_err, file=sys.stderr)
+        return 2
+    for server in args.servers:
+        try:
+            ipaddress.ip_address(server)
+        except ValueError:
+            print(f"Invalid DNS server IP address: {server}", file=sys.stderr)
+            return 2
     return print_mullvad_result(["dns", "set", "custom", *args.servers])
 
 
@@ -374,6 +416,10 @@ def cmd_mullvad_split_app(args: argparse.Namespace) -> int:
     if args.action != "clear":
         if not args.path:
             print(f"split-tunnel app {args.action} requires an application path", file=sys.stderr)
+            return 2
+        token_err = _validate_mullvad_tokens([args.path], label="application path")
+        if token_err:
+            print(token_err, file=sys.stderr)
             return 2
         mv_args.append(args.path)
     return print_mullvad_result(mv_args)
@@ -470,7 +516,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
     if args.from_file:
         try:
             urls.extend(read_url_file(Path(args.from_file)))
-        except OSError as exc:
+        except (OSError, ValueError) as exc:
             print(f"Could not read URL file: {exc}", file=sys.stderr)
             return 2
     try:
@@ -768,8 +814,8 @@ def cmd_intelligence_align_nfa(args: argparse.Namespace) -> int:
         return 2
     if args.text_file:
         try:
-            text = Path(args.text_file).read_text(encoding="utf-8")
-        except OSError as exc:
+            text = read_safe_text(Path(args.text_file))
+        except (OSError, ValueError) as exc:
             print(f"Could not read NFA text file: {exc}", file=sys.stderr)
             return 1
 
@@ -833,7 +879,7 @@ def cmd_intelligence_align_nfa(args: argparse.Namespace) -> int:
             extra_args=args.nfa_arg or [],
             timeout=args.timeout,
         )
-    except (OSError, FileNotFoundError) as exc:
+    except (OSError, FileNotFoundError, ValueError) as exc:
         print(f"Could not start NeMo Forced Aligner: {exc}", file=sys.stderr)
         return 1
     if not result.ok:
@@ -871,7 +917,7 @@ def cmd_intelligence_align_nfa(args: argparse.Namespace) -> int:
 def transcription_targets(args: argparse.Namespace) -> list[dict]:
     targets: list[dict] = []
     if args.media:
-        media_path = Path(args.media)
+        media_path = validate_local_media_file(Path(args.media))
         targets.append(
             {
                 "id": args.video_id or args.item_id or media_path.stem,
@@ -889,7 +935,8 @@ def transcription_targets(args: argparse.Namespace) -> list[dict]:
             status = str(item.get("status", "")).lower()
             if not media_path or status not in statuses:
                 continue
-            if not Path(str(media_path)).exists():
+            candidate = Path(str(media_path))
+            if candidate.is_symlink() or not candidate.is_file():
                 continue
             targets.append(item)
     if args.limit is not None:
@@ -903,7 +950,7 @@ def cmd_intelligence_transcribe(args: argparse.Namespace) -> int:
         return 2
     try:
         targets = transcription_targets(args)
-    except (OSError, KeyError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
         print(f"Could not load transcription targets: {exc}", file=sys.stderr)
         return 1
     if not targets:
@@ -1002,8 +1049,11 @@ def cmd_intelligence_clips_render(args: argparse.Namespace) -> int:
         print("Refusing to render media without --yes. Review the clip plan first.", file=sys.stderr)
         return 2
     try:
-        results, montage = render_clip_plan(Path(args.plan))
-    except (OSError, RuntimeError, json.JSONDecodeError) as exc:
+        results, montage = render_clip_plan(
+            Path(args.plan),
+            overwrite=bool(getattr(args, "overwrite", False)),
+        )
+    except (OSError, ValueError, RuntimeError, json.JSONDecodeError) as exc:
         print(f"Could not render clip plan: {exc}", file=sys.stderr)
         return 1
     for result in results:
@@ -1122,6 +1172,7 @@ def finalize_run_vpn(args: argparse.Namespace, return_code: int) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="legends-yt-dlp", description="Legends YT-DLP control CLI")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
 
     doctor = sub.add_parser("doctor", help="Check local prerequisites")
@@ -1486,6 +1537,7 @@ def build_parser() -> argparse.ArgumentParser:
     clips_render = intelligence_clips_sub.add_parser("render", help="Render a reviewed clip plan with FFmpeg")
     clips_render.add_argument("plan", help="Path to clip-plan.json")
     clips_render.add_argument("--yes", action="store_true", help="Allow local media writes")
+    clips_render.add_argument("--overwrite", action="store_true", help="Overwrite existing rendered clip and montage files")
     clips_render.set_defaults(func=cmd_intelligence_clips_render)
 
     intelligence_vault = intelligence_sub.add_parser("vault", help="Build transcript vault pages from word ledgers")

@@ -8,8 +8,8 @@ This policy helps an operator run a powerful downloader safely. It must not conv
 
 Before any real run:
 
-- `doctor --production` passes.
-- Batch preflight passes.
+- `doctor --require-tools` passes (and `doctor --production` passes when `--with-vpn` is requested).
+- Batch preflight passes (including `yt-dlp.conf` option allowlist and SHA-256 integrity checks).
 - A JavaScript runtime is available for YouTube extraction.
 - Generated `yt-dlp` config uses anonymous mode: `--ignore-config`, `--no-cookies`, and `--no-cookies-from-browser`.
 - No browser cookies, cookie files, username/password auth, `.netrc`, or account credentials are used for any batch.

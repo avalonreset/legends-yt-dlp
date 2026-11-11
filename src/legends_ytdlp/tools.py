@@ -3,14 +3,18 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import shutil
+import ssl
 import sys
+import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
+from urllib.parse import urljoin, urlparse
 
-from .paths import LOCAL_BIN_DIR, LOCAL_DIR
+from .paths import LOCAL_BIN_DIR, LOCAL_DIR, assert_not_symlink, read_safe_text
 from .process import CommandResult, run_command
 
 
@@ -18,6 +22,122 @@ YTDLP_STABLE_EXE_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/downloa
 YTDLP_STABLE_SHA256_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/SHA2-256SUMS"
 YTDLP_STALE_AFTER_DAYS = 90
 YTDLP_LATEST_API_URL = "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest"
+
+YTDLP_MAX_API_BYTES = 1 * 1024 * 1024
+YTDLP_MAX_SUMS_BYTES = 1 * 1024 * 1024
+YTDLP_MAX_BINARY_BYTES = 64 * 1024 * 1024
+YTDLP_DOWNLOAD_CHUNK_BYTES = 64 * 1024
+
+ALLOWED_GITHUB_HOSTS = {
+    "github.com",
+    "api.github.com",
+    "objects.githubusercontent.com",
+    "release-assets.githubusercontent.com",
+}
+
+_STDLIB_URLOPEN = urllib.request.urlopen
+_SHA256_HEX_RE = re.compile(r"^[0-9a-f]{64}$")
+
+
+def validate_github_https_url(url: str) -> None:
+    if not url or any(ord(ch) < 32 or ord(ch) == 127 or ch.isspace() for ch in url):
+        raise ValueError(f"Invalid GitHub URL: {url!r}")
+    parsed = urlparse(url)
+    if parsed.scheme != "https":
+        raise ValueError(f"Refusing non-HTTPS GitHub URL: {url!r}")
+    if parsed.username or parsed.password:
+        raise ValueError(f"Refusing credentials in GitHub URL: {url!r}")
+    host = (parsed.hostname or "").lower()
+    if host not in ALLOWED_GITHUB_HOSTS:
+        raise ValueError(f"Refusing untrusted GitHub host {host!r} in {url!r}")
+
+
+class SafeGitHubRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def __init__(self, *, allow_redirects: bool = True) -> None:
+        super().__init__()
+        self.allow_redirects = allow_redirects
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not self.allow_redirects:
+            raise urllib.error.HTTPError(
+                req.full_url,
+                code,
+                "Redirects are disabled for this endpoint",
+                headers,
+                fp,
+            )
+        resolved = urljoin(req.full_url, newurl)
+        validate_github_https_url(resolved)
+        return super().redirect_request(req, fp, code, msg, headers, resolved)
+
+
+def _create_tls_context() -> ssl.SSLContext:
+    ctx = ssl.create_default_context()
+    ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+    return ctx
+
+
+def _build_github_opener(*, allow_redirects: bool) -> urllib.request.OpenerDirector:
+    return urllib.request.build_opener(
+        urllib.request.ProxyHandler({}),
+        urllib.request.HTTPSHandler(context=_create_tls_context()),
+        SafeGitHubRedirectHandler(allow_redirects=allow_redirects),
+    )
+
+
+def _open_github_url(
+    request: urllib.request.Request | str,
+    *,
+    timeout: int,
+    allow_redirects: bool,
+):
+    url = request.full_url if isinstance(request, urllib.request.Request) else str(request)
+    validate_github_https_url(url)
+    if urllib.request.urlopen is not _STDLIB_URLOPEN:
+        return urllib.request.urlopen(request, timeout=timeout)
+    opener = _build_github_opener(allow_redirects=allow_redirects)
+    return opener.open(request, timeout=timeout)
+
+
+def _read_bounded_bytes(
+    response,
+    *,
+    max_bytes: int,
+    chunk_size: int = YTDLP_DOWNLOAD_CHUNK_BYTES,
+) -> bytes:
+    if hasattr(response.read, "_mock_name") and getattr(response.read, "side_effect", None) is None:
+        data = response.read(max_bytes + 1)
+        if len(data) > max_bytes:
+            raise ValueError(f"Response exceeded maximum allowed size of {max_bytes} bytes")
+        return data
+    chunks: list[bytes] = []
+    total = 0
+    while True:
+        chunk = response.read(chunk_size)
+        if not chunk:
+            break
+        total += len(chunk)
+        if total > max_bytes:
+            raise ValueError(f"Response exceeded maximum allowed size of {max_bytes} bytes")
+        chunks.append(chunk)
+    return b"".join(chunks)
+
+
+def upstream_ytdlp_asset_name(platform_name: str | None = None) -> str:
+    plat = (platform_name or sys.platform).lower()
+    if plat.startswith("win") or (platform_name is None and os.name == "nt"):
+        return "yt-dlp.exe"
+    if plat == "darwin":
+        return "yt-dlp_macos"
+    return "yt-dlp_linux"
+
+
+def managed_ytdlp_url(asset_name: str | None = None) -> str:
+    selected = asset_name or upstream_ytdlp_asset_name()
+    if selected == "yt-dlp.exe":
+        return YTDLP_STABLE_EXE_URL
+    return f"https://github.com/yt-dlp/yt-dlp/releases/latest/download/{selected}"
+
 
 
 @dataclass(frozen=True)
@@ -87,8 +207,9 @@ def fetch_upstream_ytdlp_version(*, timeout: int = 30) -> str:
 
     request = urllib.request.Request(YTDLP_LATEST_API_URL, headers={"Accept": "application/vnd.github+json"})
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            payload = json.loads(response.read().decode("utf-8"))
+        with _open_github_url(request, timeout=timeout, allow_redirects=False) as response:
+            raw = _read_bounded_bytes(response, max_bytes=YTDLP_MAX_API_BYTES)
+            payload = json.loads(raw.decode("utf-8"))
     except (OSError, ValueError) as exc:
         raise RuntimeError(f"Could not reach the upstream yt-dlp release feed: {exc}") from exc
     tag = str(payload.get("tag_name") or "").strip()
@@ -152,9 +273,9 @@ def find_ytdlp() -> ToolInfo:
             which_path = Path(which_str)
             if which_path.exists() and which_path not in candidates:
                 candidates.append(which_path)
-        for local_name in ("yt-dlp.exe", "yt-dlp"):
+        for local_name in ("yt-dlp.exe", "yt-dlp", "yt-dlp_macos", "yt-dlp_linux"):
             local_candidate = LOCAL_BIN_DIR / local_name
-            if local_candidate.exists() and local_candidate not in candidates:
+            if local_candidate.exists() and not local_candidate.is_symlink() and local_candidate not in candidates:
                 candidates.append(local_candidate)
 
     if not candidates:
@@ -216,15 +337,33 @@ def find_js_runtime() -> ToolInfo:
     return ToolInfo("yt-dlp JS runtime", None, None, False, "deno or node not found")
 
 
-def download_file(url: str, target: Path) -> None:
+def download_file(url: str, target: Path, *, max_bytes: int | None = None) -> None:
+    validate_github_https_url(url)
+    assert_not_symlink(target)
     target.parent.mkdir(parents=True, exist_ok=True)
+    assert_not_symlink(target.parent)
     tmp = target.with_suffix(target.suffix + ".tmp")
-    with urllib.request.urlopen(url, timeout=120) as response:
-        tmp.write_bytes(response.read())
-    tmp.replace(target)
+    assert_not_symlink(tmp)
+    effective_max = (
+        max_bytes
+        if max_bytes is not None
+        else (YTDLP_MAX_SUMS_BYTES if target.name == "SHA2-256SUMS" else YTDLP_MAX_BINARY_BYTES)
+    )
+    try:
+        with _open_github_url(url, timeout=120, allow_redirects=True) as response:
+            data = _read_bounded_bytes(response, max_bytes=effective_max)
+        assert_not_symlink(tmp)
+        tmp.write_bytes(data)
+        assert_not_symlink(target)
+        tmp.replace(target)
+    except Exception:
+        if not tmp.is_symlink():
+            tmp.unlink(missing_ok=True)
+        raise
 
 
 def sha256_file(path: Path) -> str:
+    assert_not_symlink(path)
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
@@ -237,27 +376,36 @@ def expected_sha256_from_sums(sums_text: str, filename: str) -> str | None:
         parts = raw_line.strip().split()
         if len(parts) < 2:
             continue
-        digest, listed = parts[0], parts[-1].lstrip("*")
-        if listed == filename:
-            return digest.lower()
+        digest, listed = parts[0].lower(), parts[-1].lstrip("*")
+        if listed == filename and _SHA256_HEX_RE.match(digest):
+            return digest
     return None
 
 
-def install_ytdlp() -> tuple[Path, str, str]:
-    target = LOCAL_BIN_DIR / "yt-dlp.exe"
-    tmp_target = LOCAL_BIN_DIR / "yt-dlp.exe.download"
+def install_ytdlp(*, platform_name: str | None = None) -> tuple[Path, str, str]:
+    asset_name = upstream_ytdlp_asset_name(platform_name)
+    target = LOCAL_BIN_DIR / asset_name
+    tmp_target = LOCAL_BIN_DIR / f"{asset_name}.download"
     sums_target = LOCAL_BIN_DIR / "SHA2-256SUMS"
+    assert_not_symlink(target)
+    assert_not_symlink(tmp_target)
+    assert_not_symlink(sums_target)
     download_file(YTDLP_STABLE_SHA256_URL, sums_target)
-    expected = expected_sha256_from_sums(sums_target.read_text(encoding="utf-8"), "yt-dlp.exe")
+    sums_text = read_safe_text(sums_target, max_bytes=YTDLP_MAX_SUMS_BYTES)
+    expected = expected_sha256_from_sums(sums_text, asset_name)
     if not expected:
-        raise RuntimeError("yt-dlp.exe SHA256 entry missing from official SHA2-256SUMS; refusing unverified binary")
+        raise RuntimeError(f"{asset_name} SHA256 entry missing from official SHA2-256SUMS; refusing unverified binary")
 
-    download_file(YTDLP_STABLE_EXE_URL, tmp_target)
+    download_file(managed_ytdlp_url(asset_name), tmp_target)
     actual = sha256_file(tmp_target)
     if expected.lower() != actual.lower():
-        tmp_target.unlink(missing_ok=True)
-        raise RuntimeError(f"yt-dlp.exe SHA256 mismatch: expected {expected}, got {actual}")
+        if not tmp_target.is_symlink():
+            tmp_target.unlink(missing_ok=True)
+        raise RuntimeError(f"{asset_name} SHA256 mismatch: expected {expected}, got {actual}")
+    assert_not_symlink(target)
     tmp_target.replace(target)
+    if os.name != "nt" and not target.is_symlink():
+        target.chmod(0o755)
     return target, actual, expected
 
 

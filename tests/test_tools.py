@@ -2,13 +2,79 @@ import unittest
 from datetime import date
 from pathlib import Path
 
-from legends_ytdlp.tools import compare_ytdlp_versions, expected_sha256_from_sums, fetch_upstream_ytdlp_version, parse_ytdlp_release_date, ytdlp_age_days, ytdlp_stale_detail
+from legends_ytdlp.tools import (
+    SafeGitHubRedirectHandler,
+    compare_ytdlp_versions,
+    download_file,
+    expected_sha256_from_sums,
+    fetch_upstream_ytdlp_version,
+    parse_ytdlp_release_date,
+    upstream_ytdlp_asset_name,
+    validate_github_https_url,
+    ytdlp_age_days,
+    ytdlp_stale_detail,
+)
 
 
 class ToolTests(unittest.TestCase):
     def test_expected_sha256_from_sums(self) -> None:
-        text = "abc123  yt-dlp.exe\nfff999  other\n"
-        self.assertEqual(expected_sha256_from_sums(text, "yt-dlp.exe"), "abc123")
+        digest = "a" * 64
+        text = f"{digest}  yt-dlp.exe\n" + ("f" * 64) + "  other\n"
+        self.assertEqual(expected_sha256_from_sums(text, "yt-dlp.exe"), digest)
+        self.assertIsNone(expected_sha256_from_sums("not-a-hex-hash  yt-dlp.exe\n", "yt-dlp.exe"))
+
+    def test_validate_github_https_url_and_redirect_handler(self) -> None:
+        import urllib.error
+        import urllib.request
+
+        validate_github_https_url("https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe")
+        validate_github_https_url("https://objects.githubusercontent.com/github-production-release-asset/123")
+        with self.assertRaises(ValueError):
+            validate_github_https_url("http://github.com/yt-dlp/yt-dlp")
+        with self.assertRaises(ValueError):
+            validate_github_https_url("https://evil.example.com/yt-dlp.exe")
+        with self.assertRaises(ValueError):
+            validate_github_https_url("https://user:pass@github.com/yt-dlp/yt-dlp")
+
+        req = urllib.request.Request("https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest")
+        no_redirect = SafeGitHubRedirectHandler(allow_redirects=False)
+        with self.assertRaises(urllib.error.HTTPError):
+            no_redirect.redirect_request(req, None, 302, "Found", {}, "https://github.com/other")
+
+        safe_redirect = SafeGitHubRedirectHandler(allow_redirects=True)
+        with self.assertRaises(ValueError):
+            safe_redirect.redirect_request(req, None, 302, "Found", {}, "http://objects.githubusercontent.com/file")
+        with self.assertRaises(ValueError):
+            safe_redirect.redirect_request(req, None, 302, "Found", {}, "https://attacker.example/file")
+
+    def test_upstream_ytdlp_asset_name_by_platform(self) -> None:
+        self.assertEqual(upstream_ytdlp_asset_name("win32"), "yt-dlp.exe")
+        self.assertEqual(upstream_ytdlp_asset_name("darwin"), "yt-dlp_macos")
+        self.assertEqual(upstream_ytdlp_asset_name("linux"), "yt-dlp_linux")
+
+    def test_download_file_enforces_max_bytes_and_refuses_symlinks(self) -> None:
+        import io
+        import tempfile
+        from unittest.mock import patch
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "yt-dlp.exe"
+            with patch("legends_ytdlp.tools.urllib.request.urlopen") as opened:
+                opened.return_value.__enter__.return_value = io.BytesIO(b"x" * 2048)
+                with self.assertRaisesRegex(ValueError, "exceeded maximum allowed size"):
+                    download_file(
+                        "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe",
+                        target,
+                        max_bytes=1024,
+                    )
+                self.assertFalse(target.exists())
+
+            with patch.object(Path, "is_symlink", return_value=True):
+                with self.assertRaisesRegex(ValueError, "symlink"):
+                    download_file(
+                        "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe",
+                        target,
+                    )
 
     def test_parse_ytdlp_release_date(self) -> None:
         self.assertEqual(parse_ytdlp_release_date("2026.06.09"), date(2026, 6, 9))

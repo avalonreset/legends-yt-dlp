@@ -12,6 +12,7 @@ from typing import Iterable
 
 from .doctor import Check
 from .ledger import load_item_ledger
+from .paths import assert_not_symlink, read_safe_text, validate_local_media_file, write_safe_text
 from .process import CommandResult, run_command
 from .tools import find_crispasr, find_ffmpeg
 
@@ -23,6 +24,9 @@ CRISPASR_ENGINE = "crispasr/parakeet-tdt-0.6b-v3"
 NFA_ENGINE = "nvidia/nemo-forced-aligner"
 NFA_DEFAULT_MODEL = "stt_en_fastconformer_hybrid_large_pc"
 GPU_BACKEND_NAMES = {"cuda", "vulkan", "metal", "kompute", "opencl", "sycl"}
+NFA_PRETRAINED_RE = re.compile(r"^[A-Za-z0-9_./-]+$")
+NFA_DEVICE_RE = re.compile(r"^(?:cuda(?::\d+)?|cpu)$")
+NFA_EXTRA_ARG_RE = re.compile(r"^[A-Za-z0-9_./-]+=[A-Za-z0-9_./,:-]+$")
 
 
 @dataclass(frozen=True)
@@ -114,10 +118,11 @@ def slugify(value: str) -> str:
 
 
 def read_jsonl(path: Path) -> list[dict]:
+    assert_not_symlink(path)
     rows: list[dict] = []
     if not path.exists():
         return rows
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
+    for raw_line in read_safe_text(path).splitlines():
         line = raw_line.strip()
         if line:
             rows.append(json.loads(line))
@@ -125,8 +130,9 @@ def read_jsonl(path: Path) -> list[dict]:
 
 
 def read_word_input(path: Path) -> list[dict]:
+    assert_not_symlink(path)
     if path.suffix.lower() == ".json":
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = json.loads(read_safe_text(path))
         if isinstance(payload, list):
             return [dict(row) for row in payload]
         if isinstance(payload, dict) and isinstance(payload.get("words"), list):
@@ -136,9 +142,8 @@ def read_word_input(path: Path) -> list[dict]:
 
 
 def write_jsonl(path: Path, rows: Iterable[dict]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
     text = "".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows)
-    path.write_text(text, encoding="utf-8")
+    write_safe_text(path, text)
 
 
 def manifest_batch_id(manifest_path: Path, manifest: dict) -> str:
@@ -242,11 +247,11 @@ def write_intelligence_manifest(paths: IntelligencePaths, *, manifest_path: Path
             "does_not_bypass_source_controls": True,
         },
     }
-    paths.manifest.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    write_safe_text(paths.manifest, json.dumps(payload, indent=2) + "\n")
 
 
 def init_intelligence(manifest_path: Path) -> Path:
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest = json.loads(read_safe_text(manifest_path))
     paths = intelligence_paths(manifest_path.parent)
     ensure_intelligence_dirs(paths)
     write_intelligence_manifest(paths, manifest_path=manifest_path, manifest=manifest)
@@ -355,7 +360,7 @@ def import_words(
     media_path: str | None = None,
     engine: str = "imported",
 ) -> tuple[Path, int]:
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest = json.loads(read_safe_text(manifest_path))
     paths = intelligence_paths(manifest_path.parent)
     ensure_intelligence_dirs(paths)
     rows = normalize_word_rows(
@@ -592,10 +597,10 @@ def import_crispasr_json(
     media_path: str | None = None,
     engine: str = CRISPASR_ENGINE,
 ) -> tuple[Path, int]:
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest = json.loads(read_safe_text(manifest_path))
     paths = intelligence_paths(manifest_path.parent)
     ensure_intelligence_dirs(paths)
-    payload = json.loads(json_path.read_text(encoding="utf-8"))
+    payload = json.loads(read_safe_text(json_path))
     if not isinstance(payload, dict):
         raise ValueError("CrispASR input must be a JSON object")
     rows = normalize_word_rows(
@@ -609,6 +614,7 @@ def import_crispasr_json(
     )
     target_id = slugify(video_id or item_id or rows[0]["video_id"])
     transcript_target = paths.transcripts / f"{target_id}.crispasr.json"
+    assert_not_symlink(transcript_target)
     if json_path.resolve() != transcript_target.resolve():
         shutil.copyfile(json_path, transcript_target)
     target = paths.words / f"{target_id}.words.jsonl"
@@ -618,6 +624,8 @@ def import_crispasr_json(
 
 
 def extract_audio(media_path: Path, audio_path: Path) -> CommandResult:
+    validate_local_media_file(media_path)
+    assert_not_symlink(audio_path)
     ffmpeg = find_ffmpeg()
     if not ffmpeg.path:
         raise RuntimeError("ffmpeg not found")
@@ -657,9 +665,10 @@ def transcribe_with_crispasr(
     require_gpu: bool = False,
     timeout: int = 60 * 60 * 4,
 ) -> tuple[Path, Path, Path, int, list[CommandResult]]:
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest = json.loads(read_safe_text(manifest_path))
     paths = intelligence_paths(manifest_path.parent)
     ensure_intelligence_dirs(paths)
+    validate_local_media_file(media_path)
     tool = find_crispasr()
     executable = crispasr_path or tool.path
     if not executable:
@@ -800,13 +809,13 @@ def prepare_nfa_manifest(
     refresh_audio: bool = False,
     require_text: bool = True,
 ) -> dict:
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest = json.loads(read_safe_text(manifest_path))
     paths = intelligence_paths(manifest_path.parent)
     ensure_intelligence_dirs(paths)
-    if not media_path.exists():
-        raise FileNotFoundError(f"media file not found: {media_path}")
+    validate_local_media_file(media_path)
     target_id = target_id_for_media(media_path, video_id=video_id, item_id=item_id)
     selected_audio_path = audio_path or paths.audio / f"{target_id}.wav"
+    assert_not_symlink(selected_audio_path)
     if refresh_audio or not selected_audio_path.exists():
         audio_result = extract_audio(media_path, selected_audio_path)
         if not audio_result.ok:
@@ -852,9 +861,24 @@ def resolve_nfa_align_script(*, nemo_dir: Path | None = None, align_script: Path
     if env_nemo_dir:
         candidates.append(Path(env_nemo_dir) / "tools" / "nemo_forced_aligner" / "align.py")
     for candidate in candidates:
-        if candidate.exists():
+        if not candidate.is_symlink() and candidate.is_file():
             return candidate
     raise FileNotFoundError("NeMo Forced Aligner align.py not found. Pass --align-script, set NFA_ALIGN_PY, or set NEMO_DIR.")
+
+
+def _validate_hydra_value(label: str, value: str) -> str:
+    if any(ch in value for ch in ("\r", "\n", "\0")) or "${" in value:
+        raise ValueError(f"Unsafe Hydra interpolation or control characters in {label}: {value!r}")
+    return value
+
+
+def _hydra_quote_path(label: str, path: Path) -> str:
+    assert_not_symlink(path)
+    raw = _validate_hydra_value(label, str(path))
+    escaped = path.resolve().as_posix().replace("'", "\\'")
+    if any(ch in raw for ch in (" ", ",", "=", "'", '"', "(", ")", "[", "]", "{", "}")):
+        return f"'{escaped}'"
+    return f"'{escaped}'"
 
 
 def run_nfa_alignment(
@@ -872,28 +896,51 @@ def run_nfa_alignment(
     extra_args: Iterable[str] = (),
     timeout: int = 60 * 60 * 6,
 ) -> CommandResult:
+    _validate_hydra_value("pretrained_name", pretrained_name)
+    if not NFA_PRETRAINED_RE.fullmatch(pretrained_name):
+        raise ValueError(f"Invalid --pretrained-name: {pretrained_name!r}")
+    _validate_hydra_value("transcribe_device", transcribe_device)
+    if not NFA_DEVICE_RE.fullmatch(transcribe_device):
+        raise ValueError(f"Invalid --transcribe-device: {transcribe_device!r}")
+    _validate_hydra_value("viterbi_device", viterbi_device)
+    if not NFA_DEVICE_RE.fullmatch(viterbi_device):
+        raise ValueError(f"Invalid --viterbi-device: {viterbi_device!r}")
+    if int(batch_size) <= 0:
+        raise ValueError("--batch-size must be greater than 0")
+    validated_extra: list[str] = []
+    for raw_arg in extra_args:
+        arg = _validate_hydra_value("nfa_arg", str(raw_arg).strip())
+        if (
+            not NFA_EXTRA_ARG_RE.fullmatch(arg)
+            or arg.startswith(("hydra.", "+", "~", "-"))
+            or "_target_" in arg
+        ):
+            raise ValueError(f"Unsafe or disallowed --nfa-arg override: {raw_arg!r}")
+        validated_extra.append(arg)
+
     script = resolve_nfa_align_script(nemo_dir=nemo_dir, align_script=align_script)
+    assert_not_symlink(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     command: list[str | Path] = [
         python_executable,
         script,
         f"pretrained_name={pretrained_name}",
-        f"manifest_filepath={alignment_manifest_path}",
-        f"output_dir={output_dir}",
+        f"manifest_filepath={_hydra_quote_path('manifest_filepath', alignment_manifest_path)}",
+        f"output_dir={_hydra_quote_path('output_dir', output_dir)}",
         "save_output_file_formats=['ctm','ass']",
         f"transcribe_device={transcribe_device}",
         f"viterbi_device={viterbi_device}",
-        f"batch_size={batch_size}",
+        f"batch_size={int(batch_size)}",
     ]
     if align_using_pred_text:
         command.append("align_using_pred_text=true")
-    command.extend(extra_args)
+    command.extend(validated_extra)
     return run_command(command, timeout=timeout)
 
 
 def parse_nfa_words_ctm(ctm_path: Path) -> list[dict]:
     rows: list[dict] = []
-    for line_no, raw_line in enumerate(ctm_path.read_text(encoding="utf-8").splitlines(), start=1):
+    for line_no, raw_line in enumerate(read_safe_text(ctm_path).splitlines(), start=1):
         line = raw_line.strip()
         if not line:
             continue
@@ -951,7 +998,7 @@ def refine_words_with_nfa_ctm(
     engine: str = NFA_ENGINE,
     backup: bool = True,
 ) -> tuple[Path, int, Path | None]:
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest = json.loads(read_safe_text(manifest_path))
     paths = intelligence_paths(manifest_path.parent)
     ensure_intelligence_dirs(paths)
     ctm_rows = parse_nfa_words_ctm(ctm_path)
@@ -1141,31 +1188,101 @@ def make_clip_plan(
 
 
 def ffconcat_line(path: Path) -> str:
-    value = path.resolve().as_posix().replace("'", "'\\''")
-    return f"file '{value}'"
+    assert_not_symlink(path)
+    raw = str(path)
+    if any(ch in raw for ch in ("\r", "\n", "\0")) or raw.lstrip().startswith("-") or path.name.startswith("-"):
+        raise ValueError(f"Unsafe or newline-containing concat path: {path!r}")
+    value = path.resolve().as_posix()
+    if any(ch in value for ch in ("\r", "\n", "\0")):
+        raise ValueError(f"Invalid control character in resolved concat path: {path!r}")
+    escaped = value.replace("'", "'\\''")
+    return f"file '{escaped}'"
 
 
-def render_clip_plan(plan_path: Path) -> tuple[list[CommandResult], Path | None]:
-    plan = json.loads(plan_path.read_text(encoding="utf-8"))
+def _validate_clip_output_path(
+    raw_value: object,
+    *,
+    allowed_root: Path,
+    overwrite: bool,
+    label: str,
+) -> Path:
+    raw = str(raw_value or "").strip()
+    if not raw or any(ch in raw for ch in ("\r", "\n", "\0")):
+        raise ValueError(f"Invalid {label} path: {raw_value!r}")
+    if raw.startswith("-"):
+        raise ValueError(f"Refusing option-like {label} path: {raw}")
+    target = Path(raw)
+    if target.name.startswith("-"):
+        raise ValueError(f"Refusing option-like {label} filename: {target}")
+    assert_not_symlink(target)
+    if target.parent.exists():
+        assert_not_symlink(target.parent)
+    resolved = target.resolve()
+    if not resolved.is_relative_to(allowed_root):
+        raise ValueError(f"{label} path escapes allowed output root ({allowed_root}): {target}")
+    if not overwrite and target.exists():
+        raise FileExistsError(f"Refusing to overwrite existing {label} without --overwrite: {target}")
+    return target
+
+
+def render_clip_plan(
+    plan_path: Path,
+    *,
+    overwrite: bool = False,
+    output_dir: Path | None = None,
+) -> tuple[list[CommandResult], Path | None]:
+    plan = json.loads(read_safe_text(plan_path))
+    allowed_root = (output_dir or plan_path.parent).resolve()
     ffmpeg = find_ffmpeg()
     if not ffmpeg.path:
         raise RuntimeError("ffmpeg not found")
+    overwrite_flag = "-y" if overwrite else "-n"
     results: list[CommandResult] = []
     rendered: list[Path] = []
-    for clip in plan.get("clips", []):
-        source = Path(str(clip.get("source", "")))
-        if not source.exists():
-            raise FileNotFoundError(f"clip source not found: {source}")
-        output = Path(str(clip["output"]))
-        output.parent.mkdir(parents=True, exist_ok=True)
+    clips = plan.get("clips", [])
+    if not isinstance(clips, list):
+        raise ValueError("Clip plan 'clips' must be a list")
+
+    validated_clips: list[tuple[Path, Path, float, float]] = []
+    for clip in clips:
+        if not isinstance(clip, dict):
+            raise ValueError("Each clip entry must be an object")
+        source = validate_local_media_file(Path(str(clip.get("source", ""))))
+        output = _validate_clip_output_path(
+            clip.get("output"),
+            allowed_root=allowed_root,
+            overwrite=overwrite,
+            label="clip output",
+        )
+        start = float(clip["start"])
         duration = max(0.01, float(clip["duration"]))
+        validated_clips.append((source, output, start, duration))
+
+    concat: Path | None = None
+    montage: Path | None = None
+    if validated_clips:
+        concat = _validate_clip_output_path(
+            plan.get("concat_list"),
+            allowed_root=allowed_root,
+            overwrite=overwrite,
+            label="concat list",
+        )
+        montage = _validate_clip_output_path(
+            plan.get("montage_output"),
+            allowed_root=allowed_root,
+            overwrite=overwrite,
+            label="montage output",
+        )
+
+    for source, output, start, duration in validated_clips:
+        output.parent.mkdir(parents=True, exist_ok=True)
         args = [
             ffmpeg.path,
-            "-y",
+            overwrite_flag,
             "-i",
-            source,
+            str(source.resolve()),
             "-ss",
-            f"{float(clip['start']):.3f}",
+            f"{start:.3f}",
             "-t",
             f"{duration:.3f}",
             "-map",
@@ -1184,19 +1301,20 @@ def render_clip_plan(plan_path: Path) -> tuple[list[CommandResult], Path | None]
             "192k",
             "-movflags",
             "+faststart",
-            output,
+            str(output),
         ]
         result = run_command(args, timeout=60 * 60)
         results.append(result)
         if not result.ok:
             return results, None
         rendered.append(output)
-    if not rendered:
+    if not rendered or concat is None or montage is None:
         return results, None
-    concat = Path(str(plan["concat_list"]))
-    concat.write_text("\n".join(ffconcat_line(path) for path in rendered) + "\n", encoding="utf-8")
-    montage = Path(str(plan["montage_output"]))
-    montage_result = run_command([ffmpeg.path, "-y", "-f", "concat", "-safe", "0", "-i", concat, "-c", "copy", montage], timeout=60 * 60)
+    write_safe_text(concat, "\n".join(ffconcat_line(path) for path in rendered) + "\n")
+    montage_result = run_command(
+        [ffmpeg.path, overwrite_flag, "-f", "concat", "-safe", "0", "-i", str(concat), "-c", "copy", str(montage)],
+        timeout=60 * 60,
+    )
     results.append(montage_result)
     return results, montage if montage_result.ok else None
 

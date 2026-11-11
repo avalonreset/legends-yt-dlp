@@ -1,12 +1,23 @@
 from __future__ import annotations
 
+import re
 import time
 from dataclasses import dataclass
 from pathlib import Path
 
 from .envfile import redact
-from .process import CommandResult, run_command
+from .process import CommandResult, redact_sensitive_text, run_command
 from .tools import find_mullvad
+
+
+ACCOUNT_NUMBER_RE = re.compile(r"^\d{16}$")
+
+
+def validate_account_number(account_number: str) -> str:
+    cleaned = str(account_number or "").strip()
+    if not ACCOUNT_NUMBER_RE.fullmatch(cleaned):
+        raise ValueError("Mullvad account number must be an exact 16-digit numeric string")
+    return cleaned
 
 
 @dataclass(frozen=True)
@@ -73,7 +84,8 @@ def status(verbose: bool = False) -> MullvadStatus:
 
 
 def login(account_number: str) -> CommandResult:
-    return run_mullvad("account", "login", account_number, timeout=120)
+    validated = validate_account_number(account_number)
+    return run_mullvad("account", "login", validated, timeout=120)
 
 
 def connect() -> CommandResult:
@@ -199,6 +211,7 @@ def shutdown_connection() -> ShutdownResult:
 
 
 def redact_account_in_text(text: str, account_number: str | None) -> str:
+    redacted = redact_sensitive_text(text)
     if not account_number:
-        return text
-    return text.replace(account_number, redact(account_number))
+        return redacted
+    return redacted.replace(account_number, redact(account_number))

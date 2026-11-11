@@ -2,8 +2,12 @@
 
 ## Supported Versions
 
-Legends YT-DLP is currently a private alpha. Security fixes target the
-`main` branch until tagged releases begin.
+| Version | Supported |
+| --- | --- |
+| `0.1.x` (`>= 0.1.5`) | Yes |
+| `< 0.1.5` | No |
+
+Security fixes target the latest tagged `0.1.x` release on the `main` branch.
 
 ## Reporting A Vulnerability
 

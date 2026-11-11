@@ -1,17 +1,26 @@
-# Alpha Packaging
+# Packaging and Release Verification
 
-Use the packaging script from the repository root:
+Run the release readiness gate from the repository root:
 
 ```bash
 python scripts/check_release.py
 ```
 
-The script writes:
+`scripts/check_release.py` verifies:
 
-- `dist/legends-yt-dlp-0.1.2.zip`
-- `dist/legends-yt-dlp-0.1.2.zip.sha256`
+- required governance, recipe, asset, and router skill files
+- version synchronization across `pyproject.toml`, `src/legends_ytdlp/__init__.py`, `CITATION.cff`, and `CHANGELOG.md`
+- `skills/cto-legends/SKILL.md` router integrity and the One-Skill Rule
+- PNG and WebP metadata chunk hygiene
+- absence of forbidden shell wrappers, hidden-window flags, credential-store access, or private machine paths
 
-The package includes tracked source, docs, scripts, tests, the router skill file, and legal/community files. It excludes ignored local runtime state:
+To build standard Python wheel and source distributions (`dist/legends_yt_dlp-0.1.5-py3-none-any.whl` and `dist/legends_yt_dlp-0.1.5.tar.gz`):
+
+```bash
+python -m build
+```
+
+`MANIFEST.in` includes tracked source, docs, examples, scripts, tests, the router skill file, and legal/community files while excluding ignored local runtime state:
 
 - `.env` and `.env.*`
 - `.local/`
@@ -23,7 +32,7 @@ The package includes tracked source, docs, scripts, tests, the router skill file
 - `cookies/`
 - `.git/`
 
-After unpacking, the first command for a user should be:
+After installing, the first command for a user should be:
 
 ```powershell
 legends-yt-dlp onboard
@@ -31,24 +40,14 @@ legends-yt-dlp onboard
 
 ## Release Checklist
 
-Before attaching the zip to a release:
+Before publishing a release:
 
 ```powershell
 $env:PYTHONPATH='src'
-python -m unittest discover -s tests
+python -m unittest discover -s tests -p "test_*.py" -v
 python -m compileall -q src tests
 python scripts/check_release.py
 git diff --check
-$accountEnv = 'MULLVAD_ACCOUNT_NUMBER'
-$secretPattern = "$accountEnv=.*[0-9]|[0-9]{16}"
-rg -n $secretPattern --glob '!*.pyc' --glob '!.git/**' --glob '!.env' --glob '!.local/**' --glob '!batches/**' --glob '!reports/**'
 ```
 
-Then inspect the package:
-
-```powershell
-tar -tf dist\legends-yt-dlp-0.1.2.zip
-Get-Content dist\legends-yt-dlp-0.1.2.zip.sha256
-```
-
-Do not publish a package that contains account numbers, cookies, downloaded media, local `yt-dlp.exe` binaries, batch outputs, client rights evidence, or untracked local experiment files.
+Do not publish a package that contains account numbers, cookies, downloaded media, local `yt-dlp` binaries, batch outputs, client rights evidence, or untracked local experiment files.

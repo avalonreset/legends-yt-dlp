@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .envfile import read_env_file, redact
+from .envfile import read_env_file, redact, resolve_mullvad_account
 from .mullvad import (
     auto_connect_setting,
     lan_setting,
@@ -58,8 +58,7 @@ def run_doctor(
     if offline or not (with_vpn or production):
         return checks
 
-    env = read_env_file(PROJECT_ROOT / ".env")
-    account = env.get("MULLVAD_ACCOUNT_NUMBER")
+    account = resolve_mullvad_account(env_reader=read_env_file)
     checks.extend([
         tool_check(find_mullvad(), required=True),
         Check(".env account", bool(account), f"MULLVAD_ACCOUNT_NUMBER={redact(account)}" if account else "missing"),

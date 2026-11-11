@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.5 - 2026-11-11
+
+- Hardened `batch.py` against config and URL newline injection, validated `--max-filesize`, replaced the narrow auth blocklist with a strict `yt-dlp.conf` option allowlist (blocking `--exec*`, `--alias`, `--plugin-dirs`, `--config-location*`, `--load-info-json`, `--print-to-file`, and `--proxy`), and enforced SHA-256 config verification inside both `preflight` and `run_batch()`.
+- Validated `source_url` and inserted `"--"` before the positional URL argument in `inventory.py:run_ytdlp_inventory()`.
+- Hardened `tools.py` upstream `yt-dlp` release checks and binary downloads with HTTPS-only host allowlisting, `ProxyHandler({})`, TLS 1.2+ context, bounded chunked reads (`1 MiB` for checksums/API, `64 MiB` for binary), symlink refusal, and cross-platform binary selection (`yt-dlp.exe`, `yt-dlp_macos`, `yt-dlp_linux`).
+- Made `paths.py`, `envfile.py`, `doctor.py`, and `onboarding.py` wheel-safe so installed environments resolve workspace state from `LEGENDS_YTDLP_WORKSPACE` or `Path.cwd()` and `.env` from `os.environ`, `LEGENDS_YTDLP_ENV_FILE`, `Path.cwd() / ".env"`, and `PROJECT_ROOT / ".env"`.
+- Hardened `render_clip_plan()`, `verify.py:probe_media()`, `extract_audio()`, `run_nfa_alignment()`, `mullvad.py`, and `process.py` with symlink refusal, output path containment, fail-closed `--overwrite` semantics, `-i` media flags, Hydra override validation, and 16-digit Mullvad account number validation and timeout redaction.
+- Added `--version` to `legends-yt-dlp`, added `MANIFEST.in`, updated `SECURITY.md`, `docs/PACKAGING.md`, `docs/CLI.md`, `docs/SAFETY-AND-ERRORS.md`, `docs/OPERATOR-ROUTING.md`, `docs/TRANSCRIPTION.md`, and `docs/AGENT-RECIPE.md`, and upgraded `scripts/check_release.py` to Gold-Standard parity.
+
 ## 0.1.4 - 2026-11-05
 
 - Added `docs/AGENT-RECIPE.md` and `AGENTS.md` with complete CLI reference and Windows Defender / EDR security guardrails.

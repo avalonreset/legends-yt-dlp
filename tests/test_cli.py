@@ -7,7 +7,14 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from legends_ytdlp.cli import LEGAL_USE_NOTICE, cmd_run, cmd_ytdlp_check
+from legends_ytdlp.cli import (
+    LEGAL_USE_NOTICE,
+    build_parser,
+    cmd_mullvad_dns_custom,
+    cmd_mullvad_relay_location,
+    cmd_run,
+    cmd_ytdlp_check,
+)
 from legends_ytdlp.doctor import Check
 from legends_ytdlp.mullvad import ShutdownResult
 from legends_ytdlp.process import CommandResult
@@ -199,6 +206,21 @@ class CliTests(unittest.TestCase):
                 self.assertEqual(cmd_run(args), 0)
 
             self.assertIn("Medium batch (25 URLs)", stdout.getvalue())
+
+    def test_version_flag_and_mullvad_argument_guards(self) -> None:
+        parser = build_parser()
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout), self.assertRaises(SystemExit) as ctx:
+            parser.parse_args(["--version"])
+        self.assertEqual(ctx.exception.code, 0)
+        self.assertIn("0.1.5", stdout.getvalue())
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(cmd_mullvad_relay_location(argparse.Namespace(location=["--help"])), 2)
+            self.assertEqual(cmd_mullvad_dns_custom(argparse.Namespace(servers=["not-an-ip"])), 2)
+        self.assertIn("Refusing option-like", stderr.getvalue())
+        self.assertIn("Invalid DNS server IP", stderr.getvalue())
 
 class YtdlpCheckTests(unittest.TestCase):
     def run_check(self, info, upstream="2026.08.19"):

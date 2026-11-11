@@ -6,6 +6,7 @@ from pathlib import Path
 from .batch import REPORTS_DIR, load_manifest
 from .doctor import Check
 from .ledger import load_item_ledger, refresh_item_ledger, summarize_ledger
+from .paths import assert_not_symlink, read_safe_text, validate_local_media_file
 from .process import run_command
 from .tools import find_ffprobe
 
@@ -32,22 +33,30 @@ class VerifySummary:
 
 
 def media_files_under(output: Path) -> list[Path]:
-    if not output.exists():
+    if not output.exists() or output.is_symlink():
         return []
-    return sorted(path for path in output.rglob("*") if path.is_file() and path.suffix.lower() in MEDIA_EXTENSIONS)
+    return sorted(
+        path
+        for path in output.rglob("*")
+        if not path.is_symlink() and path.is_file() and path.suffix.lower() in MEDIA_EXTENSIONS
+    )
 
 
 def info_json_files_under(output: Path) -> list[Path]:
-    if not output.exists():
+    if not output.exists() or output.is_symlink():
         return []
-    return sorted(path for path in output.rglob("*") if path.is_file() and path.name.endswith(INFO_SUFFIX))
+    return sorted(
+        path
+        for path in output.rglob("*")
+        if not path.is_symlink() and path.is_file() and path.name.endswith(INFO_SUFFIX)
+    )
 
 
 def existing_file(value: object, *, suffixes: set[str] | None = None, info_json: bool = False) -> Path | None:
     if not value:
         return None
     path = Path(str(value))
-    if not path.exists() or not path.is_file():
+    if path.is_symlink() or not path.exists() or not path.is_file():
         return None
     if info_json:
         return path if path.name.endswith(INFO_SUFFIX) else None
@@ -107,9 +116,10 @@ def batch_info_json_files(manifest: dict) -> list[Path]:
 
 
 def archive_entries(path: Path) -> list[str]:
+    assert_not_symlink(path)
     if not path.exists():
         return []
-    return [line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [line.strip() for line in read_safe_text(path).splitlines() if line.strip()]
 
 
 def report_files_for(manifest_path: Path) -> list[Path]:
@@ -155,6 +165,10 @@ def summarize_batch(manifest_path: Path) -> VerifySummary:
 
 
 def probe_media(path: Path) -> Check:
+    try:
+        validate_local_media_file(path)
+    except (OSError, ValueError) as exc:
+        return Check(f"media probe {path.name}", False, f"unsafe media file: {exc}")
     tool = find_ffprobe()
     if not tool.path:
         return Check(f"media probe {path.name}", False, "ffprobe not found")
@@ -167,6 +181,7 @@ def probe_media(path: Path) -> Check:
             "format=duration,size,format_name",
             "-of",
             "default=noprint_wrappers=1:nokey=0",
+            "-i",
             path,
         ],
         timeout=60,

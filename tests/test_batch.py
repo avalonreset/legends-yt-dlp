@@ -9,7 +9,9 @@ from legends_ytdlp.batch import (
     create_batch_from_urls,
     preflight_batch,
     read_url_file,
+    run_batch,
     run_status,
+    validate_max_filesize,
     validate_url,
     write_run_report,
     write_ytdlp_config,
@@ -22,6 +24,68 @@ class BatchTests(unittest.TestCase):
     def test_validate_url(self) -> None:
         self.assertTrue(validate_url("https://www.youtube.com/@Example"))
         self.assertFalse(validate_url("file:///C:/secret.txt"))
+        self.assertFalse(validate_url("https://example.com/a\n--exec calc.exe"))
+        self.assertFalse(validate_url("https://example.com/a with space"))
+        self.assertFalse(validate_url("-https://example.com/a"))
+
+    def test_validate_max_filesize_and_config_injection_guards(self) -> None:
+        self.assertEqual(validate_max_filesize("50M"), "50M")
+        self.assertEqual(validate_max_filesize("1.5GB"), "1.5GB")
+        with self.assertRaisesRegex(ValueError, "--max-filesize"):
+            validate_max_filesize('50M"\n--exec "calc.exe')
+        with self.assertRaisesRegex(ValueError, "--max-filesize"):
+            validate_max_filesize("--exec=calc")
+
+    def test_auth_policy_blocks_exec_and_positional_injections_and_run_batch_verifies_sha256(self) -> None:
+        import tempfile
+        import shutil
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            paths = create_batch_from_urls(
+                urls=["https://www.youtube.com/watch?v=alpha123"],
+                name="tamper-check",
+                output_dir=str(root / "out"),
+            )
+            try:
+                self.assertTrue(auth_policy_check(paths.config).ok)
+                original_text = paths.config.read_text(encoding="utf-8")
+
+                # Inject --exec into config
+                paths.config.write_text(original_text + '--exec\n"calc.exe"\n', encoding="utf-8")
+                exec_check = auth_policy_check(paths.config)
+                self.assertFalse(exec_check.ok)
+                self.assertIn("--exec", exec_check.detail)
+                blocked_run = run_batch(paths.manifest, dry_run=True)
+                self.assertEqual(blocked_run.returncode, 2)
+                self.assertIn("Refusing batch run", blocked_run.stderr)
+
+                # Same-line smuggling after value option: --retries 10 --exec calc.exe
+                paths.config.write_text(
+                    original_text.replace("--retries\n10", "--retries 10 --exec calc.exe"),
+                    encoding="utf-8",
+                )
+                smuggle_exec = auth_policy_check(paths.config)
+                self.assertFalse(smuggle_exec.ok)
+                self.assertIn("--exec", smuggle_exec.detail)
+
+                # Same-line smuggling with inline '=': --retries=10 --cookies-from-browser chrome
+                paths.config.write_text(
+                    original_text.replace("--retries\n10", "--retries=10 --cookies-from-browser chrome"),
+                    encoding="utf-8",
+                )
+                smuggle_cookies = auth_policy_check(paths.config)
+                self.assertFalse(smuggle_cookies.ok)
+                self.assertIn("--cookies-from-browser", smuggle_cookies.detail)
+
+                # Even an allowed option change is caught by config SHA-256 verification
+                paths.config.write_text(original_text.replace("--retries\n10", "--retries\n5"), encoding="utf-8")
+                self.assertTrue(auth_policy_check(paths.config).ok)
+                tampered_run = run_batch(paths.manifest, dry_run=True)
+                self.assertEqual(tampered_run.returncode, 2)
+                self.assertIn("SHA-256 mismatch", tampered_run.stderr)
+            finally:
+                shutil.rmtree(paths.root, ignore_errors=True)
 
     def test_batch_plan_rejects_invalid_limits(self) -> None:
         with self.assertRaisesRegex(ValueError, "--max-height"):

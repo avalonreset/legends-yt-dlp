@@ -25,7 +25,7 @@ bounded pull, hand off there instead of stretching this module.
 
 ## Route 3: Live typing (another module)
 
-Real-time dictation at the keyboard belongs to `hyperyap`. Never route live
+Real-time dictation at the keyboard belongs to `legends-hyperyap`. Never route live
 typing through capture batches.
 
 ## Precision re-timing (external, optional)

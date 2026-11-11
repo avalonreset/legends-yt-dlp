@@ -208,7 +208,7 @@ If the user asks about parallelism, read `docs/BATCH-CATALOG.md`.
 Capture first; transcribe only verified local media when asked. In-module
 transcription runs an external CrispASR executable (never bundled). For
 continuous background audio or voice sketchpads, hand off to
-`legends-ambient-intelligence`; for live typing, hand off to `hyperyap`.
+`legends-ambient-intelligence`; for live typing, hand off to `legends-hyperyap`.
 Read `docs/TRANSCRIPTION.md`.
 
 ## Empire Vault

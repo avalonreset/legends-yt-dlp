@@ -2,8 +2,15 @@ import json
 import unittest
 from unittest.mock import patch
 
-from legends_ytdlp.inventory import create_batch_from_inventory, filter_entries, inventory_items, parse_inventory_json
+from legends_ytdlp.inventory import (
+    create_batch_from_inventory,
+    filter_entries,
+    inventory_items,
+    parse_inventory_json,
+    run_ytdlp_inventory,
+)
 from legends_ytdlp.process import CommandResult
+from legends_ytdlp.tools import ToolInfo
 
 
 class InventoryTests(unittest.TestCase):
@@ -89,6 +96,30 @@ class InventoryTests(unittest.TestCase):
                     name="should-not-create",
                     max_items=1,
                 )
+
+    def test_run_ytdlp_inventory_validates_url_and_inserts_double_dash(self) -> None:
+        from pathlib import Path
+
+        with self.assertRaisesRegex(ValueError, "Invalid URL"):
+            run_ytdlp_inventory("https://example.com/a\n--exec calc")
+        with self.assertRaisesRegex(ValueError, "Invalid URL"):
+            run_ytdlp_inventory("--exec=calc")
+
+        captured: list[tuple[str, ...]] = []
+
+        def fake_run(args, **kwargs):
+            cmd = tuple(str(a) for a in args)
+            captured.append(cmd)
+            return CommandResult(cmd, 0, "{}", "")
+
+        with (
+            patch("legends_ytdlp.inventory.find_ytdlp", return_value=ToolInfo("yt-dlp", Path("yt-dlp"), "2026.10.01", True, "ok")),
+            patch("legends_ytdlp.inventory.js_runtime_args", return_value=[]),
+            patch("legends_ytdlp.inventory.run_command", side_effect=fake_run),
+        ):
+            run_ytdlp_inventory("https://www.youtube.com/@legends/videos", max_items=5)
+
+        self.assertEqual(captured[0][-2:], ("--", "https://www.youtube.com/@legends/videos"))
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ from unittest.mock import patch
 from legends_ytdlp.process import CommandResult
 from legends_ytdlp.intelligence import (
     build_vault,
+    ffconcat_line,
     import_crispasr_json,
     import_words,
     init_intelligence,
@@ -17,6 +18,7 @@ from legends_ytdlp.intelligence import (
     parse_crispasr_diagnostics,
     read_jsonl,
     refine_words_with_nfa_ctm,
+    render_clip_plan,
     run_nfa_alignment,
     search_words,
     transcribe_with_crispasr,
@@ -504,6 +506,56 @@ class IntelligenceTests(unittest.TestCase):
             self.assertTrue((vault / "index.md").exists())
             self.assertIn("[[vid123]]", (vault / "index.md").read_text(encoding="utf-8"))
             self.assertIn("agentic workflow", (vault / "vid123.md").read_text(encoding="utf-8"))
+
+    def test_render_clip_plan_containment_overwrite_and_hydra_guards(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = self.make_manifest(root)
+            words = self.write_words(root)
+            import_words(manifest, words, video_id="vid123")
+            plan_path, plan = make_clip_plan(manifest, "this", pad_start=0.1, pad_end=0.1)
+
+            # Reject path traversal outside plan directory
+            escaped_plan = dict(plan)
+            escaped_plan["clips"] = [dict(plan["clips"][0], output=str(root / "escaped.mp4"))]
+            plan_path.write_text(json.dumps(escaped_plan), encoding="utf-8")
+            with patch("legends_ytdlp.intelligence.find_ffmpeg", return_value=ToolInfo("ffmpeg", Path("ffmpeg"), "1.0", True, "ok")):
+                with self.assertRaisesRegex(ValueError, "escapes allowed output root"):
+                    render_clip_plan(plan_path)
+
+            # Restore valid plan and verify fail-closed overwrite refusal without --overwrite
+            plan_path.write_text(json.dumps(plan), encoding="utf-8")
+            existing_clip = Path(plan["clips"][0]["output"])
+            existing_clip.parent.mkdir(parents=True, exist_ok=True)
+            existing_clip.write_bytes(b"existing")
+            with patch("legends_ytdlp.intelligence.find_ffmpeg", return_value=ToolInfo("ffmpeg", Path("ffmpeg"), "1.0", True, "ok")):
+                with self.assertRaises(FileExistsError):
+                    render_clip_plan(plan_path, overwrite=False)
+                with patch("legends_ytdlp.intelligence.run_command", return_value=CommandResult(("ffmpeg",), 0, "", "")) as mocked_run:
+                    render_clip_plan(plan_path, overwrite=True)
+                    self.assertIn("-y", mocked_run.call_args_list[0].args[0])
+
+            # Reject newline or leading dash in ffconcat_line
+            with self.assertRaises(ValueError):
+                ffconcat_line(Path("-bad.mp4"))
+
+            # Reject Hydra interpolation and unsafe overrides in run_nfa_alignment
+            align_script = root / "align.py"
+            align_script.write_text("# fake\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "Hydra"):
+                run_nfa_alignment(
+                    root / "manifest.jsonl",
+                    root / "out",
+                    align_script=align_script,
+                    pretrained_name="${oc.env:SECRET}",
+                )
+            with self.assertRaisesRegex(ValueError, "--nfa-arg"):
+                run_nfa_alignment(
+                    root / "manifest.jsonl",
+                    root / "out",
+                    align_script=align_script,
+                    extra_args=["hydra.run.dir=/tmp"],
+                )
 
 
 if __name__ == "__main__":
