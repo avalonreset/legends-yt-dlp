@@ -1,306 +1,164 @@
 # ![legends-yt-dlp](assets/banner.webp)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)
-![Windows first](https://img.shields.io/badge/Windows-first-0078D4.svg)
-![yt-dlp](https://img.shields.io/badge/powered%20by-yt--dlp-lightgrey.svg)
-![Mullvad optional](https://img.shields.io/badge/Mullvad-optional-orange.svg)
+[![release](https://img.shields.io/github/v/release/avalonreset/legends-yt-dlp?label=release&sort=date&style=flat-square&labelColor=000000&color=ff0000)](https://github.com/avalonreset/legends-yt-dlp/releases/latest)
+[![checks](https://img.shields.io/github/actions/workflow/status/avalonreset/legends-yt-dlp/contract.yml?branch=main&label=checks&style=flat-square&labelColor=000000)](https://github.com/avalonreset/legends-yt-dlp/actions/workflows/contract.yml)
+[![python](https://img.shields.io/badge/python-3.11%2B-000000?style=flat-square&labelColor=000000&color=ff0000)](pyproject.toml)
+[![engine](https://img.shields.io/badge/engine-yt--dlp%20%2B%20ffmpeg-000000?style=flat-square&labelColor=000000&color=ff0000)](pyproject.toml)
+[![mullvad](https://img.shields.io/badge/mullvad-opt--in%20guard-000000?style=flat-square&labelColor=000000&color=ff0000)](docs/MULLVAD-CONTROLS.md)
+[![license](https://img.shields.io/github/license/avalonreset/legends-yt-dlp?label=license&style=flat-square&labelColor=000000&color=666666)](LICENSE)
 
-**Clip faster and create sharper with a Windows-first `yt-dlp` workflow for repeatable source pulls, local verification, transcripts, search, and clip-building, with optional Mullvad VPN guardrails.**
+**Preview-first `yt-dlp` video archiving, subtitle and transcript extraction, audio demuxing, and SHA-256 media provenance CLI for coding agents: probe channel and playlist metadata into a resumable ledger before downloading, enforce anonymous no-cookie pacing and option allowlists, verify every media stream with `ffprobe`, and extract GPU word ledgers and frame-accurate FFmpeg clips.**
 
-Legends YT-DLP exists because raw `yt-dlp` is powerful, but real creator work needs more than a one-off command. The project wraps the official `yt-dlp` binary with explicit batch plans, optional source notes, local state, conservative defaults, a short use notice before real runs, default pacing between pulls, and an opt-in Mullvad VPN mode for guarded runs. Ripping a video from time to time is frictionless; bulk pulls slow down and ask for acknowledgement.
-
-## What It Does
-
-- Supports the official Mullvad CLI as an opt-in guarded-run layer (`--with-vpn`); nothing requires Mullvad by default.
-- Stores the Mullvad account number locally in an ignored `.env` file (only needed for VPN-guarded runs).
-- Downloads the official Windows `yt-dlp.exe` release from `yt-dlp/yt-dlp`.
-- Verifies the downloaded binary against upstream `SHA2-256SUMS`.
-- Detects `ffmpeg`.
-- Detects a JavaScript runtime for modern YouTube extraction.
-- Creates batch manifests with optional rights notes and evidence files.
-- Inventories channel and playlist URLs into a reviewable item ledger before downloads.
-- Copies optional rights evidence files into the batch folder.
-- Provides a one-command setup path for Mullvad safety posture (`setup production`).
-- In `--with-vpn` mode, requires Mullvad connected with Lockdown on, recovers the tunnel on network failures, then disables Lockdown and disconnects after completed real runs.
-- Supports custom operator-provided smoke URLs for install validation.
-- Supports bounded smoke jobs with max downloads, height, and filesize limits.
-- Generates stable anonymous-mode `yt-dlp` config files with download archives and conservative retry/sleep settings.
-- Blocks real runs until preflight passes.
-- Requires an explicit `--yes` flag for real downloads.
-- Paces pulls by default and requires `--bulk` acknowledgement for batches over 50 URLs.
-- Verifies completed batches with archive, report, info JSON, media count, and ffprobe checks.
-- Runs the ready-made CrispASR Parakeet backend against verified local media.
-- Imports timestamped word ledgers for verified local media.
-- Searches exact words and phrases across local transcripts.
-- Generates reviewable FFmpeg clip plans and optional montages.
-- Builds Obsidian-compatible transcript vault pages.
-
-## Why It Exists
-
-Creator projects fail in predictable places: messy source lists, duplicate pulls, broken resumes, unclear output folders, missing transcripts, and clips that are hard to find again. Legends YT-DLP turns those weak points into a repeatable plan, pull, verify, search, and cut flow.
-
-The goal is not to evade platform controls. The goal is to make source capture deliberate, resumable, and useful for editing, research, and review.
-
-## Current Status
-
-Public beta.
-
-Working now:
-
-- `doctor`
-- `setup production`
-- Mullvad status/login/connect/lockdown wrappers
-- Mullvad inspect and settings wrappers
-- Mullvad safe recovery for tunnel/network failures
-- Mullvad post-run shutdown that turns Lockdown off, disconnects, and verifies the final state
-- guarded Mullvad disconnect testing that reconnects before returning
-- VPN posture checks for Mullvad Lockdown, split tunneling, LAN sharing, and auto-connect (`--with-vpn`)
-- anonymous yt-dlp auth/cookie policy checks
-- JavaScript runtime detection/configuration for YouTube extraction
-- bounded batch limits for smoke tests and controlled archive jobs
-- official `yt-dlp.exe` install, update, upstream version check, checksum verification, and 90-day freshness check
-- custom smoke-pack planning
-- batch `plan`
-- channel/playlist `inventory`
-- multi-URL and URL-file batch planning
-- batch `catalog`
-- item `ledger`
-- batch `preflight`
-- guarded `run`
-- batch `verify`
-- post-capture `intelligence` workspace, CrispASR/Parakeet transcription, word import, search, clip planning, rendering, and vault export
-
-Latest release: `v0.1.5`.
-
-## Conversational operation
-
-Tell the agent what you want to download. The agent handles the CLI flags, setup,
-and checks; you do not need to know commands such as `--with-vpn`. An occasional
-authorized pull proceeds without a VPN or a separate VPN approval step.
-
-For a large request, such as 100 videos, the agent explains pacing and may offer
-VPN assistance as an optional convenience. Your explicit request for that batch
-supplies the bulk acknowledgement; it does not require another approval card.
-Declining VPN, having no subscription, or having no Mullvad installation is fine
-at any batch size. Bulk mode never enables VPN automatically. VPN cannot guarantee
-protection from throttling, blocks, or account enforcement and is not a way to
-bypass source-side controls. Pause and report those controls when encountered.
-
-## Quick Start
-
-From the project root:
-
-```powershell
-legends-yt-dlp onboard
-legends-yt-dlp yt-dlp update
-legends-yt-dlp yt-dlp version
-legends-yt-dlp doctor
-```
-
-Optional: VPN-guarded runs with Mullvad. Nothing above needs it. When you want
-guarded runs, set up Mullvad once, then pass `--with-vpn` to `plan`,
-`preflight`, and `run`:
-
-```powershell
-legends-yt-dlp onboard --with-vpn
-legends-yt-dlp setup production
-legends-yt-dlp mullvad status --verbose
-legends-yt-dlp mullvad inspect
-legends-yt-dlp mullvad login
-legends-yt-dlp mullvad lockdown on
-legends-yt-dlp mullvad connect
-legends-yt-dlp mullvad recover
-legends-yt-dlp mullvad shutdown
-legends-yt-dlp mullvad disconnect-test --emergency-unlock
-legends-yt-dlp doctor --require-connected
-legends-yt-dlp doctor --production
-```
-
-Validate the install with a small authorized smoke URL:
-
-```powershell
-legends-yt-dlp smoke plan --url "https://www.youtube.com/watch?v=..." --name "first-smoke"
-legends-yt-dlp preflight "batches\...\manifest.json"
-legends-yt-dlp run "batches\...\manifest.json" --dry-run
-legends-yt-dlp run "batches\...\manifest.json" --yes
-legends-yt-dlp verify "batches\...\manifest.json"
-```
-
-In `--with-vpn` mode, `run --yes` shuts Mullvad down after the batch reaches a terminal state: Lockdown is turned off first, Mullvad disconnects with `--wait`, and the final disconnected state is verified. Use `--keep-vpn` only when the operator intentionally wants Mullvad and Lockdown left running after the batch.
-
-Create a batch:
-
-```powershell
-legends-yt-dlp plan "https://www.youtube.com/@CHANNEL" --name "channel-name"
-legends-yt-dlp plan --from-file ".\urls.txt" --name "catalog-name"
-legends-yt-dlp plan --from-file ".\urls.txt" --rights "optional permission/license/fair-use note" --rights-file ".\rights-evidence.md" --name "catalog-name"
-legends-yt-dlp plan --from-file ".\urls.txt" --name "catalog-name" --folder-policy batch
-legends-yt-dlp catalog
-```
-
-Folder policy controls output layout. `auto` puts direct multi-link plans into one named batch folder and keeps inventoried channel/playlist work grouped by uploader. Use `--folder-policy batch` for mixed one-off links, `--folder-policy by-uploader` for channel/archive work, and `--folder-policy flat` only when the selected output folder already represents the job.
-
-For channel or playlist work, inventory first:
-
-```powershell
-legends-yt-dlp inventory "https://www.youtube.com/@CHANNEL" --rights-file ".\rights-evidence.md" --name "channel-name"
-legends-yt-dlp ledger "batches\...\manifest.json"
-```
-
-Inventory creates the batch manifest, `urls.txt`, `yt-dlp.conf`, and `items.jsonl` without downloading media. Review the ledger with the user before a real run.
-
-Preflight and run:
-
-```powershell
-legends-yt-dlp preflight "batches\...\manifest.json"
-legends-yt-dlp run "batches\...\manifest.json" --dry-run
-legends-yt-dlp run "batches\...\manifest.json" --yes
-legends-yt-dlp verify "batches\...\manifest.json"
-legends-yt-dlp ledger "batches\...\manifest.json" --refresh
-```
-
-Analyze verified local media after download when the user asks for transcripts, search, clips, a transcript vault, or when the job clearly calls for post-capture analysis. Plain archive/download jobs do not need transcription by default:
-
-```powershell
-legends-yt-dlp intelligence init "batches\...\manifest.json"
-legends-yt-dlp intelligence doctor "batches\...\manifest.json" --require-gpu
-legends-yt-dlp intelligence transcribe "batches\...\manifest.json" --media ".\video.mp4" --video-id "VIDEO_ID" --model auto
-legends-yt-dlp intelligence transcribe "batches\...\manifest.json" --all --model auto --gpu-backend cuda --require-gpu
-legends-yt-dlp intelligence ingest-words "batches\...\manifest.json" --input ".\examples\intelligence-words.jsonl" --video-id "VIDEO_ID"
-legends-yt-dlp intelligence align nfa "batches\...\manifest.json" --media ".\video.mp4" --video-id "VIDEO_ID" --prepare-only
-legends-yt-dlp intelligence search "batches\...\manifest.json" "agentic workflow"
-legends-yt-dlp intelligence clips plan "batches\...\manifest.json" --query "agentic workflow"
-legends-yt-dlp intelligence vault build "batches\...\manifest.json"
-```
-
-`intelligence doctor --require-gpu` is the truth gate for GPU-backed Parakeet. CPU-only CrispASR still runs locally without Codex or Claude token spend, but the project does not label that install GPU-ready unless CrispASR diagnostics report a compiled GPU backend.
-
-`intelligence align nfa` prepares and imports NVIDIA NeMo Forced Aligner word CTM output for delicate clip boundaries. It expects NeMo/PyTorch/model weights in an external operator-managed environment; the core package only writes manifests and refines the word ledger.
-
-Treat `legends-yt-dlp intelligence` as an optional post-capture layer. The normal archive contract ends after run, verify, and ledger review unless the user requested analysis or the operator has a clear reason to propose it.
-
-## Safety Boundary
-
-Allowed:
-
-- archiving videos you own
-- archiving videos you have permission to download
-- archiving public-domain or appropriately licensed content
-- using Mullvad as a privacy and leak-prevention layer while source capture is actively running
-- stopping on throttling, captcha, login, or block signals
-- keeping pulls modest; batches over 50 URLs require explicit `--bulk` acknowledgement
-
-Not allowed:
-
-- bypassing DRM, paywalls, captchas, login challenges, account controls, or access controls
-- rotating VPN relays to continue through throttles, captchas, login prompts, account controls, or platform blocks
-- using Legends YT-DLP for unlawful downloads
-- hiding abusive or copyright-infringing use
-
-See [docs/SAFETY.md](docs/SAFETY.md).
-
-## Architecture
+![Agent Handoff](assets/cards/r1/slot-1-agent-handoff.svg)
 
 ```text
-Operator command
-  -> CLI control plane
-  -> Policy checks
-  -> Optional Mullvad guard
-  -> yt-dlp runner
-  -> Batch state and reports
+Install or update legends-yt-dlp via cto-legends (https://github.com/avalonreset/cto-legends): run `cto-legends install legends-yt-dlp --apply`, then `cto-legends handoff legends-yt-dlp` and follow the returned JSON recipe to verify `legends-yt-dlp`.
 ```
 
-The project uses `yt-dlp` as an external child-process dependency rather than reimplementing download logic.
+![Three Pillars: Read-only metadata probe, SHA-256 archive & guards, Transcripts, audio & clips](assets/cards/r1/slot-2-three-pillars.svg)
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+## Why `legends-yt-dlp` exists
 
-## Agent setup (via `cto-legends`)
+Most ad-hoc `yt-dlp` invocations in agent sessions fail in three predictable ways:
 
-Part of the [CTO Legends](https://github.com/avalonreset/cto-legends) ecosystem. `cto-legends` is the only registered skill; this repo vendors a pinned copy at `skills/cto-legends/SKILL.md`.
+1. **Passing live browser cookies and unverified flags into raw shell calls:** A raw chat suggestion tells your agent to pass `--cookies-from-browser chrome` or unvetted configuration flags, exposing your personal account to automated rate limits and allowing dangerous options like `--exec`, `--plugin-dirs`, or `--proxy`.
+2. **Downloading blindly without probing metadata or verifying output streams:** Running a raw download loop across a channel or playlist gives you no pre-download item ledger, no pacing between pulls, and no check that the finished files contain valid video and audio streams rather than truncated partial downloads.
+3. **Slicing clips from rough auto-captions that chop speakers mid-word:** Platform auto-captions drift across syllable boundaries. Cutting short-form clips or building subtitle timelines without a local word-timed ledger produces jarred cuts and broken active-word highlights.
 
-Install with `cto-legends install legends-yt-dlp`, then follow the module recipe the router loads. Do not register this module as its own skill.
+`legends-yt-dlp` wraps the official checksum-verified `yt-dlp` executable and `ffmpeg` inside an isolated batch control plane (`batches/<id>/`). Every job inventories or plans an explicit manifest (`manifest.json`, `urls.txt`, `items.jsonl`, and a SHA-256-locked `yt-dlp.conf`), blocks real downloads until preflight passes, paces requests politely by default, verifies completed files with `ffprobe`, and optionally demuxes audio into GPU word ledgers for [`legends-captions`](https://github.com/avalonreset/legends-captions), [`legends-ambient-intelligence`](https://github.com/avalonreset/legends-ambient-intelligence), [`legends-youtube`](https://github.com/avalonreset/legends-youtube), and [`legends-empire`](https://github.com/avalonreset/legends-empire).
 
-## Agent Routing
+## Ask in plain english
 
-Legends YT-DLP is markdown-first: an agent reads this README plus
-`docs/OPERATOR-ROUTING.md` and the docs below to operate the CLI. No skill
-installation is required to start; `cto-legends` routes capture goals here and
-hands over this README plus the recipe. Human operators use the same commands
-through `legends-yt-dlp` or `python -m legends_ytdlp`.
+Once [`cto-legends`](https://github.com/avalonreset/cto-legends) is installed, you ask your coding agent in plain english. It probes metadata or plans the batch first, runs anonymous preflight checks, paces the capture, and verifies the saved media streams:
 
-## Transcription Routes
+![Say the job in plain words](assets/cards/r1/slot-3-plain-english-chains.svg)
 
-Capture and transcription are separate concerns. This module transcribes its own
-verified media through an external CrispASR executable (Parakeet-capable, never
-bundled). For heavier transcription work, route outward instead of bulking up:
-continuous background audio and voice sketchpads belong to
-[`legends-ambient-intelligence`](https://github.com/avalonreset/legends-ambient-intelligence), and live typing belongs to [`legends-hyperyap`](https://github.com/avalonreset/legends-hyperyap).
-See [docs/TRANSCRIPTION.md](docs/TRANSCRIPTION.md).
+## Architecture: read-only probing, SHA-256 guards, and clip extraction
 
-## Empire Vault
+![How read-only probing, SHA-256 guards, and clip extraction work](assets/cards/r1/slot-4-yt-dlp-architecture.svg)
 
-`intelligence vault build` exports Obsidian-compatible transcript pages that
-slot into a Legends Empire vault as cited evidence. See
-[docs/VAULT-MAP.md](docs/VAULT-MAP.md) for the page layout and the Empire-side
-mapping.
+### 1. Read-only metadata probing and SHA-256 batch preflight (`inventory`, `plan`, `preflight`)
 
-## Documentation
+Before downloading a single media byte, `legends-yt-dlp` separates metadata discovery from capture execution:
 
-- [CLI Commands](docs/CLI.md)
-- [First-Run Walkthrough](docs/WALKTHROUGH.md)
-- [Standard Operating Procedure](docs/SOP.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Post-Capture Intelligence](docs/INTELLIGENCE.md)
-- [Transcription Routes](docs/TRANSCRIPTION.md)
-- [Empire Vault Map](docs/VAULT-MAP.md)
-- [Safety and Use Policy](docs/SAFETY.md)
-- [Legal and Attribution Notes](docs/LEGAL.md)
-- [Alpha Packaging](docs/PACKAGING.md)
-- [Changelog](CHANGELOG.md)
-- [Agent Recipe](docs/AGENT-RECIPE.md)
-- [Operator Routing](docs/OPERATOR-ROUTING.md)
-- [Search Strategy](docs/SEARCH-STRATEGY.md)
-- [Contributing](CONTRIBUTING.md)
-- [Security Policy](SECURITY.md)
-- [Support](SUPPORT.md)
+- **Channel & playlist item probing (`legends-yt-dlp inventory`):** Expands a channel or playlist into a reviewable `items.jsonl` ledger without downloading media. Every positional URL is validated and passed after `"--"` so option injection is impossible, and the runner pauses immediately if a source signals throttling, login walls, or captchas.
+- **Anonymous config allowlist & SHA-256 lock (`yt-dlp.conf`):** Generated batch configs enforce `--ignore-config`, `--no-cookies`, and `--no-cookies-from-browser` under a strict option allowlist that blocks `--exec*`, `--alias`, `--plugin-dirs`, `--config-location*`, `--load-info-json`, `--print-to-file`, and `--proxy`. Both `preflight` and `run` verify the recorded SHA-256 digest of `yt-dlp.conf` before launching `yt-dlp`.
+- **Upstream binary provenance (`legends-yt-dlp yt-dlp install | update | check`):** Fetches the official platform binary (`yt-dlp.exe`, `yt-dlp_macos`, or `yt-dlp_linux`) over HTTPS with TLS 1.2+, host allowlisting, `ProxyHandler({})`, symlink refusal, and staging-file verification against upstream `SHA2-256SUMS`, plus a 90-day freshness check.
 
-## Local Secrets
+### 2. Complete CLI command surface (`legends-yt-dlp`)
 
-`.env` is ignored by git. Use `.env.example` for the expected shape.
+Every subcommand runs deterministically with `shell=False`, path-containment and symlink guards, and structured batch reports:
 
-Never commit Mullvad account numbers, cookies, account tokens, or batch outputs.
+| Surface | `legends-yt-dlp` Subcommands | What It Does |
+| :--- | :--- | :--- |
+| **Readiness & Binary Provenance** | `doctor`, `onboard`, `yt-dlp install\|update\|version\|check` | JSON readiness checks (`doctor --offline`), non-mutating onboarding guidance (`onboard`), and SHA-256-verified upstream `yt-dlp` binary management. |
+| **Metadata Probing & Planning** | `inventory`, `plan`, `smoke plan`, `catalog`, `ledger` | Read-only channel and playlist expansion (`inventory`), batch manifest creation (`plan`), bounded smoke jobs (`smoke plan`), catalog listing (`catalog`), and per-item status reconciliation (`ledger --refresh`). |
+| **Guarded Capture & Verification** | `preflight`, `run`, `verify` | Config SHA-256 and anonymous-auth preflight (`preflight`), dry-run simulation (`run --dry-run`), paced capture (`run --yes`, `--bulk` above 50 URLs), and ledger-scoped `ffprobe -i` stream verification (`verify`). |
+| **Opt-In Mullvad VPN Lifecycle** | `setup production`, `mullvad status\|connect\|recover\|shutdown\|...` | Optional `--with-vpn` guardrail requiring Mullvad connected with Lockdown on during capture, automatic tunnel recovery, and clean post-run Lockdown disable and disconnect (`mullvad shutdown`). |
+| **Transcripts, Audio & Clip Engine** | `intelligence init\|doctor\|transcribe\|align nfa\|search\|clips\|vault` | Local audio demuxing, CrispASR Parakeet GPU transcription (`transcribe`), NeMo Forced Aligner word timing refinement (`align nfa`), exact phrase search (`search`), FFmpeg clip planning and rendering (`clips plan\|render`), and Obsidian vault export (`vault build`). |
 
-All batches are anonymous by default: no browser cookies, no cookie files, no username/password auth, no `.netrc`, and no inherited user-level `yt-dlp` config.
+### 3. Audio demuxing, word-timed transcripts, and downstream handoffs (`intelligence`)
 
-## Packaging
+- **Local GPU transcription & forced alignment:** `legends-yt-dlp intelligence transcribe` extracts audio from verified local video files and runs CrispASR (Parakeet TDT v3) locally to write normalized word ledgers (`intelligence/words/*.words.jsonl`). For delicate cuts, `intelligence align nfa` prepares and imports NVIDIA NeMo Forced Aligner word CTM timings when the word sequence matches the transcript.
+- **Ecosystem handoffs:** Exported word ledgers, clips, and Markdown transcript cards connect cleanly into [`legends-captions`](https://github.com/avalonreset/legends-captions) for vertical 4K60 active-word subtitles, [`legends-ambient-intelligence`](https://github.com/avalonreset/legends-ambient-intelligence) for continuous audio archives, [`legends-hyperyap`](https://github.com/avalonreset/legends-hyperyap) for live voice dictation, and [`legends-empire`](https://github.com/avalonreset/legends-empire) for source-cited vault notes.
 
-Verify release readiness and test coverage:
+## Ad-hoc `yt-dlp` calls vs `legends-yt-dlp`
 
-```bash
+![Comparison: Ad-hoc yt-dlp flags & shell calls vs Verified media archive engine // legends-yt-dlp](assets/cards/r1/slot-5-adhoc-vs-yt-dlp.svg)
+
+## Quick start
+
+```sh
+# 1. Check control-plane readiness and upstream yt-dlp binary provenance
+legends-yt-dlp doctor --offline
+legends-yt-dlp yt-dlp check
+
+# 2. Probe a channel or playlist into a reviewable items.jsonl ledger without downloading media
+legends-yt-dlp inventory "https://www.youtube.com/@CHANNEL" --name "channel-review" --max-items 25
+legends-yt-dlp ledger "batches/<batch-id>/manifest.json"
+
+# 3. Plan a bounded batch from direct URLs or a URL file
+legends-yt-dlp plan --from-file "./examples/urls.txt" --name "reference-clips" --folder-policy batch
+
+# 4. Run SHA-256 config preflight, dry-run simulation, paced capture, and ffprobe stream verification
+legends-yt-dlp preflight "batches/<batch-id>/manifest.json"
+legends-yt-dlp run "batches/<batch-id>/manifest.json" --dry-run
+legends-yt-dlp run "batches/<batch-id>/manifest.json" --yes
+legends-yt-dlp verify "batches/<batch-id>/manifest.json"
+legends-yt-dlp ledger "batches/<batch-id>/manifest.json" --refresh
+
+# 5. Optional: transcribe verified local media on GPU, search phrases, cut clips, and build vault notes
+legends-yt-dlp intelligence init "batches/<batch-id>/manifest.json"
+legends-yt-dlp intelligence doctor "batches/<batch-id>/manifest.json" --require-gpu
+legends-yt-dlp intelligence transcribe "batches/<batch-id>/manifest.json" --all --model auto
+legends-yt-dlp intelligence search "batches/<batch-id>/manifest.json" "agentic workflow"
+legends-yt-dlp intelligence clips plan "batches/<batch-id>/manifest.json" --query "agentic workflow"
+legends-yt-dlp intelligence vault build "batches/<batch-id>/manifest.json"
+```
+
+## Reference
+
+<details>
+<summary><strong>Safety boundaries, anonymous extraction policy, and opt-in Mullvad lifecycle</strong></summary>
+
+All batches run anonymously by default: no browser cookies, no cookie files, no username or password flags, no `.netrc`, and no inherited user-level `yt-dlp` configuration. Batches of 11 to 50 URLs print a pacing notice; batches over 50 URLs require explicit `--bulk` acknowledgement.
+
+- **Lawful & authorized use only:** Designed for archiving media you own, have permission to download, or access under public-domain or open licenses. Never use `legends-yt-dlp` to bypass DRM, paywalls, captchas, login challenges, or access controls, and never rotate VPN relays to push through platform blocks.
+- **Opt-in Mullvad VPN (`--with-vpn`):** Ordinary runs require no VPN and touch no Mullvad state. When `--with-vpn` is requested on `plan`, `inventory`, `preflight`, or `run`, `legends-yt-dlp` verifies that Mullvad is connected with Lockdown on, recovers from transient tunnel drops, and cleanly disables Lockdown and disconnects (`mullvad shutdown`) when `run --yes` completes (unless `--keep-vpn` is passed).
+
+See [docs/SAFETY.md](docs/SAFETY.md), [docs/SAFETY-AND-ERRORS.md](docs/SAFETY-AND-ERRORS.md), [docs/MULLVAD-CONTROLS.md](docs/MULLVAD-CONTROLS.md), and [docs/LEGAL.md](docs/LEGAL.md).
+
+</details>
+
+<details>
+<summary><strong>Agent setup (via <code>cto-legends</code>) and standalone installation</strong></summary>
+
+### Agent setup (via `cto-legends`)
+
+Part of [cto-legends](https://github.com/avalonreset/cto-legends). The central router skill is vendored at [skills/cto-legends/SKILL.md](skills/cto-legends/SKILL.md); this module is not a separate registered skill and does not require an ambient MCP daemon.
+
+Run `cto-legends handoff legends-yt-dlp` and read the returned installed recipe and task-readiness checks. If the module is missing, preview setup with `cto-legends install legends-yt-dlp`, perform the authorized setup, then repeat the handoff. Use `cto-legends check-updates` to compare your installed version with the catalog and published release. See [docs/AGENT-RECIPE.md](docs/AGENT-RECIPE.md) and [docs/OPERATOR-ROUTING.md](docs/OPERATOR-ROUTING.md) for the standalone recipe.
+
+```sh
+python -m pip install -e .
+legends-yt-dlp doctor --offline
+```
+
+`.env` is ignored by git (see `.env.example` for optional `MULLVAD_ACCOUNT_NUMBER` or `CRISP_ASR_BIN` settings).
+
+</details>
+
+<details>
+<summary><strong>Repository layout, documentation index, and verification</strong></summary>
+
+```text
+Operator / Agent (`legends-yt-dlp`)
+  -> Read-only inventory & batch plan (`manifest.json`, `items.jsonl`, SHA-256 `yt-dlp.conf`)
+  -> Anonymous preflight gate & optional `--with-vpn` Mullvad Lockdown check
+  -> Paced `yt-dlp` capture (`shell=False`) & ledger-scoped `ffprobe -i` stream verification
+  -> Optional `intelligence` GPU word ledger, FFmpeg clip plans, and Empire vault export
+```
+
+- `src/legends_ytdlp/`: Console entrypoints (`legends-yt-dlp`, `legends-ytdlp`, `python -m legends_ytdlp`), `batch.py`, `inventory.py`, `ledger.py`, `verify.py`, `intelligence.py`, `mullvad.py`, and `tools.py`.
+- `docs/`: [CLI Commands](docs/CLI.md), [First-Run Walkthrough](docs/WALKTHROUGH.md), [Standard Operating Procedure](docs/SOP.md), [Architecture](docs/ARCHITECTURE.md), [Post-Capture Intelligence](docs/INTELLIGENCE.md), [CrispASR Backend](docs/CRISPASR.md), [Transcription Routes](docs/TRANSCRIPTION.md), [Empire Vault Map](docs/VAULT-MAP.md), [Batch Catalog](docs/BATCH-CATALOG.md), [Packaging](docs/PACKAGING.md), and [Search Strategy](docs/SEARCH-STRATEGY.md).
+- `skills/cto-legends/SKILL.md`: Pinned copy of the central [`cto-legends`](https://github.com/avalonreset/cto-legends) router skill.
+
+```sh
 python -m unittest discover -s tests -p "test_*.py" -v
 python scripts/check_release.py
 ```
 
-The package excludes `.env`, `.local`, `batches`, `reports`, downloads, caches, cookies, secrets, and git metadata.
+</details>
 
-## FAQ
+## Contributing, security, and license
 
-**Is Mullvad VPN required to use `legends-yt-dlp`?**
-No. Occasional authorized pulls run without Mullvad or any VPN setup. Mullvad (`--with-vpn`) is strictly an opt-in guardrail for operators who want leak protection during larger batches.
+See [CONTRIBUTING.md](CONTRIBUTING.md), [SUPPORT.md](SUPPORT.md), and [SECURITY.md](SECURITY.md).
 
-**Does `legends-yt-dlp` bundle `yt-dlp.exe` in the repository?**
-No. It downloads the official release binary from `yt-dlp/yt-dlp` locally and verifies its SHA-256 checksum against upstream `SHA2-256SUMS`.
+MIT License. The project does not bundle or redistribute `yt-dlp.exe`; it downloads and checksum-verifies the official upstream release locally. See [LICENSE](LICENSE), [NOTICE](NOTICE), and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Copyright (c) 2026 Avalon Reset.
 
-## License
+[![Message Avalon Reset](assets/cards/r1/slot-7-message-avalon-reset.svg)](https://github.com/avalonreset/cto-legends/issues/new?title=Message%20for%20Avalon%20Reset&labels=message)
 
-Legends YT-DLP is released under the [MIT License](LICENSE).
-
-Important distribution note: the project does not commit or package the `yt-dlp.exe` binary. It downloads the official upstream executable locally and verifies its checksum. See [NOTICE](NOTICE) and [docs/LEGAL.md](docs/LEGAL.md).
-
----
-
-<p align="center"><a href="https://github.com/stars/avalonreset/lists/cto-legends"><img src="assets/collection-star-shrine.svg" width="100%" alt="GitHub Star List: The complete cto-legends collection on one page. Bookmark or star the router and every module from a single GitHub list."></a></p>
+<p align="center"><a href="https://github.com/stars/avalonreset/lists/cto-legends"><img src="assets/cards/r1/slot-collection-star-shrine.svg" width="100%" alt="GitHub Star List: The complete cto-legends collection on one page. Bookmark or star the router and every module from a single GitHub list."></a></p>
 
 **Specification & benchmarks on cto-legends.com:**
 - **Module specification & architecture matrix:** [cto-legends.com/modules/legends-yt-dlp](https://cto-legends.com/modules/legends-yt-dlp)

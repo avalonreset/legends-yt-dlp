@@ -4,8 +4,8 @@
 
 | Version | Supported |
 | --- | --- |
-| `0.1.x` (`>= 0.1.5`) | Yes |
-| `< 0.1.5` | No |
+| `0.1.x` (`>= 0.1.6`) | Yes |
+| `< 0.1.6` | No |
 
 Security fixes target the latest tagged `0.1.x` release on the `main` branch.
 

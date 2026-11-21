@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.6 - 2026-11-21
+
+- Added `scripts/render_cards.py` and the 7 outlined Legends Font `r1` SVG design cards under `assets/cards/r1/` (`slot-1-agent-handoff.svg`, `slot-2-three-pillars.svg`, `slot-3-plain-english-chains.svg`, `slot-4-yt-dlp-architecture.svg`, `slot-5-adhoc-vs-yt-dlp.svg`, `slot-7-message-avalon-reset.svg`, and `slot-collection-star-shrine.svg`), and removed the duplicate root `assets/collection-star-shrine.svg`.
+- Rewrote `README.md` to the evergreen CTO Legends architecture and reference standard with collapsible `<details>` reference drawers, single `--apply` agent handoff block, read-only metadata probing and SHA-256 batch provenance overview, and ecosystem handoff tables.
+- Included `assets/**/*.svg` in `MANIFEST.in` and synchronized version metadata across `pyproject.toml`, `src/legends_ytdlp/__init__.py`, `CITATION.cff`, `assets/manifest.json`, and `SECURITY.md`.
+
 ## 0.1.5 - 2026-11-11
 
 - Hardened `batch.py` against config and URL newline injection, validated `--max-filesize`, replaced the narrow auth blocklist with a strict `yt-dlp.conf` option allowlist (blocking `--exec*`, `--alias`, `--plugin-dirs`, `--config-location*`, `--load-info-json`, `--print-to-file`, and `--proxy`), and enforced SHA-256 config verification inside both `preflight` and `run_batch()`.

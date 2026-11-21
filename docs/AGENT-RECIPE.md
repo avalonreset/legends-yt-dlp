@@ -1,6 +1,6 @@
 # Legends YT-DLP Agent Recipe
 
-Deterministic operator procedure for `legends-yt-dlp` (`v0.1.5`). Loaded by `cto-legends handoff legends-yt-dlp`. Do not register a separate per-module skill.
+Deterministic operator procedure for `legends-yt-dlp`. Loaded by `cto-legends handoff legends-yt-dlp`. Do not register a separate per-module skill.
 
 ## 1. Readiness & Diagnostics
 

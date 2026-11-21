@@ -213,7 +213,7 @@ class CliTests(unittest.TestCase):
         with contextlib.redirect_stdout(stdout), self.assertRaises(SystemExit) as ctx:
             parser.parse_args(["--version"])
         self.assertEqual(ctx.exception.code, 0)
-        self.assertIn("0.1.5", stdout.getvalue())
+        self.assertIn("0.1.6", stdout.getvalue())
 
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):

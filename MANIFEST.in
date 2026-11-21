@@ -17,7 +17,7 @@ include pyproject.toml
 recursive-include docs *.md
 recursive-include examples *.md *.txt *.jsonl *.json
 recursive-include skills *.md
-recursive-include assets *.png *.webp *.json
+recursive-include assets *.png *.webp *.json *.svg
 recursive-include scripts *.py
 recursive-include tests *.py
 
