@@ -1,11 +1,13 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below."
+title: "legends-youtube"
+message: "If you use legends-youtube, please cite it using this metadata."
 type: software
-title: "Legends YT-DLP"
-version: "0.1.6"
-date-released: "2026-11-21"
 authors:
-  - name: "Avalon Reset Pro"
-repository-code: "https://github.com/avalonreset/legends-yt-dlp"
-license: "MIT"
-abstract: "Windows-first control plane for repeatable yt-dlp source capture, local verification, creator clip workflows, and optional Mullvad VPN controls."
+  - family-names: Samar
+    given-names: Benjamin
+version: "0.2.0"
+date-released: "2026-11-21"
+license: MIT
+repository-code: "https://github.com/avalonreset/legends-youtube"
+url: "https://cto-legends.com"
+abstract: "Unified YouTube Data API v3, Analytics API v2, Studio packaging, and verified yt-dlp media archiving CLI with an 18-file Empire knowledge pack."

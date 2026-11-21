@@ -1,0 +1,86 @@
+{
+  "schema": "legends.knowledge-pack/v1",
+  "id": "youtube",
+  "module": "legends-youtube",
+  "version": "0.2.0",
+  "entrypoint": "index.md",
+  "files": [
+    {
+      "path": "analytics-and-packaging-ab.md",
+      "sha256": "0fb1c118c610e70c2c851d16405772c871cfbf4fa70b87f4b20c1cdac861460e"
+    },
+    {
+      "path": "authentication-and-quotas.md",
+      "sha256": "c6465667cf237ebd9d5999f7b6a7cbd2472273992406cddfda2fe3218ee230c6"
+    },
+    {
+      "path": "chapters-captions-and-quizzes.md",
+      "sha256": "3f2fc6774efc24becbd61e78d0e58bc31dd225d20cf5b4fcfd798cb59976c355"
+    },
+    {
+      "path": "draft-uploads-and-thumbnails.md",
+      "sha256": "40dbf8c27416508e35d438c284fdf6e57ffbbea8f4f368c1411517ee9124b1a9"
+    },
+    {
+      "path": "index.md",
+      "sha256": "108611241c3cbff3f41ea3fef8925b6bf6e422e0811d0908fb6f9fe49f5b42a0"
+    },
+    {
+      "path": "link-sweeps-and-playlists.md",
+      "sha256": "b95033484775255ca3128b73ad8d0a8ee2738418927aacca00670a6b9a798501"
+    },
+    {
+      "path": "metadata-and-partial-updates.md",
+      "sha256": "67a33aa4de644f9e3df360c2d6d4223ea1f2bf1ec8c5e4386aaddfb0c382a23c"
+    },
+    {
+      "path": "overview.md",
+      "sha256": "f1cc0e93b3fe7d2d5c7ccbf5c42fa858a6392afdc14a4456fcb79c35d41edf52"
+    },
+    {
+      "path": "perfect-video-formula-and-idea-radar.md",
+      "sha256": "ff847092a065d86b1621c0e6ece4398787d32df2c846d9cb2161f7b7b7fbb8f4"
+    },
+    {
+      "path": "shorts-related-video-funnel-and-guards.md",
+      "sha256": "749d7b8e8778314a6eaa3a16685bd4e5052d076a324142d3c827a58272d1ee73"
+    },
+    {
+      "path": "sources.md",
+      "sha256": "85cff321c4b8e4392ac0d9e65f78e268c5477920874b104be9235d95178a3315"
+    },
+    {
+      "path": "templates/channel-operation-receipt.md",
+      "sha256": "fb9a5f2b005f9adb3124e0689f9a39a3c6fe8d478f752bb9aa9046dbcc92a622"
+    },
+    {
+      "path": "templates/draft-upload-receipt.md",
+      "sha256": "c7156cd8936154b70c197ed9d6e180f5a34f5960c6f47d7cdb854173b3351bc1"
+    },
+    {
+      "path": "templates/packaging-audit-receipt.md",
+      "sha256": "88f1c92ff5dd818fe075272b8ec44350c1e60f52a1b7916398f340121273c38a"
+    },
+    {
+      "path": "templates/private-operation-receipt.md",
+      "sha256": "58fb85e50ad88cb160d806e8bcb6e5e5fe8393862c725afbed049a52700ced95"
+    },
+    {
+      "path": "title-thumbnail-and-description-sops.md",
+      "sha256": "6a44cefd4575317a52170789aab661fbfc5f93510dba2a4643aa50ab7dbc903c"
+    },
+    {
+      "path": "troubleshooting.md",
+      "sha256": "cb2df12199c6bba485b0a76364d02152aab165a842a2a2600c0d37fbe4d8b082"
+    },
+    {
+      "path": "zero-quota-public-readback.md",
+      "sha256": "f6bf5e0f83cc87102f32ff86b091c3ac2779575e9d25b7a72afd35895d36d9f3"
+    }
+  ],
+  "ontology": {
+    "suggested_home": "wiki/library/legends-youtube/youtube",
+    "purpose": "Operate YouTube channels over Data API v3 and Analytics API v2 with lossless ETag-guarded metadata updates, zero-quota public readbacks, quota-cost batch planning, pre-recording Perfect Video Score idea scoring, Shorts Related-video isolation guards, Studio quiz/chapter validators, and an attachable 12-runbook YouTube Operations Vault.",
+    "kind": "library"
+  }
+}

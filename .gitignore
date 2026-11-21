@@ -19,6 +19,9 @@ downloads/
 work/
 cache/
 dist/
+build/
+*.egg-info/
+.integration/
 secrets/
 cookies/
 rights-evidence/

@@ -1,88 +1,26 @@
----
-type: meta
-status: active
-created: 2026-05-27
-updated: 2026-06-12
-tags: [index, meta]
----
+# Legends YouTube Knowledge Vault
 
-# Index
+Index of operator runbooks, API governance laws, pre-recording idea scoring, packaging SOPs, Shorts Related-video guards, and receipt templates for `legends-youtube`.
 
-## Start Here
+## Core Runbooks
 
-- [[Project Overview]]
-- [[Hot Cache]]
-- [[Roadmap]]
-- [[Use Policy]]
-- [[Architecture Overview]]
-- [[Windows Operator Setup]]
-- [[CLI Operator Commands]]
+1. [Overview and Studio Stack Architecture](overview.md)
+2. [Authentication, Scopes, and Quota Cost Engineering](authentication-and-quotas.md)
+3. [Lossless Metadata Partial Updates and ETag Concurrency](metadata-and-partial-updates.md)
+4. [Zero-Quota Anonymous Public Video Readback](zero-quota-public-readback.md)
+5. [Perfect Video Formula and Pre-Recording Idea Radar](perfect-video-formula-and-idea-radar.md)
+6. [Title, Thumbnail, and Description Packaging SOP](title-thumbnail-and-description-sops.md)
+7. [Shorts Related-Video Funnel and Isolation Guards](shorts-related-video-funnel-and-guards.md)
+8. [Analytics API v2, Channel Health, and Packaging A/B Tests](analytics-and-packaging-ab.md)
+9. [Description Chapters, Captions, and Studio Video Quizzes](chapters-captions-and-quizzes.md)
+10. [SHA-256 Frozen Private-Draft Uploads and Thumbnail Guards](draft-uploads-and-thumbnails.md)
+11. [Channel-Wide Link Sweeps and CTA Migrations](link-sweeps-and-playlists.md)
+12. [Troubleshooting and Error Recovery](troubleshooting.md)
 
-## Domains
+## Sources & Receipt Templates
 
-- [[Responsible Archive Orchestrator]]
-- [[Windows Mullvad Integration]]
-- [[YT DLP Workflow]]
-- [[Community Release]]
-
-## Modules
-
-- [[CLI Control Plane]]
-- [[Mullvad Guard Module]]
-- [[YT DLP Runner]]
-- [[Job Queue and State Store]]
-- [[Policy Engine]]
-- [[Telemetry and Reports]]
-
-## Decisions
-
-- [[Key Decisions]]
-- [[ADR 001 - Lawful Use Boundary]]
-- [[ADR 002 - Windows First CLI Architecture]]
-- [[ADR 003 - Fail Closed VPN Gate]]
-
-## Dependencies
-
-- [[Mullvad VPN]]
-- [[yt-dlp]]
-- [[ffmpeg]]
-
-## Flows
-
-- [[Authorized Channel Archive Flow]]
-- [[VPN Connection Verification Flow]]
-- [[Rate Limit and Block Handling Flow]]
-
-## Runbooks
-
-- [[Windows Operator Setup]]
-- [[Preflight Checklist]]
-- [[Batch Archive SOP]]
-- [[Blocked or Throttled SOP]]
-- [[CLI Operator Commands]]
-- [[Mullvad Control Surface]]
-- [[NeMo Forced Aligner Refinement]]
-
-## Compliance
-
-- [[Use Policy]]
-- [[Rights and Consent Checklist]]
-- [[Account Cookie Policy]]
-- [[YouTube Boundary Notes]]
-
-## Research and Sources
-
-- [[Mullvad Pricing Snapshot 2026-05-27]]
-- [[Mullvad CLI Notes 2026-05-27]]
-- [[yt-dlp Operational Notes 2026-05-27]]
-- [[yt-dlp Deep Research 2026-05-27]]
-- [[Local Transcription and Clip Extraction Stack 2026-05-28]]
-- [[Mullvad Pricing]]
-- [[Mullvad CLI Guide]]
-- [[yt-dlp GitHub README]]
-
-## Meta
-
-- [[Glossary]]
-- [[Health Check]]
-- [[Product Assessment 2026-05-28]]
+- [Primary Google & YouTube Documentation Sources](sources.md)
+- [Channel Operation Receipt Template](../templates/channel-operation-receipt.md)
+- [Channel Scorecard and Packaging Audit Template](../templates/packaging-audit-receipt.md)
+- [Private Draft Upload Receipt Template](../templates/draft-upload-receipt.md)
+- [Private Operation Receipt Template](../templates/private-operation-receipt.md)

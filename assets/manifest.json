@@ -1,30 +1,33 @@
 {
-  "module": "legends-yt-dlp",
-  "version": "0.1.6",
-  "assets": {
-    "banner_png": {
-      "path": "assets/banner.png",
-      "width": 4096,
-      "height": 1024,
-      "format": "PNG"
+  "product": "legends-youtube",
+  "module": "legends-youtube",
+  "version": "0.2.0",
+  "banner_template": "legends-type-v1",
+  "social_template": "legends-social-v1",
+  "subtitle": "youtube data api v3 and analytics api v2 operations, lossless metadata updates, studio packaging, and verified yt-dlp media archiving",
+  "font": "Legends Regular",
+  "font_sha256": "3769f0f76477a7d9e2e6cb40422dedacb56c9ab1a6f7beee89b2b9ba6b8091ee",
+  "font_redistributed": false,
+  "files": [
+    {
+      "name": "banner.png",
+      "bytes": 76151,
+      "sha256": "21cdf30d0c9fe3b909bf7fb3c43ce260ef61d45b6e1766abf3684244ca61de86"
     },
-    "banner_webp": {
-      "path": "assets/banner.webp",
-      "width": 4096,
-      "height": 1024,
-      "format": "WEBP"
+    {
+      "name": "banner.webp",
+      "bytes": 30926,
+      "sha256": "62675f85146ce33a104380f0c15ade782544a1de9a59256990e8bcb315e7f900"
     },
-    "preview_png": {
-      "path": "assets/preview.png",
-      "width": 1024,
-      "height": 256,
-      "format": "PNG"
+    {
+      "name": "preview.png",
+      "bytes": 27797,
+      "sha256": "f3188cf7f1bcb389afdfaec2650e3080046d3581a08281973c96770405ad2445"
     },
-    "social_preview_png": {
-      "path": "assets/social-preview.png",
-      "width": 1280,
-      "height": 640,
-      "format": "PNG"
+    {
+      "name": "social-preview.png",
+      "bytes": 28962,
+      "sha256": "6c02fb9635a3fdb90985563729562fd9debac40f89385e3b184785fbfd2b15be"
     }
-  }
+  ]
 }

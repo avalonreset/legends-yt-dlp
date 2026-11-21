@@ -1,29 +1,57 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "legends-yt-dlp"
-version = "0.1.6"
-description = "Windows-first yt-dlp orchestration CLI for source capture, verification, and creator clip workflows with optional Mullvad VPN controls."
-readme = "README.md"
+name = "legends-youtube"
+version = "0.2.0"
+description = "Unified YouTube Data API v3, Analytics API v2, Studio packaging, and verified yt-dlp media archiving CLI: 2-unit channel inventory, 0-quota outlier and public readback radar, Perfect Video Score idea scoring, lossless ETag-guarded metadata updates, SHA-256 frozen private-draft uploads, anonymous yt-dlp capture and ffprobe stream verification, GPU word ledgers and FFmpeg clip plans, and an 18-file Empire knowledge pack."
 requires-python = ">=3.11"
-authors = [
-  { name = "Legends" }
-]
-license = { text = "MIT" }
+license = "MIT"
+authors = [{name = "Benjamin Samar / cto-legends"}]
 dependencies = [
   "yt-dlp>=2026.10.01",
 ]
+readme = "README.md"
+keywords = [
+  "youtube",
+  "youtube-api",
+  "youtube-data-api",
+  "youtube-analytics",
+  "youtube-studio",
+  "youtube-automation",
+  "youtube-seo",
+  "youtube-chapters",
+  "video-packaging",
+  "ab-testing",
+  "yt-dlp",
+  "video-archiving",
+  "transcript-extraction",
+  "cto-legends",
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "Topic :: Multimedia :: Video",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
 
 [project.scripts]
+legends-youtube = "legends_youtube.cli:main"
 legends-yt-dlp = "legends_ytdlp.cli:main"
 legends-ytdlp = "legends_ytdlp.cli:main"
 slayer = "legends_ytdlp.cli:main"
 printing-press = "legends_ytdlp.cli:main"
 
+[project.urls]
+Homepage = "https://cto-legends.com"
+Repository = "https://github.com/avalonreset/legends-youtube"
+Issues = "https://github.com/avalonreset/legends-youtube/issues"
+Changelog = "https://github.com/avalonreset/legends-youtube/blob/main/CHANGELOG.md"
+
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["legends_youtube*", "legends_ytdlp*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

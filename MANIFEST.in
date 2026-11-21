@@ -1,28 +1,21 @@
-include README.md
-include LICENSE
-include NOTICE
-include CHANGELOG.md
-include SECURITY.md
-include CONTRIBUTING.md
-include CODE_OF_CONDUCT.md
-include SUPPORT.md
-include CITATION.cff
-include THIRD_PARTY_NOTICES.md
-include AGENTS.md
-include .legends-module
-include .legends-router-pin
-include .env.example
-include pyproject.toml
-
-recursive-include docs *.md
+include LICENSE README.md AGENTS.md SECURITY.md CHANGELOG.md THIRD_PARTY_NOTICES.md CONTRIBUTING.md
+include NOTICE NOTICE.md CITATION.cff SUPPORT.md CODE_OF_CONDUCT.md
+include .legends-module .legends-router-pin .env.example pyproject.toml setup.py
+recursive-include wiki *.md
+recursive-include references *.md
+recursive-include templates *.md
+recursive-include docs *.md *.json
 recursive-include examples *.md *.txt *.jsonl *.json
+recursive-include knowledge *.md *.json
 recursive-include skills *.md
-recursive-include assets *.png *.webp *.json *.svg
 recursive-include scripts *.py
 recursive-include tests *.py
+recursive-include assets *.png *.webp *.json *.svg
+recursive-include .github *.yml *.md
 
 prune .git
 prune .local
+prune .integration
 prune batches
 prune reports
 prune downloads

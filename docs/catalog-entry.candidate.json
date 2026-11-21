@@ -1,0 +1,82 @@
+{
+  "id": "legends-youtube",
+  "name": "Legends YouTube",
+  "repo": "avalonreset/legends-youtube",
+  "version": "0.2.0",
+  "summary": "Unified YouTube Data API v3, Analytics API v2, Studio packaging, and verified yt-dlp media archiving CLI: 2-unit channel inventory, 0-quota outlier and public readback radar, Perfect Video Score idea scoring, lossless ETag-guarded metadata updates, SHA-256 frozen private-draft uploads, anonymous yt-dlp capture and ffprobe stream verification, GPU word ledgers and FFmpeg clip plans, and an 18-file Empire knowledge pack.",
+  "domains": [
+    "youtube",
+    "youtube-api",
+    "youtube-data-api",
+    "youtube-analytics",
+    "youtube-studio",
+    "video-packaging",
+    "ab-testing",
+    "shorts-funnel",
+    "yt-dlp",
+    "video-archiving",
+    "transcript-extraction",
+    "clip-extraction"
+  ],
+  "outcomes": [
+    "Inventory YouTube channels via relatedPlaylists.uploads for 2 quota units per 50 videos and calculate multi-day batch waves against the 10,000-unit daily pool and 2026-06-01 granular caps",
+    "Execute lossless, ETag-guarded (If-Match) videos.update metadata mutations with SHA-256 plan locks, preflight drift verification, full snippet field preservation, and post-write readback verification",
+    "Verify public video playability, metadata, and oEmbed status for 0 quota units and 0 credentials via public-readback, and scout channel outlier velocity via 0-quota RSS feeds",
+    "Probe channel and playlist metadata into a reviewable items.jsonl ledger before downloading, enforce anonymous no-cookie yt-dlp.conf SHA-256 allowlists, and verify every media stream with ffprobe",
+    "Demux audio for local GPU Parakeet ASR (CrispASR) and NeMo Forced Aligner word ledgers, search exact spoken phrases, render frame-accurate FFmpeg clip plans, and export Obsidian transcript vaults",
+    "Score pre-recording video candidates with the Perfect Video Score formula, benchmark CTR/APV/mid-roll metrics against dated YouTube Help thresholds, and correlate retention curves with spoken transcript lines",
+    "Validate YouTube description chapters, Studio video quizzes (ytve-posts-modal), custom PNG/JPEG thumbnails (<= 2 MB), Shorts Related-video isolation guards, and SHA-256 frozen private-draft resumable uploads"
+  ],
+  "examples": [
+    "Inventory my YouTube channel and generate a lossless metadata plan to migrate legacy description links without wiping video tags",
+    "Probe a channel into an items.jsonl ledger with yt-dlp, run anonymous SHA-256 config preflight, pull the batch, verify streams with ffprobe, and extract GPU word-timed clips",
+    "Calculate the YouTube Data API v3 quota cost and daily waves needed to update 250 video descriptions",
+    "Run a channel health scorecard and rank below-median-CTR long-form videos for Title and Thumbnail Test & Compare A/B runs",
+    "Validate my video description chapters, Studio video quizzes JSON, and custom thumbnail before freezing a private draft upload"
+  ],
+  "exclusions": [
+    "Do not call PUT /youtube/v3/videos?part=snippet without merging existing live snippet fields (title, description, tags, categoryId, defaultLanguage, defaultAudioLanguage)",
+    "Do not use search.list to inventory a channel's uploads when relatedPlaylists.uploads is available",
+    "Do not read browser profile databases, cookie stores, or system credential stores for YouTube authentication or yt-dlp capture"
+  ],
+  "install": {
+    "strategy": "python_venv_wheel_or_editable",
+    "requires_python": ">=3.11",
+    "entrypoints": [
+      "legends-youtube",
+      "legends-yt-dlp",
+      "legends-ytdlp"
+    ]
+  },
+  "recipe": "docs/AGENT-RECIPE.md",
+  "knowledge_pack": "knowledge/youtube/pack.json",
+  "readiness_probes": [
+    {
+      "name": "doctor",
+      "command": [
+        "legends-youtube",
+        "doctor",
+        "--json"
+      ],
+      "paid_calls": false
+    },
+    {
+      "name": "yt-dlp-doctor",
+      "command": [
+        "legends-yt-dlp",
+        "doctor",
+        "--offline"
+      ],
+      "paid_calls": false
+    },
+    {
+      "name": "resources",
+      "command": [
+        "legends-youtube",
+        "resources",
+        "--json"
+      ],
+      "paid_calls": false
+    }
+  ]
+}

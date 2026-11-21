@@ -61,6 +61,7 @@ class OptionalVpnTests(unittest.TestCase):
     def test_default_preflight_and_run_work_without_vpn(self):
         with tempfile.TemporaryDirectory() as tmp, \
              patch('legends_ytdlp.batch.BATCHES_DIR', Path(tmp) / 'batches'), \
+             patch('legends_ytdlp.batch.REPORTS_DIR', Path(tmp) / 'reports'), \
              patch('legends_ytdlp.doctor.find_mullvad') as vpn, \
              patch('legends_ytdlp.doctor.read_env_file') as account, \
              patch('legends_ytdlp.cli.shutdown_connection') as shutdown, \

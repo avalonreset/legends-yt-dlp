@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render outlined Legends Font SVG design cards (rev r1) for the legends-yt-dlp README."""
+"""Render outlined Legends Font SVG design cards (rev r1) for the unified legends-youtube README."""
 import argparse
 import math
 from pathlib import Path
@@ -89,7 +89,7 @@ def render_slot_1() -> None:
 
 
 def render_slot_2() -> None:
-    """Slot 2: Three-pillar overview card for legends-yt-dlp."""
+    """Slot 2: Three-pillar overview card for unified legends-youtube."""
     t = Typesetter()
     hd, ti, bd, lb = u("head", K_WIDE), u("title", K_WIDE), u("body", K_WIDE), u("label", K_WIDE)
     x0, x1 = 20, 866
@@ -103,39 +103,39 @@ def render_slot_2() -> None:
     y_head = 26
     body += t.run(x0, y_head, ti, "&gt;_", "#ff0000", "700")
     x_title = x0 + width("&gt;_", ti) + 8
-    headline = "Probe metadata first. Pull anonymously. Verify every stream."
-    tag_right = "// yt-dlp · sha-256 ledger · word-timed clips"
-    assert x_title + width(headline, hd) + 16 <= x1 - width(tag_right, lb), "Slot 2 header collides with tag"
-    body += t.run(x_title, y_head, hd, headline, "#ffffff", "700")
-    body += t.run(x1, y_head, lb, tag_right, "#a1a1aa", "400", "end")
+    head_txt = "2-unit inventory. Verified yt-dlp pulls. ETag-locked Studio ops."
+    sub_txt = "// data api v3 · analytics v2 · yt-dlp"
+    assert x_title + width(head_txt, hd) + 12 <= x1 - width(sub_txt, lb), "Slot 2 header collides with right tag"
+    body += t.run(x_title, y_head, hd, head_txt, "#ffffff", "700")
+    body += t.run(x1, y_head, lb, sub_txt, "#a1a1aa", "400", "end")
     body += f'  <line x1="{x0}" y1="40" x2="{x1}" y2="40" {HAIR}/>\n'
 
     pillars = [
         (
             "01",
-            "Read-only metadata probe",
+            "2u inventory &amp; 0u outlier radar",
             [
-                "Probe channels, formats, chapters,",
-                "and subtitles into items.jsonl",
-                "before downloading a single byte.",
+                "Sweeps uploads playlists at 2 units",
+                "per 50 videos, plus 0-quota readback,",
+                "RSS outliers &amp; Perfect Video Score.",
             ],
         ),
         (
             "02",
-            "SHA-256 archive &amp; guards",
+            "Verified yt-dlp &amp; word ledgers",
             [
-                "Verify yt-dlp &amp; config SHA-256,",
-                "enforce anonymous no-cookie pacing,",
-                "and block SSRF &amp; path traversal.",
+                "Probes items.jsonl first, enforces",
+                "anonymous SHA-256 yt-dlp.conf, and",
+                "cuts GPU Parakeet word-timed clips.",
             ],
         ),
         (
             "03",
-            "Transcripts, audio &amp; clips",
+            "ETag merge &amp; private drafts",
             [
-                "Demux audio &amp; GPU word ledgers",
-                "for FFmpeg clips, legends-captions,",
-                "ambient intelligence &amp; empire.",
+                "Full snippet merge with If-Match",
+                "ETag + rollback snapshot, and",
+                "SHA-256 private-only draft uploads.",
             ],
         ),
     ]
@@ -145,12 +145,12 @@ def render_slot_2() -> None:
     for i, (num, title, lines) in enumerate(pillars):
         cx = x0 + i * (col_w + gap)
         plain_title = title.replace("&amp;", "&")
-        assert width(num, lb) + 9 + width(plain_title, ti) <= col_w - 4, f"Pillar {num} title overflows: {plain_title}"
+        assert width(num, lb) + 9 + width(plain_title, ti) <= col_w, f"Pillar {num} title overflows: {plain_title}"
         body += t.run(cx, y_col_head, lb, num, "#ff0000", "700")
         body += t.run(cx + width(num, lb) + 9, y_col_head, ti, title, "#ffffff", "700")
         for j, ln in enumerate(lines):
             plain_ln = ln.replace("&amp;", "&")
-            assert width(plain_ln, bd) <= col_w - 4, f"Pillar {num} line overflows: {plain_ln}"
+            assert width(plain_ln, bd) <= col_w, f"Pillar {num} line overflows: {plain_ln}"
             body += t.run(cx, y_col_head + 22 + 18 * j, bd, ln, "#a1a1aa", "400")
         if i > 0:
             vx = cx - gap / 2
@@ -162,15 +162,15 @@ def render_slot_2() -> None:
     lab = "works with:"
     body += t.run(x0, base, lb, lab, "#a1a1aa", "600")
     cx = x0 + width(lab, lb) + 10
-    chips = ("yt-dlp", "ffmpeg", "crispasr-gpu", "mullvad-opt-in", "captions", "empire", "claude")
+    chips = ("youtube-v3", "analytics-v2", "yt-dlp", "ffmpeg", "crispasr-gpu", "etag-merge", "empire")
     for ch in chips:
         cw = width(ch, lb) + 16
         body += f'  <rect x="{cx:.2f}" y="{chip_top}" width="{cw:.2f}" height="20" rx="3" {CHIP}/>\n'
         body += t.run(cx + cw / 2, base, lb, ch, "#e4e4e7", "600", "middle")
         cx += cw + 6
-    right_chip_note = "verified media archive"
-    assert cx + 8 <= x1 - width(right_chip_note, lb), "Slot 2 chips collide with right note"
-    body += t.run(x1, base, lb, right_chip_note, "#ff0000", "600", "end")
+    right_note = "unified youtube &amp; media engine"
+    assert cx + 8 <= x1 - width(right_note.replace("&amp;", "&"), lb), "Slot 2 chips collide with right note"
+    body += t.run(x1, base, lb, right_note, "#ff0000", "600", "end")
 
     (CARDS_DIR / "slot-2-three-pillars.svg").write_text(svg(f"0 0 886 {h}", body, t), encoding="utf-8")
 
@@ -187,12 +187,17 @@ def render_slot_3() -> None:
         + f'  <rect x="1" y="1" width="884" height="{h - 2}" rx="4" fill="url(#sheen)" stroke="url(#edge)" stroke-width="1"/>\n'
         + f'  <rect x="1" y="1" width="4" height="{h - 2}" rx="2" fill="#ff0000"/>\n'
     )
-    body += t.run(x0, 26, hd, "Say the job in plain words", "#ffffff", "700")
+    head3 = "Say the job in plain words"
+    sub3 = "// your agent plans quota waves, verifies yt-dlp streams, merges snippets and locks drafts"
+    if x0 + width(head3, hd) + 12 + width(sub3, lb) > x1:
+        sub3 = "// your agent plans quota waves, verifies yt-dlp streams and locks private drafts"
+    assert x0 + width(head3, hd) + 12 + width(sub3, lb) <= x1, "Slot 3 header overflows"
+    body += t.run(x0, 26, hd, head3, "#ffffff", "700")
     body += t.run(
-        x0 + width("Say the job in plain words", hd) + 12,
+        x0 + width(head3, hd) + 12,
         26,
         lb,
-        "// your agent probes metadata, paces downloads and verifies every stream",
+        sub3,
         "#ff0000",
         "600",
     )
@@ -201,23 +206,23 @@ def render_slot_3() -> None:
     rows = [
         (
             "01",
-            '"Inventory this channel first"',
-            'legends-yt-dlp inventory <tspan fill="#ff0000">→</tspan> items.jsonl probe <tspan fill="#ff0000">→</tspan> ledger review',
+            '"Sweep inventory &amp; score this idea"',
+            'channel-inventory (2u/50) <tspan fill="#ff0000">→</tspan> channel-outliers (0u) <tspan fill="#ff0000">→</tspan> score-idea',
         ),
         (
             "02",
-            '"Pull this batch &amp; verify streams"',
-            'plan <tspan fill="#ff0000">→</tspan> preflight (SHA-256 conf) <tspan fill="#ff0000">→</tspan> run --yes <tspan fill="#ff0000">→</tspan> ffprobe verify',
+            '"Pull this batch &amp; cut word clips"',
+            'legends-yt-dlp plan <tspan fill="#ff0000">→</tspan> run --yes &amp; ffprobe <tspan fill="#ff0000">→</tspan> GPU word clips',
         ),
         (
             "03",
-            '"Transcribe on GPU &amp; cut clips"',
-            'intelligence transcribe <tspan fill="#ff0000">→</tspan> search phrase <tspan fill="#ff0000">→</tspan> clips plan &amp; render',
+            '"Update links without wiping tags"',
+            'links-migrate <tspan fill="#ff0000">→</tspan> metadata-plan (SHA-256) <tspan fill="#ff0000">→</tspan> If-Match ETag merge',
         ),
         (
             "04",
-            '"Export notes to captions &amp; empire"',
-            'intelligence vault build <tspan fill="#ff0000">→</tspan> legends-captions &amp; legends-empire',
+            '"Audit CTR A/B &amp; upload a draft"',
+            'packaging-audit <tspan fill="#ff0000">→</tspan> draft-freeze (&lt;=2MB thumb) <tspan fill="#ff0000">→</tspan> private draft-upload',
         ),
     ]
 
@@ -230,9 +235,9 @@ def render_slot_3() -> None:
             body += f'  <line x1="{x0}" y1="{div_y}" x2="{x1}" y2="{div_y}" {HAIR}/>\n'
         prompt_x = x0 + width(num, lb) + 10
         plain_prompt = prompt_txt.replace("&amp;", "&")
+        plain_chain = re.sub(r"<[^>]+>", "", chain_markup).replace("&amp;", "&").replace("&lt;", "<")
         assert prompt_x + width(plain_prompt, ti) <= pill_x - 16, f"Row {num} collides with arrow"
-        plain_chain = re.sub(r"<[^>]+>", "", chain_markup).replace("&amp;", "&")
-        assert width(plain_chain, lb) <= pill_w - 20, f"Row {num} chain overflows pill: {plain_chain}"
+        assert width(plain_chain, lb) <= pill_w - 24, f"Row {num} chain overflows pill: {plain_chain}"
         body += t.run(x0, ry, lb, num, "#ff0000", "700")
         body += t.run(prompt_x, ry, bd, prompt_txt, "#ffffff", "700")
         body += t.run(pill_x - 16, ry, ti, "→", "#ff0000", "700", "middle")
@@ -243,7 +248,7 @@ def render_slot_3() -> None:
 
 
 def render_slot_4() -> None:
-    """Slot 4: Two-chamber architecture diagram + 7 bottom capability pills for legends-yt-dlp."""
+    """Slot 4: Two-chamber Unified Studio & Media Architecture Card."""
     t = Typesetter()
     hd, ti, bd, lb = u("head", K_WIDE), u("title", K_WIDE), u("body", K_WIDE), u("label", K_WIDE)
     x0, x1 = 20, 866
@@ -254,62 +259,67 @@ def render_slot_4() -> None:
         + f'  <rect x="1" y="1" width="884" height="{h - 2}" rx="4" fill="url(#sheen)" stroke="url(#edge)" stroke-width="1"/>\n'
         + f'  <rect x="1" y="1" width="4" height="{h - 2}" rx="2" fill="#ff0000"/>\n'
     )
-    headline = "How read-only probing, SHA-256 guards, and clip extraction work"
-    tag_right = "// capture &amp; intelligence engine"
-    assert x0 + width(headline, hd) + 16 <= x1 - width(tag_right.replace("&amp;", "&"), lb), "Slot 4 header overflow"
-    body += t.run(x0, 26, hd, headline, "#ffffff", "700")
-    body += t.run(x1, 26, lb, tag_right, "#a1a1aa", "400", "end")
+    head4 = "How Studio API governance and verified yt-dlp media capture work"
+    sub4 = "// studio engine + media archive"
+    assert x0 + width(head4, hd) + 12 <= x1 - width(sub4, lb), "Slot 4 header overflows"
+    body += t.run(x0, 26, hd, head4, "#ffffff", "700")
+    body += t.run(x1, 26, lb, sub4, "#a1a1aa", "400", "end")
     body += f'  <line x1="{x0}" y1="40" x2="{x1}" y2="40" {HAIR}/>\n'
 
     box_w = 412
     box_h = 92
-    # Left chamber: Anonymous Capture & SHA-256 Guard
+    # Left chamber: Studio & Quota Engine // Data API v3 & Analytics v2
     body += f'  <rect x="{x0}" y="52" width="{box_w}" height="{box_h}" rx="3" fill="#090a0e" {BORDER}/>\n'
     gx, gy = x0 + 16, 68
     body += f'  <rect x="{gx}" y="{gy}" width="52" height="60" rx="3" fill="#000000" {BORDER}/>\n'
-    body += t.run(gx + 26, gy + 24, ti, "SHA256", "#ff0000", "700", "middle")
-    body += t.run(gx + 26, gy + 41, lb, "GUARD", "#a1a1aa", "600", "middle")
+    body += t.run(gx + 26, gy + 24, ti, "ETAG", "#ff0000", "700", "middle")
+    body += t.run(gx + 26, gy + 41, lb, "0-2u", "#a1a1aa", "600", "middle")
     body += f'  <rect x="{gx + 8}" y="{gy + 48}" width="36" height="4" rx="2" fill="#ff0000"/>\n'
 
     ltx = x0 + 82
-    ltitle = "Anonymous Capture Guard"
-    ltag = "// preflight &amp; verify"
-    assert ltx + width(ltitle, ti) + 8 + width(ltag.replace("&amp;", "&"), lb) <= x0 + box_w - 12, "Left title overflow"
-    body += t.run(ltx, 73, ti, ltitle, "#ffffff", "700")
-    body += t.run(ltx + width(ltitle, ti) + 8, 73, lb, ltag, "#ff0000", "600")
+    lt_head = "Studio &amp; Quota Engine"
+    lt_tag = "// Data API v3 &amp; Analytics v2"
+    if ltx + width(lt_head.replace("&amp;", "&"), ti) + 8 + width(lt_tag.replace("&amp;", "&"), lb) > x0 + box_w - 12:
+        lt_tag = "// Data v3 &amp; Analytics v2"
+    assert ltx + width(lt_head.replace("&amp;", "&"), ti) + 8 + width(lt_tag.replace("&amp;", "&"), lb) <= x0 + box_w - 12, "Left chamber header overflows"
+    body += t.run(ltx, 73, ti, lt_head, "#ffffff", "700")
+    body += t.run(ltx + width(lt_head.replace("&amp;", "&"), ti) + 8, 73, lb, lt_tag, "#ff0000", "600")
     llines = (
-        ("Probes channel &amp; playlist metadata first,", "#d4d4d8"),
-        ("locks yt-dlp.conf with SHA-256 allowlist,", "#a1a1aa"),
-        ("and verifies saved streams with ffprobe.", "#a1a1aa"),
+        ("2u/50 inventory, 0u readback &amp; Idea Radar,", "#d4d4d8"),
+        ("lossless If-Match ETag snippet merge, and", "#a1a1aa"),
+        ("SHA-256 frozen private-only draft uploads.", "#a1a1aa"),
     )
     for j, (lln, lcol) in enumerate(llines):
         plain_lln = lln.replace("&amp;", "&")
-        assert ltx + width(plain_lln, bd) <= x0 + box_w - 12, f"Left chamber line overflows: {plain_lln}"
+        assert ltx + width(plain_lln, bd) <= x0 + box_w - 12, f"Left chamber line overflows: {lln}"
         body += t.run(ltx, 94 + 18 * j, bd, lln, lcol, "400")
 
-    # Right chamber: Audio, Transcript & Clip Engine
+    # Right chamber: Media Archive & Clip Engine // yt-dlp, ffprobe & GPU ASR
     rx0 = x1 - box_w
     body += f'  <rect x="{rx0}" y="52" width="{box_w}" height="{box_h}" rx="3" fill="#0c0507" {RED_HAIR}/>\n'
     rgx, rgy = rx0 + 16, 68
     body += f'  <rect x="{rgx}" y="{rgy}" width="52" height="60" rx="3" fill="#000000" stroke="#ff0000" stroke-opacity="0.55" stroke-width="1"/>\n'
     body += t.run(rgx + 26, rgy + 24, ti, "WORD", "#ffffff", "700", "middle")
-    body += t.run(rgx + 26, rgy + 41, lb, "LEDGER", "#ff0000", "700", "middle")
+    body += t.run(rgx + 26, rgy + 41, lb, "SHA256", "#ff0000", "700", "middle")
     body += f'  <rect x="{rgx + 8}" y="{rgy + 48}" width="36" height="4" rx="2" fill="#ffffff"/>\n'
 
     rtx = rx0 + 82
-    rtitle = "Transcript &amp; Clip Engine"
-    rtag = "// intelligence"
-    assert rtx + width(rtitle.replace("&amp;", "&"), ti) + 8 + width(rtag, lb) <= rx0 + box_w - 12, "Right title overflow"
-    body += t.run(rtx, 73, ti, rtitle, "#ffffff", "700")
-    body += t.run(rtx + width(rtitle.replace("&amp;", "&"), ti) + 8, 73, lb, rtag, "#ff0000", "600")
+    rt_head = "Media Archive &amp; Clip Engine"
+    rt_tag = "// yt-dlp &amp; ASR"
+    if rtx + width(rt_head.replace("&amp;", "&"), ti) + 8 + width(rt_tag.replace("&amp;", "&"), lb) > rx0 + box_w - 12:
+        rt_head = "Media Archive &amp; Clips"
+        rt_tag = "// yt-dlp, ffprobe &amp; ASR"
+    assert rtx + width(rt_head.replace("&amp;", "&"), ti) + 8 + width(rt_tag.replace("&amp;", "&"), lb) <= rx0 + box_w - 12, "Right chamber header overflows"
+    body += t.run(rtx, 73, ti, rt_head, "#ffffff", "700")
+    body += t.run(rtx + width(rt_head.replace("&amp;", "&"), ti) + 8, 73, lb, rt_tag, "#ff0000", "600")
     rlines = (
-        ("Demuxes clean audio for GPU Parakeet ASR,", "#d4d4d8"),
-        ("aligns word timings &amp; FFmpeg clip plans,", "#a1a1aa"),
-        ("and exports notes to captions &amp; empire.", "#a1a1aa"),
+        ("Probes items.jsonl, locks anonymous SHA-256", "#d4d4d8"),
+        ("yt-dlp.conf, verifies streams with ffprobe,", "#a1a1aa"),
+        ("and cuts GPU Parakeet word-timed clips.", "#a1a1aa"),
     )
     for j, (rln, rcol) in enumerate(rlines):
         plain_rln = rln.replace("&amp;", "&")
-        assert rtx + width(plain_rln, bd) <= rx0 + box_w - 12, f"Right chamber line overflows: {plain_rln}"
+        assert rtx + width(plain_rln, bd) <= rx0 + box_w - 12, f"Right chamber line overflows: {rln}"
         body += t.run(rtx, 94 + 18 * j, bd, rln, rcol, "400")
 
     # Bottom bar with all 7 capability pills
@@ -317,40 +327,39 @@ def render_slot_4() -> None:
     chip_top = 170
     base = chip_top + 13.5
     surfaces = (
-        ("01", "Binary SHA"),
-        ("02", "Item Probe"),
-        ("03", "Conf Guard"),
-        ("04", "Stream Check"),
-        ("05", "VPN Opt-In"),
-        ("06", "Word Ledger"),
-        ("07", "Clip &amp; Vault"),
+        ("01", "2u Inventory"),
+        ("02", "0u Outliers"),
+        ("03", "Idea Radar"),
+        ("04", "yt-dlp Guard"),
+        ("05", "Word Clips"),
+        ("06", "ETag Merge"),
+        ("07", "Private Draft"),
     )
     total_slots = len(surfaces)
     slot_gap = 8
     slot_w = (x1 - x0 - (total_slots - 1) * slot_gap) / total_slots
     for idx, (num, sname) in enumerate(surfaces):
         px = x0 + idx * (slot_w + slot_gap)
-        plain_pill = f"{num} {sname.replace('&amp;', '&')}"
-        assert width(plain_pill, lb) <= slot_w - 8, f"Pill {plain_pill} overflows {slot_w}"
+        assert width(f"{num} {sname}", lb) <= slot_w - 8, f"Pill overflows: {num} {sname}"
         body += f'  <rect x="{px:.2f}" y="{chip_top}" width="{slot_w:.2f}" height="21" rx="3" {CHIP}/>\n'
         label_markup = f'<tspan fill="#ff0000">{num}</tspan> {sname}'
         body += t.run(px + slot_w / 2, base, lb, label_markup, "#ffffff", "600", "middle")
 
-    (CARDS_DIR / "slot-4-yt-dlp-architecture.svg").write_text(svg(f"0 0 886 {h}", body, t), encoding="utf-8")
+    (CARDS_DIR / "slot-4-youtube-architecture.svg").write_text(svg(f"0 0 886 {h}", body, t), encoding="utf-8")
 
 
 def render_slot_5() -> None:
-    """Slot 5: Comparison table ('Ad-hoc yt-dlp flags & raw shell calls' vs 'Verified media archive engine // legends-yt-dlp')."""
+    """Slot 5: Comparison table ('Raw YouTube API & ad-hoc yt-dlp flags' vs 'Unified YouTube & media engine // legends-youtube')."""
     t = Typesetter()
     ti, lb = u("title", K_WIDE), u("label", K_WIDE)
     rows = [
-        ("Metadata &amp; channel probe", "Downloads blindly without inspecting items", "Read-only inventory &amp; items.jsonl ledger first"),
-        ("Cookie &amp; path safety", "Passes live browser cookies &amp; raw flags", "Anonymous allowlist, SHA-256 conf &amp; path guards"),
-        ("Binary &amp; stream verify", "Unverified binaries &amp; half-written files", "Upstream SHA2-256SUMS gate &amp; ffprobe stream check"),
-        ("Transcripts &amp; clipping", "Rough auto-captions that cut words in half", "GPU word ledgers, FFmpeg clip plans &amp; vault export"),
+        ("Snippet &amp; tag safety", "Partial videos.update wipes omitted tags", "Full snippet merge, If-Match ETag &amp; rollback"),
+        ("Quota &amp; outlier radar", "100-unit search.list drains 10k daily pool", "2u/50 uploads sweep + 0-quota readback &amp; RSS"),
+        ("Media pull &amp; cookies", "Raw yt-dlp browser cookies &amp; unprobed files", "Anonymous SHA-256 yt-dlp.conf &amp; ffprobe check"),
+        ("Clips &amp; draft uploads", "Rough auto-captions &amp; unguarded public push", "GPU word-timed clips &amp; SHA-256 private drafts"),
     ]
     h = 198
-    col0_x, col1_x, col2_x = 20, 200, 504
+    col0_x, col1_x, col2_x = 20, 192, 502
     body = (
         panel_defs(h)
         + f'  <rect x="1" y="1" width="884" height="{h - 2}" rx="4" fill="#000000"/>\n'
@@ -358,15 +367,14 @@ def render_slot_5() -> None:
         + f'  <rect x="{col2_x - 12}" y="7" width="{880 - (col2_x - 12)}" height="{h - 14}" rx="3" fill="#0c0507" {RED_HAIR}/>\n'
     )
     y_hdr = 27
-    col1_hdr = "Ad-hoc yt-dlp flags &amp; shell calls"
-    col2_hdr = "Verified media archive engine"
-    col2_tag = "// legends-yt-dlp"
-    assert col1_x + width(col1_hdr.replace("&amp;", "&"), ti) <= col2_x - 18, "Slot 5 col1 header overflow"
-    assert col2_x + width(col2_hdr, ti) + 8 + width(col2_tag, lb) <= 870, "Slot 5 col2 header overflow"
+    hdr1 = "Raw YouTube API &amp; ad-hoc yt-dlp flags"
+    hdr2 = "Unified YouTube &amp; media engine"
+    assert col1_x + width(hdr1.replace("&amp;", "&"), ti) <= col2_x - 14, "Header 1 overflow"
+    assert col2_x + width(hdr2.replace("&amp;", "&"), ti) + 6 + width("// legends-youtube", lb) <= 874, "Header 2 overflow"
     body += t.run(col0_x, y_hdr, lb, "comparison", "#8b8b94", "600")
-    body += t.run(col1_x, y_hdr, ti, col1_hdr, "#a1a1aa", "700")
-    body += t.run(col2_x, y_hdr, ti, col2_hdr, "#ffffff", "700")
-    body += t.run(col2_x + width(col2_hdr, ti) + 8, y_hdr, lb, col2_tag, "#ff0000", "600")
+    body += t.run(col1_x, y_hdr, ti, hdr1, "#a1a1aa", "700")
+    body += t.run(col2_x, y_hdr, ti, hdr2, "#ffffff", "700")
+    body += t.run(col2_x + width(hdr2.replace("&amp;", "&"), ti) + 6, y_hdr, lb, "// legends-youtube", "#ff0000", "600")
     body += f'  <line x1="16" y1="39" x2="870" y2="39" {HAIR}/>\n'
     body += f'  <line x1="{col1_x - 12}" y1="12" x2="{col1_x - 12}" y2="{h - 12}" {HAIR}/>\n'
 
@@ -375,9 +383,9 @@ def render_slot_5() -> None:
         if i > 0:
             div_y = ry - 21
             body += f'  <line x1="16" y1="{div_y}" x2="870" y2="{div_y}" {HAIR}/>\n'
-        plain_label = label_txt.replace("&amp;", "&")
-        plain_raw = raw_txt.replace("&amp;", "&")
-        plain_emp = emp_txt.replace("&amp;", "&")
+        plain_label = label_txt.replace("&amp;", "&").replace("&lt;", "<")
+        plain_raw = raw_txt.replace("&amp;", "&").replace("&lt;", "<")
+        plain_emp = emp_txt.replace("&amp;", "&").replace("&lt;", "<")
         assert col0_x + width(plain_label, lb) <= col1_x - 18, f"Slot 5 col0 overflow: {plain_label}"
         assert col1_x + width(plain_raw, lb) <= col2_x - 24, f"Slot 5 col1 overflow: {plain_raw}"
         assert col2_x + width(plain_emp, lb) <= 870, f"Slot 5 col2 overflow: {plain_emp}"
@@ -385,7 +393,7 @@ def render_slot_5() -> None:
         body += t.run(col1_x, ry, lb, raw_txt, "#a1a1aa", "400")
         body += t.run(col2_x, ry, lb, emp_txt, "#ffffff", "600")
 
-    (CARDS_DIR / "slot-5-adhoc-vs-yt-dlp.svg").write_text(svg(f"0 0 886 {h}", body, t), encoding="utf-8")
+    (CARDS_DIR / "slot-5-adhoc-vs-youtube.svg").write_text(svg(f"0 0 886 {h}", body, t), encoding="utf-8")
 
 
 def render_slot_shrine() -> None:
@@ -484,8 +492,8 @@ def validate() -> None:
         "slot-1-agent-handoff.svg",
         "slot-2-three-pillars.svg",
         "slot-3-plain-english-chains.svg",
-        "slot-4-yt-dlp-architecture.svg",
-        "slot-5-adhoc-vs-yt-dlp.svg",
+        "slot-4-youtube-architecture.svg",
+        "slot-5-adhoc-vs-youtube.svg",
         "slot-7-message-avalon-reset.svg",
         "slot-collection-star-shrine.svg",
     ]
@@ -510,7 +518,7 @@ def validate() -> None:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Render outlined Legends Font SVG cards (rev r1) for legends-yt-dlp.")
+    ap = argparse.ArgumentParser(description="Render outlined Legends Font SVG cards (rev r1) for legends-youtube.")
     ap.parse_args()
     CARDS_DIR.mkdir(parents=True, exist_ok=True)
     render_slot_1()

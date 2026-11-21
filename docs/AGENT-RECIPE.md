@@ -1,73 +1,185 @@
-# Legends YT-DLP Agent Recipe
+# Agent Recipe: `legends-youtube` (Unified Studio API + `legends-yt-dlp` Media Engine)
 
-Deterministic operator procedure for `legends-yt-dlp`. Loaded by `cto-legends handoff legends-yt-dlp`. Do not register a separate per-module skill.
+Use this recipe when the user asks to inspect or manage a YouTube channel, audit video metadata or description links, plan YouTube Data API v3 quota usage, analyze YouTube Studio or Analytics API v2 CTR/retention metrics, score video ideas before recording, validate video chapters or Studio quizzes, check custom thumbnails, upload a private draft, probe or archive videos/channels via `yt-dlp`, verify media streams with `ffprobe`, transcribe local media into GPU word ledgers, cut FFmpeg clips, or attach the YouTube knowledge pack to a `legends-empire` vault.
 
-## 1. Readiness & Diagnostics
+## 1. Readiness, Credential Check & Resource Paths (`doctor`, `auth-status`, `knowledge-pack`, `paths`, `resources`)
 
-Always verify package readiness before planning or running a batch:
+Always start with read-only readiness across both surfaces:
 
 ```bash
-legends-yt-dlp --version
+legends-youtube doctor --json
+legends-youtube auth-status --json
+legends-youtube knowledge-pack --json
+legends-youtube paths --json
+legends-youtube resources --json
 legends-yt-dlp doctor --offline
 ```
 
-- `legends-yt-dlp doctor` (and `legends-yt-dlp doctor --offline`) emits JSON diagnostics and exits `0` when the Python control plane is healthy, reporting external `yt-dlp` and `ffmpeg` binaries as optional runtime tools until a live batch requires them.
-- Pass `--require-tools` to require `yt-dlp` and `ffmpeg` to be installed and fresh (`<= 90` days for managed `yt-dlp`).
-- Pass `--production` (or `--require-connected`) only when the operator requests VPN-guarded execution (`--with-vpn`).
+When the user requests a live YouTube Data API v3 channel check, pass `--live` (and `--expected-channel-id UC...` when targeting a specific owned channel):
 
-## 2. Complete CLI Command Surface
+```bash
+legends-youtube doctor --live --expected-channel-id UC_x5XG1OV2P6uZZ5FSM9Ttw --json
+```
 
-| Command | Purpose | Mutates Local State / Network |
-| --- | --- | --- |
-| `legends-yt-dlp --version` | Print installed `legends-yt-dlp` package version | Read-only |
-| `legends-yt-dlp doctor [--offline] [--require-tools] [--require-connected] [--production] [--json] [--text]` | Inspect package health, optional `yt-dlp`/`ffmpeg` binaries, and opt-in Mullvad posture | Read-only |
-| `legends-yt-dlp onboard [--basic] [--with-vpn] [--strict] [--json]` | Print non-mutating first-run readiness, interview checklist, and next commands | Read-only |
-| `legends-yt-dlp yt-dlp install` | Download official platform `yt-dlp` binary (`yt-dlp.exe`, `yt-dlp_macos`, or `yt-dlp_linux`) and verify against upstream `SHA2-256SUMS` | Writes managed `yt-dlp` binary |
-| `legends-yt-dlp yt-dlp update` | Refresh managed `yt-dlp` binary and verify SHA-256 checksum | Writes managed `yt-dlp` binary |
-| `legends-yt-dlp yt-dlp version` | Print discovered `yt-dlp` version and binary path | Read-only |
-| `legends-yt-dlp yt-dlp check` | Compare managed `yt-dlp` version against upstream stable release | Network read-only |
-| `legends-yt-dlp plan [urls...] [--from-file <file>] [--name <name>] [--output <dir>] [--folder-policy auto\|batch\|by-uploader\|flat] [--rights <note>] [--rights-file <path>] [--max-height <px>] [--max-downloads <n>] [--max-filesize <size>] [--with-vpn]` | Create a batch manifest, `urls.txt`, `items.jsonl`, and anonymous `yt-dlp.conf` with recorded SHA-256 digest | Writes `batches/<id>/` |
-| `legends-yt-dlp inventory <source_url> [--name <name>] [--output <dir>] [--max-items <n>] [--live-status <state>] [--folder-policy auto\|batch\|by-uploader\|flat] [--rights <note>] [--rights-file <path>] [--with-vpn]` | Expand a channel or playlist into a reviewable `items.jsonl` ledger without downloading media | Writes `batches/<id>/` |
-| `legends-yt-dlp smoke plan [--url <url>] [--count <n>] [--name <name>] [--output <dir>] [--max-height 360] [--max-filesize 75M]` | Create a bounded smoke-validation batch | Writes `batches/<id>/` |
-| `legends-yt-dlp catalog` | List local batch manifests under `batches/` | Read-only |
-| `legends-yt-dlp ledger <manifest.json> [--refresh] [--status <status>] [--limit <n>] [--json]` | Summarize, filter, or refresh per-item ledger state from archives and media files | Read-only (`--refresh` updates `items.jsonl`) |
-| `legends-yt-dlp preflight <manifest.json> [--with-vpn]` | Validate manifest, anonymous cookie/auth allowlist, `yt-dlp.conf` SHA-256 integrity, output paths, and tool readiness | Read-only |
-| `legends-yt-dlp run <manifest.json> --dry-run [--show-output]` | Simulate `yt-dlp` execution without downloading media | Writes run report |
-| `legends-yt-dlp run <manifest.json> --yes [--with-vpn] [--bulk] [--keep-vpn] [--no-recover-vpn]` | Execute approved batch download after passing preflight and config SHA-256 verification | Downloads media + writes report |
-| `legends-yt-dlp verify <manifest.json> [--allow-empty] [--no-probe]` | Verify archive entries, info JSON sidecars, ledger media files, and `ffprobe -i` streams | Updates ledger + verifies media |
-| `legends-yt-dlp setup production [--relay-location <loc...>] [--no-connect]` | Configure opt-in Mullvad production posture (Lockdown, auto-connect, LAN block, split-tunnel off) | Mutates Mullvad settings |
-| `legends-yt-dlp mullvad status [-v] \| login \| connect \| disconnect [--force] \| shutdown \| disconnect-test [--emergency-unlock] \| reconnect \| recover \| lockdown <get\|on\|off> \| inspect \| version` | Operate Mullvad connection, Lockdown, recovery, and status inspection when VPN-guarded mode is requested | Mutates Mullvad state |
-| `legends-yt-dlp mullvad account <get\|devices> \| auto-connect <get\|set on\|off> \| lan <get\|set allow\|block> \| relay <get\|list\|update\|location\|ownership\|provider\|multihop> \| dns <get\|default\|custom> \| tunnel <get\|quantum-resistant\|ipv6\|rotate-key> \| split-tunnel <get\|set\|app> \| anti-censorship <get\|mode> \| api-access <get\|list> \| raw` | Operate Mullvad account, relay, DNS, tunnel, split-tunnel, anti-censorship, and API access settings | Mutates Mullvad state |
-| `legends-yt-dlp intelligence init <manifest.json>` | Initialize `intelligence/` workspace under a batch | Writes `intelligence/manifest.json` |
-| `legends-yt-dlp intelligence doctor <manifest.json> [--require-crispasr] [--require-gpu]` | Check local `ffmpeg` and CrispASR backend readiness (including compiled GPU backends) | Read-only |
-| `legends-yt-dlp intelligence status <manifest.json> [--json]` | Summarize transcripts, word ledgers, searches, and clip plans for a batch | Read-only |
-| `legends-yt-dlp intelligence transcribe <manifest.json> (--media <file> \| --all) [--model auto] [--gpu-backend <backend>] [--require-gpu] [--no-gpu]` | Transcribe local verified media via external CrispASR Parakeet CLI into word ledgers | Writes `intelligence/words/*.words.jsonl` |
-| `legends-yt-dlp intelligence import-crispasr <manifest.json> --input <json> [--video-id <id>] [--media-path <path>]` | Import CrispASR `-ojf` JSON into normalized word ledgers | Writes `intelligence/words/*.words.jsonl` |
-| `legends-yt-dlp intelligence ingest-words\|import-words <manifest.json> --input <jsonl_or_json> [--video-id <id>]` | Import timestamped word JSONL/JSON into normalized word ledgers | Writes `intelligence/words/*.words.jsonl` |
-| `legends-yt-dlp intelligence align nfa <manifest.json> [--media <file>] [--prepare-only] [--import-ctm <ctm>]` | Prepare NVIDIA NeMo Forced Aligner manifests or import refined word CTM timings | Writes `intelligence/alignments/nfa/` |
-| `legends-yt-dlp intelligence search <manifest.json> "<query>" [--pad-before 0.5] [--pad-after 0.75] [--json]` | Exact contiguous token search across batch word ledgers | Writes `intelligence/searches/*.matches.jsonl` |
-| `legends-yt-dlp intelligence clips plan <manifest.json> --query "<query>" [--json]` | Generate reviewable FFmpeg clip plan JSON from word-ledger matches | Writes `intelligence/clips/*/clip-plan.json` |
-| `legends-yt-dlp intelligence clips render <clip-plan.json> --yes [--overwrite]` | Render individual clips and montage inside the clip plan directory via local `ffmpeg` (fail-closed unless `--overwrite`) | Writes clip MP4s |
-| `legends-yt-dlp intelligence vault build\|export <manifest.json>` | Export Obsidian-compatible Markdown transcript pages | Writes `intelligence/vault/*.md` |
+## 2. Quota Cost Calculation Before Any API Batch (`quota-plan`)
 
-## 3. Standard Operating Procedure
+Before executing channel-wide inventory or write batches, calculate exact unit usage against the 10,000-unit daily pool and 2026-06-01 granular caps (`100` `search.list`/day, `100` `videos.insert`/day):
 
-1. **Readiness check**: Run `legends-yt-dlp doctor --offline` (and `legends-yt-dlp doctor --require-tools` before live downloads).
-2. **Inventory or plan**:
-   - For single or curated URLs: `legends-yt-dlp plan <urls...> --name <slug> --folder-policy batch`.
-   - For channels or playlists: `legends-yt-dlp inventory <url> --name <slug>` and review `legends-yt-dlp ledger <manifest.json>`.
-3. **Preflight and dry-run**:
-   - Run `legends-yt-dlp preflight <manifest.json>`.
-   - Run `legends-yt-dlp run <manifest.json> --dry-run`.
-4. **Approved execution and verification**:
-   - Run `legends-yt-dlp run <manifest.json> --yes` (add `--bulk` if `> 50` URLs, `--with-vpn` only if requested).
-   - Run `legends-yt-dlp verify <manifest.json>` and `legends-yt-dlp ledger <manifest.json> --refresh`.
-5. **Optional post-capture intelligence**:
-   - Only run `legends-yt-dlp intelligence ...` when the user asks for transcripts, exact phrase search, clip plans, or vault pages.
+```bash
+legends-youtube quota-plan --inventory-videos 100 --metadata-updates 50 --json
+```
 
-## 4. EDR and Security Guardrails
+## 3. Low-Quota Channel Inventory, Video Inspection & Zero-Quota Radar (`channel-inventory`, `video-inspect`, `public-readback`, `channel-outliers`)
 
-- **No hidden consoles or shell wrappers**: Never invoke PowerShell, `cmd.exe`, or background child processes with hidden-window flags or execution-policy bypass switches. Invoke `legends-yt-dlp` or `python -m legends_ytdlp` directly with argument arrays (`shell=False`).
-- **Anonymous extraction only**: Never read browser cookie stores, local browser profile databases, DPAPI secrets, or `.netrc` files. Every generated `yt-dlp.conf` enforces `--ignore-config`, `--no-cookies`, and `--no-cookies-from-browser`.
-- **Fail-closed source respect**: Never rotate VPN relays, switch accounts, or automate challenge solvers to continue through HTTP 429 throttles, captchas, login walls, or platform blocks. Pause the batch and report the stop condition.
-- **Data boundary**: Never commit `.env` (such as `MULLVAD_ACCOUNT_NUMBER`), `.local/`, `batches/`, `reports/`, or downloaded media to version control.
+Always inventory a channel via its `relatedPlaylists.uploads` playlist (`2` units per 50 videos), never via `search.list`:
+
+```bash
+legends-youtube channel-inventory --mine --output channel-inventory.json
+legends-youtube video-inspect --video-ids dQw4w9WgXcQ,VidLong0001 --json
+
+# Zero-quota, zero-credential public video verification and RSS outlier radar
+legends-youtube public-readback --video-id dQw4w9WgXcQ --json
+legends-youtube channel-outliers --channel-id UC_x5XG1OV2P6uZZ5FSM9Ttw --threshold 2.0 --json
+```
+
+## 4. Pre-Recording Idea Radar, Transcript Packaging & Retention X-Ray (`score-idea`, `transcript-package`, `retention-xray`)
+
+```bash
+# Score a video candidate before recording (Perfect Video Score + Goldilocks timing + 9-point fit filter)
+legends-youtube score-idea --title "I Built an Agentic System to Score YouTube Ideas" --days-since-catalyst 14 --fit-checks 8 --json
+
+# Compile a transcript (.json/.srt/.vtt/.txt) into validated chapters, Shorts gem-cuts, and a Release Workbench
+legends-youtube transcript-package --transcript transcript.json --title "My Video Title" --json
+
+# Correlate a retention curve (elapsedVideoTimeRatio) with exact spoken sentences in the transcript
+legends-youtube retention-xray --transcript transcript.json --retention-file retention.json --json
+```
+
+## 5. Preview-First `yt-dlp` Media Probing, Anonymous Capture & GPU Word-Ledger Clips (`legends-yt-dlp` / `legends-youtube yt-dlp`)
+
+You can invoke the media capture and clip engine directly via `legends-yt-dlp` (or `legends-ytdlp`) or via subcommand forwarding on `legends-youtube` (`legends-youtube yt-dlp <args>`, `legends-youtube archive <args>`, `legends-youtube pull <args>`, `legends-youtube transcribe <args>`, `legends-youtube clips <args>`):
+
+```bash
+# 1. Probe a channel or playlist into a reviewable items.jsonl ledger without downloading media
+legends-yt-dlp inventory "https://www.youtube.com/@CHANNEL" --name "channel-review" --max-items 25
+legends-yt-dlp ledger "batches/<batch-id>/manifest.json"
+
+# 2. Plan a bounded batch from direct URLs or a URL file
+legends-yt-dlp plan --from-file "./examples/urls.txt" --name "reference-clips" --folder-policy batch
+
+# 3. Run SHA-256 config preflight, dry-run simulation, approved capture (--yes), and ffprobe stream verification
+legends-yt-dlp preflight "batches/<batch-id>/manifest.json"
+legends-yt-dlp run "batches/<batch-id>/manifest.json" --dry-run
+legends-yt-dlp run "batches/<batch-id>/manifest.json" --yes
+legends-yt-dlp verify "batches/<batch-id>/manifest.json"
+legends-yt-dlp ledger "batches/<batch-id>/manifest.json" --refresh
+
+# 4. Optional post-capture GPU word ledgers, phrase search, FFmpeg clip plans, and Obsidian vault export
+legends-yt-dlp intelligence init "batches/<batch-id>/manifest.json"
+legends-yt-dlp intelligence transcribe "batches/<batch-id>/manifest.json" --all --model auto
+legends-yt-dlp intelligence search "batches/<batch-id>/manifest.json" "agentic workflow"
+legends-yt-dlp intelligence clips plan "batches/<batch-id>/manifest.json" --query "agentic workflow"
+legends-yt-dlp intelligence clips render "batches/<batch-id>/intelligence/clips/<slug>/clip-plan.json" --yes
+legends-yt-dlp intelligence vault build "batches/<batch-id>/manifest.json"
+```
+
+See [docs/OPERATOR-ROUTING.md](OPERATOR-ROUTING.md) and [docs/CLI.md](CLI.md) for the complete `legends-yt-dlp` flag matrix and opt-in `--with-vpn` Mullvad controls.
+
+## 6. Lossless Metadata Partial Updates (`metadata-plan`, `metadata-apply`)
+
+Never send raw `videos.update(part="snippet")` requests without merging existing `snippet` fields (`title`, `description`, `tags`, `categoryId`, `defaultLanguage`, `defaultAudioLanguage`), or YouTube will delete omitted fields.
+
+1. Preview and lock the plan (`0` mutations):
+   ```bash
+   legends-youtube metadata-plan --plan update-plan.json --output preview.json
+   ```
+2. Apply only after explicit user confirmation with `--expected-plan-sha256` and `--confirm`:
+   ```bash
+   legends-youtube metadata-apply \
+     --plan update-plan.json \
+     --expected-plan-sha256 <sha256_from_preview> \
+     --confirm \
+     --output metadata-receipt.json
+   ```
+
+## 7. Description Link Audits, CTA Migrations, Playlists & Shorts Funnel (`links-audit`, `links-migrate`, `playlists-audit`, `funnel-audit`, `comments-triage`)
+
+```bash
+legends-youtube links-audit \
+  --inventory channel-inventory.json \
+  --canonical-cta "https://example.com" \
+  --probe-https \
+  --json
+
+legends-youtube links-migrate \
+  --inventory channel-inventory.json \
+  --find-url "https://legacy-example.com" \
+  --replace-url "https://example.com" \
+  --output link-migration-plan.json
+
+legends-youtube playlists-audit \
+  --inventory channel-inventory.json \
+  --playlists playlists.json \
+  --json
+
+legends-youtube funnel-audit \
+  --inventory channel-inventory.json \
+  --canonical-cta "https://example.com" \
+  --json
+
+legends-youtube comments-triage \
+  --from-json comments.json \
+  --json
+```
+
+## 8. Sourced Channel Health Scorecard & Packaging A/B Tests (`analytics-audit`, `packaging-audit`)
+
+```bash
+# Offline Studio export JSON
+legends-youtube analytics-audit --export studio-export.json --channel-name "Channel" --markdown --json
+legends-youtube packaging-audit --export studio-export.json --min-impressions 1000 --json
+
+# Live YouTube Analytics API v2
+legends-youtube analytics-audit --live --start-date 2026-01-01 --end-date 2026-03-31 --json
+```
+
+## 9. Chapters, Studio Video Quizzes, Shorts Related-Video Guards & Thumbnail Validation (`chapters-lint`, `quiz-lint`, `thumbnail-check`, `related-guard`, `house-style-lint`)
+
+```bash
+legends-youtube chapters-lint --description-file description.txt --duration-seconds 1800 --json
+legends-youtube quiz-lint --quizzes-file quizzes.json --duration-seconds 1800 --json
+legends-youtube thumbnail-check --image thumbnail.png --json
+legends-youtube related-guard --video-ids VidShrt0001,VidShrt0002 --target VidLong0001 --json
+legends-youtube house-style-lint --title "I made God's grace visible in ai" --json
+```
+
+## 10. SHA-256 Frozen Private-Draft Upload (`draft-freeze`, `draft-upload`)
+
+Uploads are strictly locked to `privacyStatus="private"`:
+
+```bash
+legends-youtube draft-freeze \
+  --video video.mp4 \
+  --title-file title.txt \
+  --description-file description.txt \
+  --thumbnail thumbnail.png \
+  --channel-id UC_x5XG1OV2P6uZZ5FSM9Ttw \
+  --output frozen-draft.json
+
+# Dry-run hash verification
+legends-youtube draft-upload --plan frozen-draft.json --json
+
+# Confirmed private-draft upload (requires explicit user approval)
+legends-youtube draft-upload \
+  --plan frozen-draft.json \
+  --apply \
+  --confirm-phrase "UPLOAD_PRIVATE_DRAFT UC_x5XG1OV2P6uZZ5FSM9Ttw" \
+  --output upload-receipt.json
+```
+
+## 11. EDR and Security Guardrails (Mandatory)
+
+1. Never spawn background shells, hidden console windows, or execution-policy bypass shell wrappers.
+2. Never read local browser profile databases, DPAPI stores, cookie stores, or system credential stores outside explicit environment variables (`YOUTUBE_API_KEY`, `YOUTUBE_ACCESS_TOKEN`, `YOUTUBE_REFRESH_TOKEN`, `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`), `--dotenv`, or `--token-file`. Every `yt-dlp.conf` enforces `--ignore-config`, `--no-cookies`, and `--no-cookies-from-browser`.
+3. Never rotate VPN relays, switch accounts, or automate challenge solvers to continue through HTTP 429 throttles, captchas, login walls, or platform blocks.
+4. Never print raw OAuth tokens, client secrets, API keys, or Mullvad account numbers to stdout, logs, or Markdown receipts.

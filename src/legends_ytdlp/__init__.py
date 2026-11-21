@@ -1,3 +1,4 @@
-"""Legends YT-DLP CLI package."""
+"""Legends YT-DLP media archiving and intelligence CLI package (bundled inside legends-youtube)."""
 
-__version__ = "0.1.6"
+__version__ = "0.2.0"
+__all__ = ["__version__"]

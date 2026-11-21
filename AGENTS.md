@@ -1,31 +1,11 @@
-# Development Notes (`legends-yt-dlp`)
+# Agent Instructions (`legends-youtube`)
 
-Repository-local engineering and verification reference for contributors and coding agents working inside this checkout. End-user and agent routing go through `cto-legends`; the vendored router copy lives at [skills/cto-legends/SKILL.md](skills/cto-legends/SKILL.md) and the module operator recipe is [docs/AGENT-RECIPE.md](docs/AGENT-RECIPE.md).
-
-## Commands
-
-```bash
-pip install -e .
-python -m unittest discover -s tests -v
-python scripts/check_release.py
-legends-yt-dlp doctor --offline
-```
-
-## Architecture & Key Paths
-
-- `src/legends_ytdlp/cli.py` - CLI parser and command handlers (`legends-yt-dlp` and `python -m legends_ytdlp`).
-- `src/legends_ytdlp/doctor.py` - Readiness diagnostics (`doctor`, `--offline`, `--require-tools`, `--production`).
-- `src/legends_ytdlp/batch.py` - Batch manifest planning, anonymous `yt-dlp.conf` generation, preflight checks, and execution.
-- `src/legends_ytdlp/inventory.py` and `src/legends_ytdlp/ledger.py` - Channel/playlist inventory expansion and JSONL item ledger tracking.
-- `src/legends_ytdlp/intelligence.py` - Post-capture local word-ledger import, CrispASR Parakeet wrapper, NFA forced-alignment bridge, exact phrase search, FFmpeg clip planning, and Obsidian vault export.
-- `src/legends_ytdlp/mullvad.py` - Optional Mullvad VPN CLI integration (`--with-vpn`), fail-closed lockdown checks, and post-run shutdown.
-- `docs/AGENT-RECIPE.md` and `docs/OPERATOR-ROUTING.md` - Operator recipes loaded by `cto-legends handoff legends-yt-dlp`.
-- `scripts/check_release.py` - Automated release gate verifying version parity, asset integrity, link resolution, and security guardrails.
-
-## EDR and Security Guardrails
-
-- Never spawn background shells, hidden console windows, or execution-policy bypass shell wrappers.
-- Never bundle `.ps1`, `.bat`, `.cmd`, `.vbs`, or `.ahk` files in the repository or wheel/sdist artifacts.
-- Never read local browser profile databases, DPAPI stores, cookie databases, or third-party credential stores; all `yt-dlp` configurations must enforce `--ignore-config`, `--no-cookies`, and `--no-cookies-from-browser`.
-- Never automate VPN relay rotation to bypass source-side rate limits, captchas, login prompts, or blocks; pause and report source-side controls immediately.
-- Keep `skills/cto-legends/SKILL.md` as the only `SKILL.md` in the repository.
+1. Use the `legends-youtube` CLI (`python -m legends_youtube`) for all YouTube Data API v3, YouTube Analytics API v2, metadata, quota, link-audit, chapter-lint, quiz-lint, thumbnail, idea-radar, and private-draft operations.
+2. Use `legends-yt-dlp` (`python -m legends_ytdlp` or `legends-youtube yt-dlp <args>`) for preview-first `yt-dlp` channel/playlist metadata probing (`inventory`), SHA-256-guarded anonymous media capture (`plan`, `preflight`, `run`, `verify`), optional `--with-vpn` Mullvad Lockdown lifecycle, and post-capture GPU word ledgers and FFmpeg clip plans (`intelligence`).
+3. Follow [docs/AGENT-RECIPE.md](docs/AGENT-RECIPE.md), [docs/OPERATOR-ROUTING.md](docs/OPERATOR-ROUTING.md), and [wiki/index.md](wiki/index.md).
+4. **Safety and EDR Guardrails:**
+   - Default to read-only inspection (`doctor`, `quota-plan`, `channel-inventory`, `video-inspect`, `public-readback`, `channel-outliers`, `score-idea`, `metadata-plan`, `links-audit`, `analytics-audit`, `packaging-audit`, `chapters-lint`, `quiz-lint`, `thumbnail-check`, `draft-freeze`, and `legends-yt-dlp doctor --offline` / `inventory` / `preflight` / `run --dry-run`).
+   - Never execute `metadata-apply --confirm`, `draft-upload --apply`, or `legends-yt-dlp run --yes` without explicit user approval.
+   - Never spawn hidden consoles, execution-policy bypass shell wrappers, or background localhost daemons.
+   - Never read local browser profile databases, DPAPI stores, cookie stores, or third-party credential stores. Read YouTube API credentials strictly from explicit environment variables, `--dotenv`, or `--token-file`, and run `yt-dlp` strictly with `--ignore-config`, `--no-cookies`, and `--no-cookies-from-browser`.
+   - Never print raw OAuth tokens, client secrets, API keys, or Mullvad account numbers to stdout, logs, or Markdown receipts.

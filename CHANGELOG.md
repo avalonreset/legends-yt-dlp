@@ -1,125 +1,27 @@
 # Changelog
 
-## 0.1.6 - 2026-11-21
+## 0.2.0 (2026-11-21)
 
-- Added `scripts/render_cards.py` and the 7 outlined Legends Font `r1` SVG design cards under `assets/cards/r1/` (`slot-1-agent-handoff.svg`, `slot-2-three-pillars.svg`, `slot-3-plain-english-chains.svg`, `slot-4-yt-dlp-architecture.svg`, `slot-5-adhoc-vs-yt-dlp.svg`, `slot-7-message-avalon-reset.svg`, and `slot-collection-star-shrine.svg`), and removed the duplicate root `assets/collection-star-shrine.svg`.
-- Rewrote `README.md` to the evergreen CTO Legends architecture and reference standard with collapsible `<details>` reference drawers, single `--apply` agent handoff block, read-only metadata probing and SHA-256 batch provenance overview, and ecosystem handoff tables.
-- Included `assets/**/*.svg` in `MANIFEST.in` and synchronized version metadata across `pyproject.toml`, `src/legends_ytdlp/__init__.py`, `CITATION.cff`, `assets/manifest.json`, and `SECURITY.md`.
+- Unified `legends-youtube` (`legends_youtube`) and `legends-yt-dlp` (`legends_ytdlp`) into a single first-class YouTube Studio, Data API v3, Analytics API v2, and verified `yt-dlp` media archiving and GPU word-ledger package (`legends-youtube 0.2.0`).
+- Exposed all console script entrypoints (`legends-youtube`, `legends-yt-dlp`, `legends-ytdlp`, `slayer`, `printing-press`) and added direct subcommand forwarding inside `legends-youtube` (`legends-youtube yt-dlp|archive|pull|transcribe|clips <args>`).
+- Rendered the unified 7-card `r1` outlined Legends Font SVG suite (`assets/cards/r1/`) and updated the evergreen README, agent recipe, and attachable 18-file `legends.knowledge-pack/v1` YouTube Operations Vault (`knowledge/youtube/pack.json`).
 
-## 0.1.5 - 2026-11-11
+## 0.1.6 (2026-11-21)
 
-- Hardened `batch.py` against config and URL newline injection, validated `--max-filesize`, replaced the narrow auth blocklist with a strict `yt-dlp.conf` option allowlist (blocking `--exec*`, `--alias`, `--plugin-dirs`, `--config-location*`, `--load-info-json`, `--print-to-file`, and `--proxy`), and enforced SHA-256 config verification inside both `preflight` and `run_batch()`.
+- Added `scripts/render_cards.py` and the 7 outlined Legends Font `r1` SVG design cards under `assets/cards/r1/`, and rewrote `README.md` to the evergreen CTO Legends architecture and reference standard.
+- Included `assets/**/*.svg` in `MANIFEST.in` and synchronized version metadata across `pyproject.toml`, `CITATION.cff`, `assets/manifest.json`, and `SECURITY.md`.
+
+## 0.1.5 (2026-11-11)
+
+- Hardened `batch.py` against config and URL newline injection, validated `--max-filesize`, enforced a strict `yt-dlp.conf` option allowlist (blocking `--exec*`, `--alias`, `--plugin-dirs`, `--config-location*`, `--load-info-json`, `--print-to-file`, and `--proxy`), and enforced SHA-256 config verification inside both `preflight` and `run_batch()`.
 - Validated `source_url` and inserted `"--"` before the positional URL argument in `inventory.py:run_ytdlp_inventory()`.
-- Hardened `tools.py` upstream `yt-dlp` release checks and binary downloads with HTTPS-only host allowlisting, `ProxyHandler({})`, TLS 1.2+ context, bounded chunked reads (`1 MiB` for checksums/API, `64 MiB` for binary), symlink refusal, and cross-platform binary selection (`yt-dlp.exe`, `yt-dlp_macos`, `yt-dlp_linux`).
-- Made `paths.py`, `envfile.py`, `doctor.py`, and `onboarding.py` wheel-safe so installed environments resolve workspace state from `LEGENDS_YTDLP_WORKSPACE` or `Path.cwd()` and `.env` from `os.environ`, `LEGENDS_YTDLP_ENV_FILE`, `Path.cwd() / ".env"`, and `PROJECT_ROOT / ".env"`.
-- Hardened `render_clip_plan()`, `verify.py:probe_media()`, `extract_audio()`, `run_nfa_alignment()`, `mullvad.py`, and `process.py` with symlink refusal, output path containment, fail-closed `--overwrite` semantics, `-i` media flags, Hydra override validation, and 16-digit Mullvad account number validation and timeout redaction.
-- Added `--version` to `legends-yt-dlp`, added `MANIFEST.in`, updated `SECURITY.md`, `docs/PACKAGING.md`, `docs/CLI.md`, `docs/SAFETY-AND-ERRORS.md`, `docs/OPERATOR-ROUTING.md`, `docs/TRANSCRIPTION.md`, and `docs/AGENT-RECIPE.md`, and upgraded `scripts/check_release.py` to Gold-Standard parity.
+- Hardened `tools.py` upstream `yt-dlp` release checks and binary downloads with HTTPS-only host allowlisting, `ProxyHandler({})`, TLS 1.2+ context, bounded chunked reads, symlink refusal, and cross-platform binary selection (`yt-dlp.exe`, `yt-dlp_macos`, `yt-dlp_linux`).
+- Hardened `render_clip_plan()`, `verify.py:probe_media()`, `extract_audio()`, `run_nfa_alignment()`, `mullvad.py`, and `process.py` with symlink refusal, output path containment, fail-closed `--overwrite` semantics, `-i` media flags, Hydra override validation, and 16-digit Mullvad account number validation.
 
-## 0.1.4 - 2026-11-05
+## 0.1.1 (2026-11-21)
 
-- Added `docs/AGENT-RECIPE.md` and `AGENTS.md` with complete CLI reference and Windows Defender / EDR security guardrails.
-- Updated `legends-yt-dlp doctor` to output structured JSON by default, added `--offline`, `--json`, `--text`, and `--require-tools` flags, and reported `yt-dlp` and `ffmpeg` as optional external runtime binaries unless `--require-tools` or `--production` is specified.
-- Removed legacy PowerShell wrapper scripts in favor of native `legends-yt-dlp` and `python -m legends_ytdlp` entrypoints.
-- Added `THIRD_PARTY_NOTICES.md`, `assets/manifest.json`, and automated release verification (`scripts/check_release.py`).
+- Added outlined Legends Font `r1` SVG architecture, capability, operator prompt-chain, and comparison cards (`assets/cards/r1/`) for `legends-youtube` with `.svg` wheel data mirroring in `setup.py` and `MANIFEST.in`.
 
-## 0.1.3 - 2026-11-04
+## 0.1.0 (2026-11-09)
 
-- Add `yt-dlp>=2026.10.01` as a standard package dependency and prefer the active Python environment / PATH `yt-dlp` executable in `find_ytdlp()` before `.local\bin\yt-dlp.exe`.
-- Make `install_ytdlp()` fail-closed when `SHA2-256SUMS` is missing an entry and verify the SHA-256 digest on a staging file before writing `yt-dlp.exe`.
-- Replace `legends-yt-dlp` across `onboarding.py`, `tools.py`, and operator documentation with the direct `legends-yt-dlp` entrypoint.
-- Fix Windows 8.3 short-path resolution in `tests/test_batch.py` and add the `legends-ytdlp` console script alias for CI parity.
-
-## 0.1.2 - 2026-10-29
-
-- Raise minimum supported Python runtime to Python 3.11 (`requires-python = ">=3.11"`) across package metadata and documentation.
-- Add cross-platform GitHub Actions test workflow (`.github/workflows/ci.yml` on Python 3.11 and 3.13) and harden workflows with 40-character commit SHA action pins, explicit `contents: read` permissions, and `pip>=26.2.2`.
-
-## 0.1.1 - 2026-09-28
-
-- Fixed default doctor and preflight accidentally requiring an installed Mullvad CLI and account file. Ordinary runs perform no VPN probes or operations.
-- Kept explicit VPN readiness and recovery enforcement through `--with-vpn`, `doctor --require-connected`, and `doctor --production`. Bulk acknowledgement remains independent of VPN.
-- Corrected packaged install instructions to use ordinary doctor and added regression tests for absent Mullvad/account, explicit VPN failure, and default preflight/run.
-
-## 0.1.0 - 2026-09-25
-
-- Router-native reset generation: de-skillified to the single `cto-legends` router skill (vendored pinned copy at `skills/cto-legends/SKILL.md`, router commit `6975dcb`).
-- Operator recipe moved to `docs/OPERATOR-ROUTING.md` plus command, batch, Mullvad, and safety references under `docs/` with no skill frontmatter. Per-module skill dir, Codex shim, and agent metadata removed.
-- Authoritative version: `pyproject.toml` reads `0.1.0`.
-
-## 0.3.1 - 2026-09-24
-
-- New `yt-dlp check`: compares the managed binary against upstream stable
-  without downloading. Exit 0 when current, 1 when an update is available,
-  2 when the binary is missing or upstream is unreachable.
-- Version parser also accepts nightly-style `YYYY.MM.DD.build` versions and
-  compares them by date.
-
-## 0.3.0 - 2026-09-24
-
-- Rebrand: `legends-yt-dlp-slayer` becomes `legends-yt-dlp`. Package moves to
-  `legends_ytdlp`, skill slug to `legends-yt-dlp`, primary command to
-  `legends-yt-dlp` (`slayer` kept as a deprecated alias). Repo moves to
-  `avalonreset/legends-yt-dlp`.
-- Mullvad is now opt-in: default runs require no VPN and touch no Mullvad
-  state. `--with-vpn` on `plan`, `preflight`, `inventory`, `onboard`, and `run`
-  enables the fail-closed posture (require connected, recover, shutdown after).
-  Anonymous-auth config checks stay always-on. `--no-production` and
-  `--no-require-connected` are removed.
-- Bulk guardrails: batches over 50 URLs require `--bulk` acknowledgement at
-  run; batches of 11-50 print a pacing notice. Planning is always frictionless.
-- Docs: new Transcription Routes (in-module CrispASR plus handoffs to
-  `legends-ambient-intelligence` and `hyperyap`) and Empire Vault Map.
-- Markdown-first agent routing statement in README and skill.
-
-## 0.2.1 - 2026-06-24
-
-- Added a `yt-dlp` freshness gate: managed builds older than 90 days now fail readiness checks and point operators to refresh the local binary.
-- Added `slayer yt-dlp update` as an explicit alias for refreshing the official upstream Windows executable with checksum verification.
-- Updated the local managed `yt-dlp.exe` to upstream stable `2026.06.09` after TikTok extractor failure on the stale `2026.03.17` build.
-- Updated release docs and packaging defaults for the `0.2.1-alpha` package.
-
-## 0.2.0 - 2026-06-13
-
-- Added default post-run Mullvad shutdown for real `run --yes` batches: Lockdown mode is disabled, Mullvad disconnects with `--wait`, and the final disconnected state is verified.
-- Added `run --keep-vpn` for operators who intentionally want Mullvad and Lockdown left running after a batch.
-- Added `mullvad shutdown` as a direct command for manually turning Lockdown off, disconnecting Mullvad, and verifying normal network posture.
-- Updated README, CLI, SOP, Safety, Architecture, and Mullvad wiki docs to present Mullvad as an explicit start-and-stop lifecycle feature.
-
-## 0.1.0 - 2026-06-13
-
-- Created the initial private development vault and repository scaffold.
-- Added the first Python CLI control plane.
-- Added Mullvad CLI detection and wrappers.
-- Added official `yt-dlp.exe` download and checksum verification.
-- Added batch planning, preflight, and guarded run commands.
-- Added GitHub-facing documentation.
-- Added the Codex skill suite under `skills/legends-yt-dlp-slayer`.
-- Added multi-URL / URL-file batch planning and batch catalog listing.
-- Added safe VPN recovery for disconnected Mullvad/tunnel/network failures.
-- Added production Lockdown/auth-cookie hardening.
-- Added JavaScript runtime detection/configuration for YouTube dry-runs.
-- Fixed yt-dlp config quoting for output templates and paths with spaces.
-- Added bounded smoke-job limits and compact run reports.
-- Added guarded Mullvad disconnect testing with automatic recovery and an emergency unlock fallback.
-- Added `setup production`, curated `smoke plan`, and batch `verify` commands.
-- Added media verification through ffprobe and Unicode-safe console output.
-- Made dry-runs suppress raw yt-dlp JSON unless `--show-output` is passed.
-- Added channel/playlist `inventory` planning that creates reviewable item ledgers before downloads.
-- Added `items.jsonl` per-item ledgers, `ledger` inspection/refresh commands, and ledger summaries in run reports and verification.
-- Added optional `--rights-file` evidence copying into batch folders.
-- Made inventory pause on source-side warning signals instead of turning questionable sources into batches.
-- Added MIT license, NOTICE, SECURITY.md, CITATION.cff, contribution/community templates, issue templates, and pull request template.
-- Added alpha packaging script and packaging/legal docs.
-- Added `onboard` first-run guidance command, walkthrough docs, and batch intake/rights evidence examples.
-- Added `slayer intelligence` MVP for post-download word-ledger import, exact phrase search, FFmpeg clip planning/rendering, and Obsidian transcript vault export.
-- Added CrispASR/Parakeet as the preferred ready-made transcription backend with `intelligence transcribe` and `import-crispasr`.
-- Added `intelligence align nfa` for NVIDIA NeMo Forced Aligner manifest prep, word CTM import, and strict word-ledger timing refinement.
-- Fixed CrispASR transcript artifact naming after a real downloaded-video smoke test and added regression coverage.
-- Hardened `verify` to count ledger-scoped media/info artifacts so broad output folders such as `Downloads` do not inflate batch verification.
-- Added CrispASR diagnostics parsing plus GPU-required doctor/transcribe gates for honest CPU-vs-GPU Parakeet operation.
-- Made `intelligence transcribe` reject contradictory GPU flags before launching ASR.
-- Added `smoke plan --url` so new validation can use operator-provided authorized smoke sources instead of the legacy built-in fixtures.
-- Added output folder policies so direct multi-link plans can land in one named batch folder while channel/playlist inventory can remain grouped by uploader.
-- Clarified that transcription/intelligence is an optional post-capture workflow, not mandatory for every download.
-- Added the WebP README banner and updated the public-facing project positioning around creator source capture and clip-building.
-- Hardened alpha packaging so local work folders, release experiments, and media artifacts stay out of distribution zips.
+- Initial release of `legends-youtube` and `legends-yt-dlp` for the `cto-legends` Studio stack: pure-stdlib YouTube Data API v3, Resumable Upload API, and Analytics API v2 client, deterministic `quota-plan` calculator, 2-unit-per-50-video `channel-inventory`, 0-quota `public-readback` and `channel-outliers`, Perfect Video Score `score-idea`, lossless `If-Match` ETag `metadata-plan`/`metadata-apply`, `chapters-lint`, `quiz-lint`, `thumbnail-check`, `draft-freeze`/`draft-upload`, preview-first `yt-dlp` batch archiving, `ffprobe` stream verification, local GPU CrispASR Parakeet word ledgers, FFmpeg clip plans, and the 18-file YouTube Operations Vault (`knowledge/youtube/pack.json`).
