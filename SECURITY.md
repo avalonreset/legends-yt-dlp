@@ -4,8 +4,8 @@
 
 | Version | Supported |
 | --- | --- |
-| `0.2.x` (`>= 0.2.0`) | Yes |
-| `< 0.2.0` | No |
+| `0.2.x` (`>= 0.2.1`) | Yes |
+| `< 0.2.1` | No |
 
 ## Credential, Capture, and Network Boundaries
 

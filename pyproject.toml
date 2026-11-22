@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "legends-youtube"
-version = "0.2.0"
+version = "0.2.1"
 description = "Unified YouTube Data API v3, Analytics API v2, Studio packaging, and verified yt-dlp media archiving CLI: 2-unit channel inventory, 0-quota outlier and public readback radar, Perfect Video Score idea scoring, lossless ETag-guarded metadata updates, SHA-256 frozen private-draft uploads, anonymous yt-dlp capture and ffprobe stream verification, GPU word ledgers and FFmpeg clip plans, and an 18-file Empire knowledge pack."
 requires-python = ">=3.11"
 license = "MIT"

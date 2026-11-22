@@ -1,7 +1,7 @@
 {
   "product": "legends-youtube",
   "module": "legends-youtube",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "banner_template": "legends-type-v1",
   "social_template": "legends-social-v1",
   "subtitle": "youtube data api v3 and analytics api v2 operations, lossless metadata updates, studio packaging, and verified yt-dlp media archiving",

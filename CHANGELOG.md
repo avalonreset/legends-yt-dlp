@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 (2026-11-22)
+
+- Sync vendored `cto-legends` router skill pin (`69ddc4f68faa`), enforce LF line endings via `.gitattributes`, and standardize release artifact checksums.
+
 ## 0.2.0 (2026-11-21)
 
 - Unified `legends-youtube` (`legends_youtube`) and `legends-yt-dlp` (`legends_ytdlp`) into a single first-class YouTube Studio, Data API v3, Analytics API v2, and verified `yt-dlp` media archiving and GPU word-ledger package (`legends-youtube 0.2.0`).
