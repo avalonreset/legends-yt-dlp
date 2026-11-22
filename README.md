@@ -1,89 +1,120 @@
-<a name="banner"></a>
-<a name="legends-youtube"></a>
+<a id="top"></a>
 
-# ![legends-youtube](assets/banner.webp)
+<p align="center"><img src="assets/banner.webp" width="100%" alt="legends-youtube: unified YouTube Data API v3, Analytics API v2, Studio packaging, and verified yt-dlp media archiving CLI in plain english"></p>
+
+# legends-youtube: unified YouTube channel operations, Studio packaging, and verified yt-dlp archiving in plain english
 
 [![release](https://img.shields.io/github/v/release/avalonreset/legends-youtube?label=release&sort=date&style=flat-square&labelColor=000000&color=ff0000)](https://github.com/avalonreset/legends-youtube/releases/latest)
 [![checks](https://img.shields.io/github/actions/workflow/status/avalonreset/legends-youtube/ci.yml?branch=main&label=checks&style=flat-square&labelColor=000000)](https://github.com/avalonreset/legends-youtube/actions/workflows/ci.yml)
-[![python](https://img.shields.io/badge/python-3.11%2B-000000?style=flat-square&labelColor=000000&color=ff0000)](docs/RELEASE.md)
-[![surface](https://img.shields.io/badge/surface-data%20v3%20%2B%20analytics%20v2%20%2B%20yt--dlp%20%2B%200--quota%20radar-000000?style=flat-square&labelColor=000000&color=ff0000)](docs/AGENT-RECIPE.md)
-[![license](https://img.shields.io/github/license/avalonreset/legends-youtube?label=license&style=flat-square&labelColor=000000&color=666666)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-ff0000?style=flat-square&labelColor=000000)](#reference)
+[![Surface](https://img.shields.io/badge/surface-Data%20v3%20%2B%20Analytics%20v2%20%2B%20yt--dlp%20%2B%200--Quota%20Radar-ff0000?style=flat-square&labelColor=000000)](docs/AGENT-RECIPE.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-ff0000?style=flat-square&labelColor=000000)](LICENSE)
 
-**Unified YouTube Data API v3, Analytics API v2, Studio packaging, and verified `yt-dlp` media archiving CLI (`legends-youtube` + `legends-yt-dlp`) for coding agents: inventory channels at 2 quota units per 50 videos, scout breakout outliers and verify live public videos for 0 quota units, score ideas before recording with the Perfect Video Score and Goldilocks timing rule, probe and pull media via anonymous SHA-256-guarded `yt-dlp` batches with `ffprobe` stream verification and GPU Parakeet word-timed clips, execute lossless `If-Match` ETag snippet merges with rollback snapshots, upload SHA-256 frozen private-only drafts, and attach an 18-file YouTube Operations Vault to [`legends-empire`](https://github.com/avalonreset/legends-empire).**
+Ask an unguided coding agent to update a YouTube video's description or pull a batch of reference clips with `yt-dlp`, and you hit four painful traps right away. Sending a partial `snippet` payload to YouTube's `videos.update` endpoint silently deletes your existing tags and language settings; calling `search.list` to inventory a channel burns 100 quota units per page; passing personal browser cookies into raw `yt-dlp` loops exposes your primary Google account to automated rate limits; and naive upload scripts risk publishing an unreviewed cut publicly.
 
-![Agent Handoff](assets/cards/r1/slot-1-agent-handoff.svg)
+**The human is the controller. The agents do the operating. Stop being your computer's assistant.**
+
+`legends-youtube` unifies both halves of the YouTube workflow into one package exposing both `legends-youtube` and `legends-yt-dlp`. Register the [`cto-legends`](https://github.com/avalonreset/cto-legends) router once, state your goal in plain english, and your agent inventories channels for 2 quota units per 50 videos, scouts public outliers for 0 quota units, pulls verified `yt-dlp` media archives with local GPU word-timed clip plans, merges full `snippet` objects behind `If-Match` ETag locks, and freezes private-only draft uploads.
+
+<p align="center"><img src="assets/cards/r1/slot-1-agent-handoff.svg" width="100%" alt="Agent handoff: paste this into Claude Code, Codex, or any coding agent and it does the setup"></p>
 
 ```text
-Install or update legends-youtube via cto-legends (https://github.com/avalonreset/cto-legends): run `cto-legends install legends-youtube --apply`, then `cto-legends handoff legends-youtube` and follow the returned JSON recipe to verify `legends-youtube doctor --json` and `legends-yt-dlp doctor --offline`.
+Use cto-legends to install legends-youtube, run the doctor check for both
+legends-youtube and legends-yt-dlp, and show me the plan before any download or channel write.
 ```
 
-![Three Pillars: 2u inventory & 0u outlier radar, Verified yt-dlp & GPU word ledgers, ETag snippet merge & private drafts](assets/cards/r1/slot-2-three-pillars.svg)
+<p align="center"><img src="assets/cards/r1/slot-2-three-pillars.svg" width="100%" alt="Three pillars of legends-youtube: 01 Low-quota inventory and zero-quota outlier radar, 02 Verified yt-dlp and GPU word ledgers, and 03 Lossless ETag snippet merge and private drafts"></p>
 
-## Why `legends-youtube` exists
+[Plain english](#hand-youtube-and-yt-dlp-to-your-agent-in-plain-english) · [Quota & lossless metadata](#why-raw-youtube-api-calls-wipe-tags-and-burn-quota) · [Verified yt-dlp & GPU clips](#anonymous-yt-dlp-probing-and-local-gpu-word-ledgers) · [Studio QA & private drafts](#pre-recording-idea-radar-studio-linters-and-private-draft-locks) · [Reference](#reference)
 
-Improvised agent scripts, raw YouTube API calls, and ad-hoc `yt-dlp` invocations break production channels and media archives in four predictable ways:
+---
 
-1. **The `videos.update` partial-update trap wipes omitted tags and descriptions:** Calling `PUT /youtube/v3/videos?part=snippet` replaces the entire `snippet` object. Any mutable property omitted from the payload (`description`, `tags`, `defaultLanguage`, `defaultAudioLanguage`) is silently deleted by YouTube, while blind writes overwrite concurrent Studio edits.
-2. **100-unit `search.list` quota bombs exhaust the daily pool:** Google Cloud projects receive a 10,000-unit daily pool plus 2026-06-01 granular daily caps (`100` `search.list` calls/day and `100` `videos.insert` calls/day). Using `search.list` to list a channel's videos burns 100 units per page, and using authenticated API calls just to verify a public video's live metadata wastes quota needed for real writes.
-3. **Ad-hoc `yt-dlp` shell calls leak browser cookies, skip stream checks, and chop clips mid-word:** Passing `--cookies-from-browser chrome` or unvetted flags into raw shell loops exposes personal accounts to automated rate limits, skips pre-download `items.jsonl` metadata probing and `ffprobe` stream verification, and relies on drifted auto-captions instead of local GPU word ledgers.
-4. **Unscored topics, broken Studio packaging, and accidental public uploads:** Recording videos without pre-scoring timing, search surface, proof advantage, and channel fit wastes studio days; malformed chapter timestamps (`00:00` missing or `< 10s` steps), `> 80`-character Studio Video Quiz options, or `> 2 MB` thumbnails fail YouTube Studio validation; and naive upload scripts that default to `public` can publish an unreviewed cut to subscribers immediately.
+## Hand YouTube and yt-dlp to your agent in plain english
 
-`legends-youtube` unifies **YouTube Data API v3, the Resumable Upload API, YouTube Analytics API v2, 0-quota public endpoints, and the `legends-yt-dlp` media capture and GPU word-ledger control plane** in a single package (`legends-youtube` and `legends-yt-dlp` console entrypoints) that pairs naturally with [`legends-captions`](https://github.com/avalonreset/legends-captions), [`legends-obs`](https://github.com/avalonreset/legends-obs), [`legends-stable-audio-3`](https://github.com/avalonreset/legends-stable-audio-3), [`legends-ambient-intelligence`](https://github.com/avalonreset/legends-ambient-intelligence), and [`legends-empire`](https://github.com/avalonreset/legends-empire).
+You should never have to hand-craft JSON payloads for `videos.update`, calculate YouTube Data API v3 quota costs on a notepad, or memorize `yt-dlp` and `ffmpeg` flags. You describe the job in plain english, and your coding agent connects `legends-youtube` with the rest of your studio and research stack.
 
-## Ask in plain english
+<p align="center"><img src="assets/cards/r1/slot-3-plain-english-chains.svg" width="100%" alt="Say the job in plain words: four spoken sentences routing directly into legends-youtube and legends-yt-dlp workflows"></p>
 
-Once [`cto-legends`](https://github.com/avalonreset/cto-legends) is installed, you ask your coding agent in plain english. It models quota waves first, sweeps channel inventory for 2 units per 50 videos, probes and verifies `yt-dlp` media streams anonymously, merges full `snippet` objects behind `If-Match` ETag headers, and hard-locks draft uploads to `privacyStatus="private"`:
+Start where a creator or operator actually starts, with a sentence.
 
-![Say the job in plain words](assets/cards/r1/slot-3-plain-english-chains.svg)
+**"Sweep our channel inventory and score this video idea."**
 
-## Architecture: Studio API governance and verified `yt-dlp` media capture
+Your agent inventories your uploads playlist at 2 quota units per 50 videos instead of burning 100 units per page on `search.list`, scouts breakout outlier videos on public channels for zero quota units via Atom RSS feeds, and evaluates your candidate topic with the Perfect Video Score, Goldilocks timing window, and Fit Filter before you spend a day recording in [`legends-obs`](https://github.com/avalonreset/legends-obs).
 
-![How Studio API governance and verified yt-dlp media capture work](assets/cards/r1/slot-4-youtube-architecture.svg)
+**"Pull this batch of reference videos and cut word-timed clips."**
 
-### 1. Low-quota inventory (`2` units per 50 videos), wave planner, 0-quota public radar, and Idea Radar
+Your agent invokes the bundled `legends-yt-dlp` engine (also reachable via `legends-youtube yt-dlp`, `archive`, `pull`, `transcribe`, and `clips`). It probes the channel or playlist into a reviewable `items.jsonl` ledger before downloading a byte, verifies an anonymous no-cookie `yt-dlp.conf` allowlist by SHA-256, checks every finished file with `ffprobe`, demuxes clean audio into local GPU Parakeet word ledgers, and builds frame-accurate FFmpeg clip plans ready for [`legends-captions`](https://github.com/avalonreset/legends-captions).
 
-Before touching a single video, `legends-youtube` protects your 10,000-unit daily pool and 2026-06-01 granular caps:
+**"Migrate our legacy description links without wiping video tags."**
 
-- **2-unit-per-50-video uploads playlist sweep (`channel-inventory`, `video-inspect`):** Resolves `contentDetails.relatedPlaylists.uploads` (`1` unit) and paginates `playlistItems.list` + 50-ID batched `videos.list` calls (`2` units per 50 videos, or `21` total units for a 500-video channel vs `1,000+` units with `search.list`).
-- **Deterministic multi-day wave planner (`quota-plan`):** Models preflight, write, and readback unit costs against your daily reserve and splits large metadata or upload batches into safe daily waves before any mutation runs.
-- **Zero-quota, zero-credential public verification and outlier radar (`public-readback`, `channel-outliers`):** Inspects live watch pages (`ytInitialPlayerResponse`) and public `oEmbed` endpoints for **0 quota units and 0 credentials**, and scouts breakout outlier videos (view and velocity multipliers) across public channels via Atom RSS feeds with XXE/entity-hardened XML parsing.
-- **Pre-recording Perfect Video Score & retention X-ray (`score-idea`, `transcript-package`, `retention-xray`):** Scores candidate ideas with the Goldilocks timing rule (Day 4-30 Prime vs Day 31-180 Evergreen) and 9-Point Fit Filter, compiles transcripts into chapters and Shorts gem-cuts, and correlates retention cliffs with exact spoken sentences.
+Your agent generates a SHA-256 preview plan with `links-migrate` and `metadata-plan`. When you approve, `metadata-apply` fetches each video's live `snippet`, verifies `expectedCurrent` fields, merges your updated description into the complete existing tag and language object, saves a local rollback snapshot, sends an `If-Match` ETag header, and verifies the live readback.
 
-### 2. Preview-first `yt-dlp` media probing, SHA-256 capture guards, and GPU word-ledger clips (`legends-yt-dlp` / `legends-youtube yt-dlp`)
+**"Audit our CTR scorecard and freeze a private draft upload."**
 
-Every installation exposes both `legends-youtube` (including `legends-youtube yt-dlp|archive|pull|transcribe|clips` delegation) and `legends-yt-dlp` (`legends-ytdlp`):
+Your agent benchmarks click-through rate and retention against YouTube Help thresholds to rank candidates for Title and Thumbnail Test & Compare A/B runs, validates your chapter timestamps, Studio Video Quizzes, and custom thumbnail (`<= 2 MB`), and uploads the video strictly locked to `privacyStatus="private"`.
 
-- **Read-only metadata probing (`legends-yt-dlp inventory`):** Expands a channel or playlist into a reviewable `items.jsonl` ledger without downloading media. Every positional URL is validated and passed after `"--"` so option injection is impossible, and the runner pauses immediately on source throttling, login walls, or captchas.
-- **Anonymous config allowlist, SHA-256 lock, and `ffprobe` verification (`plan`, `preflight`, `run`, `verify`):** Generated batch configs (`batches/<id>/yt-dlp.conf`) enforce `--ignore-config`, `--no-cookies`, and `--no-cookies-from-browser` under a strict option allowlist that blocks `--exec*`, `--alias`, `--plugin-dirs`, `--config-location*`, `--load-info-json`, `--print-to-file`, and `--proxy`. Both `preflight` and `run` verify the recorded SHA-256 digest of `yt-dlp.conf`, upstream `yt-dlp` binaries are verified against official `SHA2-256SUMS`, and completed media files are stream-checked with `ffprobe -i`.
-- **Local GPU transcription, forced alignment, and FFmpeg clip plans (`intelligence`):** Demuxes clean audio from verified local video files, runs CrispASR (Parakeet TDT v3) on GPU to write normalized word ledgers (`intelligence/words/*.words.jsonl`), optionally refines timings with NVIDIA NeMo Forced Aligner (`align nfa`), searches exact spoken phrases (`search`), generates and renders frame-accurate FFmpeg clip plans (`clips plan|render`), and exports Obsidian transcript vaults (`vault build`).
+---
 
-### 3. Complete unified CLI command surface (`legends-youtube` + `legends-yt-dlp`)
+## Why raw YouTube API calls wipe tags and burn quota
+
+Two architectural traps catch almost every developer who lets a raw language model call YouTube Data API v3 directly.
+
+First, `PUT /youtube/v3/videos?part=snippet` replaces the entire `snippet` resource. If an unguided script sends only `title`, `description`, and `categoryId`, YouTube deletes the video's `tags`, `defaultLanguage`, and `defaultAudioLanguage`. Second, Google Cloud projects receive a 10,000-unit daily pool alongside granular daily method caps (`100` `search.list` calls per day and `100` `videos.insert` calls per day). Using `search.list` to list a 500-video channel burns 1,000 quota units; using authenticated API calls just to check a public video's live title wastes quota needed for real writes.
+
+<p align="center"><img src="assets/cards/r1/slot-5-adhoc-vs-youtube.svg" width="100%" alt="Comparison: Raw YouTube API and ad-hoc yt-dlp flags versus Unified YouTube and media engine in legends-youtube"></p>
+
+`legends-youtube` eliminates both failure modes. Channel inventory resolves `contentDetails.relatedPlaylists.uploads` and batches 50 video IDs per `videos.list` request, sweeping 500 videos for 21 total quota units. Public watch-page and `oEmbed` checks (`public-readback`) and RSS velocity scouting (`channel-outliers`) cost 0 quota units and require 0 credentials. And every metadata mutation is locked behind a lossless full-snippet merge, pre-write rollback JSON, `If-Match` ETag concurrency, and post-write readback verification.
+
+---
+
+## Anonymous yt-dlp probing and local GPU word ledgers
+
+Media archiving and clip research belong in the same workflow as channel management, which is why `legends-yt-dlp` ships inside `legends-youtube` as a first-class console entrypoint and subcommand family.
+
+<p align="center"><img src="assets/cards/r1/slot-4-youtube-architecture.svg" width="100%" alt="How Studio API governance and verified yt-dlp media capture work together in legends-youtube"></p>
+
+When an agent runs `yt-dlp` without guardrails, it often passes `--cookies-from-browser`, downloads unprobed playlists blindly, or cuts clips mid-syllable from rough auto-captions. `legends-yt-dlp` enforces a strict look-then-do pipeline:
+
+- **Probe first, download second.** `legends-yt-dlp inventory` expands channels and playlists into a reviewable `items.jsonl` ledger without downloading media, passes every URL after `"--"` to prevent option injection, and pauses immediately on rate limits or login walls.
+- **Anonymous SHA-256 config lock and `ffprobe` stream checks.** Generated batch configs (`batches/<id>/yt-dlp.conf`) enforce `--ignore-config`, `--no-cookies`, and `--no-cookies-from-browser` under an option allowlist that blocks arbitrary command execution or proxy injection. The official `yt-dlp` binary is verified against upstream `SHA2-256SUMS`, `preflight` and `run` verify the `yt-dlp.conf` SHA-256 digest, and `verify` probes every completed media stream with `ffprobe -i`.
+- **Local GPU Parakeet word ledgers and FFmpeg clips.** Once media files are verified, `intelligence transcribe` demuxes clean audio and runs local GPU CrispASR (Parakeet TDT) speech recognition with optional NVIDIA NeMo Forced Aligner refinement to produce word-accurate ledgers (`*.words.jsonl`), phrase search, reviewable FFmpeg clip plans, and Markdown transcript vaults for [`legends-empire`](https://github.com/avalonreset/legends-empire) and [`legends-ambient-intelligence`](https://github.com/avalonreset/legends-ambient-intelligence).
+
+---
+
+## Pre-recording Idea Radar, Studio linters, and private draft locks
+
+Publishing a video involves more than an MP4 file. YouTube Studio rejects malformed chapter progressions, truncates quiz options over 80 characters, refuses custom thumbnails over 2 MB, and requires deliberate Shorts-to-long-form funnel linking.
+
+`legends-youtube` validates all of those offline before you touch the network:
+
+- **Pre-recording Idea Radar (`score-idea`) and Retention X-Ray (`retention-xray`).** Scores candidate ideas across timing (Day 4 to 30 Prime vs Day 31 to 180 Evergreen), search surface, proof advantage, and channel fit, compiles transcripts into chapters and Shorts gem-cuts (`transcript-package`), and aligns retention cliffs with exact spoken sentences.
+- **Offline Studio linters (`chapters-lint`, `quiz-lint`, `thumbnail-check`, `related-guard`, `house-style-lint`).** Verifies `00:00` chapter starts, minimum 3 chapters, and `>= 10s` steps; validates Studio Video Quizzes (`ytve-posts-modal`, `<= 80` char options, `MM:SS:FF` timestamps); checks PNG/JPEG thumbnails (`<= 2 MB`); and guards Shorts `Related video` batch checklists.
+- **Private-only draft uploads (`draft-freeze` -> `draft-upload`).** Freezes your video, title, description, and thumbnail into a SHA-256 manifest and executes resumable uploads hard-locked to `privacyStatus="private"` and `notifySubscribers=false` behind an explicit confirmation phrase.
+
+---
+
+## Reference
+
+Everything you need to run `legends-youtube` and `legends-yt-dlp` through your coding agent is in the essay above. Open the drawers below for the full command table, lossless metadata and draft-upload examples, anonymous `yt-dlp` policies, and FAQ.
+
+<details>
+<summary><strong>Unified command surface and quick start (<code>legends-youtube</code> + <code>legends-yt-dlp</code>)</strong></summary>
+
+<br>
 
 | Surface | Subcommands | What It Does |
 | :--- | :--- | :--- |
-| **Readiness & Vault Resources** | `legends-youtube doctor`, `auth-status`, `knowledge-pack`, `paths`, `resources` | Verifies offline runtime health, OAuth/API-key scope readiness (`youtube.force-ssl`, `youtube.upload`), optional `--expected-channel-id` ownership, and the 18-file knowledge pack. |
+| **Readiness & Vault Resources** | `legends-youtube doctor`, `auth-status`, `knowledge-pack`, `paths`, `resources` | Verifies offline runtime health, OAuth/API-key scope readiness (`youtube.force-ssl`, `youtube.upload`), optional `--expected-channel-id` ownership, and the attachable YouTube Operations Vault. |
 | **Quota & Channel Inventory** | `quota-plan`, `channel-inventory`, `video-inspect`, `public-readback` | Models daily quota waves, inventories uploads at 2 units per 50 videos, inspects batched video resources, and verifies public videos for 0 quota units. |
-| **Idea Radar & Retention X-Ray** | `score-idea`, `channel-outliers`, `transcript-package`, `retention-xray` | Computes the Perfect Video Score + Goldilocks timing rule + 9-Point Fit Filter, scouts 0-quota RSS outliers, packages `.json`/`.srt`/`.vtt`/`.txt` transcripts into chapters and Shorts gem-cuts, and maps retention cliffs to exact spoken lines. |
-| **Lossless ETag Metadata & Links** | `metadata-plan`, `metadata-apply`, `links-audit`, `links-migrate` | Enforces SHA-256 plan hashes, `expectedCurrent` drift checks, full `snippet` field preservation merge, pre-write rollback snapshots, `If-Match` ETag concurrency, post-write readback verification, and SSRF-safe HTTPS link-rot/CTA migrations. |
+| **Idea Radar & Retention X-Ray** | `score-idea`, `channel-outliers`, `transcript-package`, `retention-xray` | Computes the Perfect Video Score, Goldilocks timing rule, and Fit Filter, scouts 0-quota RSS outliers, packages transcripts into chapters and Shorts gem-cuts, and maps retention cliffs to exact spoken lines. |
+| **Lossless ETag Metadata & Links** | `metadata-plan`, `metadata-apply`, `links-audit`, `links-migrate` | Enforces SHA-256 plan hashes, `expectedCurrent` drift checks, full `snippet` field preservation merge, pre-write rollback snapshots, `If-Match` ETag concurrency, post-write readback verification, and HTTPS link-rot/CTA migrations. |
 | **Analytics & Packaging A/B Queue** | `analytics-audit`, `packaging-audit` | Benchmarks Studio exports or live YouTube Analytics API v2 reports against official YouTube Help thresholds (`2%-10%` CTR band, `50%` APV, `8:00` mid-roll eligibility) and ranks high-impression below-median-CTR videos for Test & Compare A/B runs. |
 | **Studio QA, Shorts & Private Drafts** | `chapters-lint`, `quiz-lint`, `thumbnail-check`, `related-guard`, `house-style-lint`, `comments-triage`, `playlists-audit`, `funnel-audit`, `draft-freeze`, `draft-upload` | Validates chapters (`00:00` start, `>= 3` items, `>= 10s` step), Studio Video Quizzes (`<= 10` quizzes, `<= 80` char options, `MM:SS:FF`), PNG/JPEG thumbnails (`<= 2 MB`), Shorts-to-Longform Related Video confirmation phrases, lowercase title rules, and SHA-256 frozen `privacyStatus="private"` resumable uploads. |
 | **`yt-dlp` Probing & Guarded Capture** | `legends-yt-dlp doctor`, `onboard`, `yt-dlp install\|update\|version\|check`, `inventory`, `plan`, `smoke plan`, `catalog`, `ledger`, `preflight`, `run`, `verify` (or `legends-youtube yt-dlp\|archive\|pull ...`) | JSON readiness checks, SHA-256-verified upstream `yt-dlp` binary management, read-only channel/playlist item probing (`items.jsonl`), anonymous SHA-256 `yt-dlp.conf` preflight, paced capture (`--bulk` above 50 URLs, optional `--with-vpn` Mullvad Lockdown lifecycle), and ledger-scoped `ffprobe -i` stream verification. |
 | **GPU Word Ledgers, Clips & Vault** | `legends-yt-dlp intelligence init\|doctor\|status\|transcribe\|import-crispasr\|import-words\|align nfa\|search\|clips plan\|clips render\|vault build` (or `legends-youtube transcribe\|clips ...`) | Local audio demuxing, CrispASR Parakeet GPU transcription, NeMo Forced Aligner word CTM refinement, exact contiguous phrase search, reviewable FFmpeg clip plans and rendering, and Obsidian vault export. |
 
-### 4. Lossless `If-Match` ETag snippet merge, private-only draft lock, and `legends-empire` vault
-
-- **6-layer lossless `videos.update` pipeline (`metadata-plan` -> `metadata-apply`):** Fetches live video state, checks `expectedCurrent` expectations, merges all mutable `snippet` fields (`title`, `description`, `tags`, `categoryId`, `defaultLanguage`, `defaultAudioLanguage`), writes a rollback JSON snapshot, sends `If-Match` with the live `ETag`, and verifies every field on post-write readback.
-- **Hard-locked private draft uploads (`draft-freeze` -> `draft-upload`):** Freezes the video binary, title, description, and verified `<= 2 MB` custom thumbnail into a SHA-256 manifest and executes chunked resumable uploads (`HTTP 308 Range`) strictly locked to `privacyStatus="private"` and `notifySubscribers=false` behind `--apply` and `UPLOAD_PRIVATE_DRAFT <channel_id>`.
-- **Attachable 18-file YouTube Operations Vault (`knowledge/youtube/pack.json`):** Ships a `legends.knowledge-pack/v1` library ([wiki/index.md](wiki/index.md)) with 12 source-cited runbooks, a dated official sources ledger ([references/sources.md](references/sources.md)), and 4 operation receipt templates for [`legends-empire`](https://github.com/avalonreset/legends-empire).
-
-## Raw YouTube API & ad-hoc `yt-dlp` flags vs `legends-youtube`
-
-![Comparison: Raw YouTube API & ad-hoc yt-dlp flags vs Unified YouTube & media engine // legends-youtube](assets/cards/r1/slot-5-adhoc-vs-youtube.svg)
-
-## Quick start
-
 ```sh
-# 1. Verify offline Studio API readiness, the 18-file YouTube Operations Vault, and the yt-dlp control plane
+# 1. Verify offline Studio API readiness, the YouTube Operations Vault, and the yt-dlp control plane
 legends-youtube doctor --json
 legends-youtube knowledge-pack --json
 legends-yt-dlp doctor --offline
@@ -99,24 +130,23 @@ legends-youtube channel-outliers --channel-id UC_x5XG1OV2P6uZZ5FSM9Ttw --thresho
 legends-youtube quota-plan --inventory-videos 120 --metadata-updates 120 --json
 legends-youtube chapters-lint --description-file description.txt --duration-seconds 1800 --json
 legends-youtube quiz-lint --quizzes-file quizzes.json --duration-seconds 1800 --json
-legends-youtube related-guard --video-ids VidShrt0001,VidShrt0002 --target VidLong0001 --json
 legends-youtube thumbnail-check --image thumbnail.png --json
 
 # 5. Probe a channel with yt-dlp, run anonymous SHA-256 preflight, verify streams with ffprobe, and cut GPU word clips
 legends-yt-dlp inventory "https://www.youtube.com/@CHANNEL" --name "channel-review" --max-items 25
 legends-yt-dlp preflight "batches/<batch-id>/manifest.json"
 legends-yt-dlp run "batches/<batch-id>/manifest.json" --dry-run
-legends-yt-dlp run "batches/<batch-id>/manifest.json" --yes
 legends-yt-dlp verify "batches/<batch-id>/manifest.json"
-legends-yt-dlp intelligence init "batches/<batch-id>/manifest.json"
 legends-yt-dlp intelligence transcribe "batches/<batch-id>/manifest.json" --all --model auto
 legends-yt-dlp intelligence clips plan "batches/<batch-id>/manifest.json" --query "agentic workflow"
 ```
 
-## Reference
+</details>
 
 <details>
 <summary><strong>Lossless metadata updates, private-draft upload flow, and <code>legends-empire</code> knowledge pack</strong></summary>
+
+<br>
 
 Every write surface in `legends-youtube` is split into a zero-mutation preview/freeze step and a hash-confirmed execution step:
 
@@ -147,12 +177,14 @@ legends-youtube draft-upload \
   --output upload-receipt.json
 ```
 
-Read the [knowledge pack guide](docs/KNOWLEDGE-PACK.md), [vault index](wiki/index.md), [dated official sources ledger](references/sources.md), and [private operation receipt template](templates/private-operation-receipt.md) to attach the 18-file YouTube Operations Vault to [`legends-empire`](https://github.com/avalonreset/legends-empire).
+Read the [knowledge pack guide](docs/KNOWLEDGE-PACK.md), [vault index](wiki/index.md), [dated official sources ledger](references/sources.md), and [private operation receipt template](templates/private-operation-receipt.md) to attach the YouTube Operations Vault ([knowledge/youtube/pack.json](knowledge/youtube/pack.json)) to [`legends-empire`](https://github.com/avalonreset/legends-empire).
 
 </details>
 
 <details>
-<summary><strong><code>yt-dlp</code> anonymous extraction policy, opt-in Mullvad VPN lifecycle, and GPU word ledgers</strong></summary>
+<summary><strong><code>yt-dlp</code> anonymous extraction policy, opt-in Mullvad VPN lifecycle, and agent setup</strong></summary>
+
+<br>
 
 All `legends-yt-dlp` (and `legends-youtube yt-dlp`) batches run anonymously by default: no browser cookies, no cookie files, no username or password flags, no `.netrc`, and no inherited user-level `yt-dlp` configuration. Batches of 11 to 50 URLs print a pacing notice; batches over 50 URLs require explicit `--bulk` acknowledgement.
 
@@ -162,18 +194,11 @@ All `legends-yt-dlp` (and `legends-youtube yt-dlp`) batches run anonymously by d
 
 See [docs/OPERATOR-ROUTING.md](docs/OPERATOR-ROUTING.md), [docs/CLI.md](docs/CLI.md), [docs/INTELLIGENCE.md](docs/INTELLIGENCE.md), [docs/CRISPASR.md](docs/CRISPASR.md), [docs/TRANSCRIPTION.md](docs/TRANSCRIPTION.md), [docs/VAULT-MAP.md](docs/VAULT-MAP.md), [docs/SAFETY.md](docs/SAFETY.md), [docs/SAFETY-AND-ERRORS.md](docs/SAFETY-AND-ERRORS.md), [docs/MULLVAD-CONTROLS.md](docs/MULLVAD-CONTROLS.md), and [docs/LEGAL.md](docs/LEGAL.md).
 
-</details>
-
-<details>
-<summary><strong>Agent setup (via <code>cto-legends</code>) and standalone installation</strong></summary>
-
 ### Agent setup (via `cto-legends`)
 
-Part of the [cto-legends](https://github.com/avalonreset/cto-legends) ecosystem. `cto-legends` is the only registered skill; this repository vendors a pinned copy at [skills/cto-legends/SKILL.md](skills/cto-legends/SKILL.md).
+Part of the [`cto-legends`](https://github.com/avalonreset/cto-legends) ecosystem. `cto-legends` is the only registered skill; this repository vendors a pinned copy at [skills/cto-legends/SKILL.md](skills/cto-legends/SKILL.md).
 
-The product, repository, Python distribution, and catalog ID are `legends-youtube` (which installs both `legends-youtube` and `legends-yt-dlp` entrypoints).
-
-Install with `cto-legends install legends-youtube --apply`, then run `cto-legends handoff legends-youtube` and follow the module recipe the router loads ([docs/AGENT-RECIPE.md](docs/AGENT-RECIPE.md)). Do not register this module as its own standalone skill.
+The product, repository, Python distribution, and catalog ID are `legends-youtube` (which installs both `legends-youtube` and `legends-yt-dlp` entrypoints, with `legends-yt-dlp` retained as a catalog alias).
 
 ```sh
 git clone https://github.com/avalonreset/legends-youtube.git
@@ -186,23 +211,6 @@ legends-yt-dlp doctor --offline
 
 Provide YouTube API credentials only through explicit environment variables (`YOUTUBE_API_KEY`, `YOUTUBE_ACCESS_TOKEN`, `YOUTUBE_REFRESH_TOKEN`, `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`), `--dotenv`, or `--token-file`. Browser cookie stores and system keyrings are never touched.
 
-</details>
-
-<details>
-<summary><strong>Repository layout, verification, and FAQ</strong></summary>
-
-```text
-Operator / Agent
-  -> legends-youtube CLI (doctor, quota-plan, channel-inventory, score-idea, public-readback, channel-outliers)
-  -> Zero-write plan & QA gates (metadata-plan, links-migrate, chapters-lint, quiz-lint, draft-freeze)
-  -> Explicit hash & phrase locks (--expected-plan-sha256, If-Match ETag, UPLOAD_PRIVATE_DRAFT)
-  -> legends-yt-dlp CLI (inventory, plan, SHA-256 yt-dlp.conf preflight, paced run, ffprobe verify, GPU word ledgers & FFmpeg clips)
-```
-
-- **Why does calling `videos.update` directly often wipe a video's tags or description?** Per Google's `videos.update` specification, `snippet.title` and `snippet.categoryId` are mandatory whenever `part=snippet` is updated, and any mutable property inside `snippet` (`description`, `tags`, `defaultLanguage`, `defaultAudioLanguage`) omitted from the `PUT` body is deleted. `legends-youtube metadata-apply` fetches the live resource first, verifies its `ETag` (`If-Match`) and `expectedCurrent` values, merges all existing `snippet` fields with your planned changes, saves a rollback snapshot, and reads back the updated resource immediately after the write.
-- **How can I inventory a 500-video channel without burning my 10,000-unit daily quota?** Never use `search.list` (which costs 100 units per call and is capped at 100 calls/day under the 2026-06-01 granular enforcement). `legends-youtube channel-inventory` resolves `contentDetails.relatedPlaylists.uploads` (`1` unit) and paginates `playlistItems.list` + 50-ID batched `videos.list` calls (`2` units per 50 videos, or `21` total units for 500 videos).
-- **Can `legends-youtube` accidentally publish a video publicly during upload?** No. `draft-freeze` and `draft-upload` hard-lock `status.privacyStatus = "private"` and `notifySubscribers = false`, verify all four local asset SHA-256 digests (`video`, `title`, `description`, `thumbnail`) plus `plan_sha256`, and verify that the authenticated OAuth token owns the target `UC...` channel ID.
-
 ```sh
 python scripts/check_release.py
 python -m unittest discover -s tests -p "test_*.py" -v
@@ -213,17 +221,14 @@ See [docs/RELEASE.md](docs/RELEASE.md) and [CHANGELOG.md](CHANGELOG.md) for rele
 
 </details>
 
-## Contributing, security, and license
+## Start here
 
-See [CONTRIBUTING.md](CONTRIBUTING.md), [SUPPORT.md](SUPPORT.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md).
-
-MIT License. The project does not bundle or redistribute `yt-dlp.exe`; it downloads and checksum-verifies the official upstream release locally when requested. See [LICENSE](LICENSE), [NOTICE](NOTICE), [NOTICE.md](NOTICE.md), and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Not affiliated with, sponsored by, or endorsed by YouTube or Google LLC.
-
-[![Message Avalon Reset](assets/cards/r1/slot-7-message-avalon-reset.svg)](https://github.com/avalonreset/cto-legends/issues/new?title=Message%20for%20Avalon%20Reset&labels=message)
+Paste the [agent handoff block](#top) at the top of this page into your coding agent, let it wire the router, and describe the first channel audit, idea score, or verified `yt-dlp` archive batch you want to run.
 
 <p align="center"><a href="https://github.com/stars/avalonreset/lists/cto-legends"><img src="assets/cards/r1/slot-collection-star-shrine.svg" width="100%" alt="GitHub Star List: The complete cto-legends collection on one page. Bookmark or star the router and every module from a single GitHub list."></a></p>
 
-**Specification & benchmarks on cto-legends.com:**
-- **Module specification & architecture matrix:** [cto-legends.com/modules/legends-youtube](https://cto-legends.com/modules/legends-youtube)
-- **Related engineering dispatches:** [MCP vs CLI: The 46x Token Tax & Prompt-Cache Architecture](https://cto-legends.com/blog?post=mcp-vs-cli) · [AI Agent Governance: PreToolUse Kernel Gates & Context Compaction](https://cto-legends.com/blog?post=ai-agent-governance) · [Obsidian Second Brain: Markdown Knowledge Base Guide](https://cto-legends.com/blog?post=obsidian-second-brain-markdown-knowledge-base)
-- **Ecosystem hub:** [cto-legends.com/home](https://cto-legends.com/home)
+Running a media-backed company and want this workflow wired directly into your own studio and publishing stack? Message Avalon Reset at [cto-legends.com/dm](https://cto-legends.com/dm). The desk is async, so the conversation starts the moment you write.
+
+<p align="center"><a href="https://cto-legends.com/dm"><img src="assets/cards/r1/slot-7-message-avalon-reset.svg" width="100%" alt="Want this way of working applied to your own stack? Message Avalon Reset at cto-legends.com/dm"></a></p>
+
+See [CONTRIBUTING.md](CONTRIBUTING.md), [SUPPORT.md](SUPPORT.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md). MIT License. The project does not bundle or redistribute `yt-dlp.exe`; it downloads and checksum-verifies the official upstream release locally when requested. See [LICENSE](LICENSE), [NOTICE](NOTICE), [NOTICE.md](NOTICE.md), and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Not affiliated with, sponsored by, or endorsed by YouTube or Google LLC. Interactive specification: [cto-legends.com/modules/legends-youtube](https://cto-legends.com/modules/legends-youtube).
