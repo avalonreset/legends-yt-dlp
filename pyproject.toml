@@ -44,7 +44,8 @@ slayer = "legends_ytdlp.cli:main"
 printing-press = "legends_ytdlp.cli:main"
 
 [project.urls]
-Homepage = "https://cto-legends.com"
+Homepage = "https://cto-legends.com/modules/legends-youtube"
+Documentation = "https://cto-legends.com/modules/legends-youtube"
 Repository = "https://github.com/avalonreset/legends-youtube"
 Issues = "https://github.com/avalonreset/legends-youtube/issues"
 Changelog = "https://github.com/avalonreset/legends-youtube/blob/main/CHANGELOG.md"
